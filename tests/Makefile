@@ -4,7 +4,7 @@ LFLAGS=-lcmocka
 OBJ=../common.o
 TESTS=test_common
 
-.PHONY: all setup clean
+.PHONY: all setup clean format
 
 all: setup $(TESTS)
 
@@ -12,9 +12,14 @@ all: setup $(TESTS)
 setup:
 	make -C ../
 
-# For creating tests
+# Gerenic rule for creating tests
 %: %.c $(OBJ)
-	$(CC) $(CFLAGS) $^ -o $@ $(LFLAGS) -I../
+	$(CC) $(CFLAGS) $^ -o $@  -I../ $(LFLAGS)
 
+# Formatting source files
+format:
+	clang-format -style="{BasedOnStyle: WebKit, PointerAlignment: Right, ColumnLimit: 100}" -i *.c
+
+# Cleaning binaries
 clean:
 	rm -rf $(TESTS)

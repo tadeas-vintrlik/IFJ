@@ -4,7 +4,7 @@ LFLAGS=
 MAIN=main
 OBJ=$(MAIN).o common.o
 
-.PHONY: all debug debug_cflags clean test test_clean format
+.PHONY: all debug debug_cflags clean test test_clean test_run format
 
 all: $(MAIN)
 
@@ -19,6 +19,10 @@ test_clean:
 # Formatting test source files
 test_format:
 	make format -C ./tests
+
+# Run all the tets
+test_run:
+	make run -C ./tests
 
 # Debug build
 debug: clean debug_cflags all

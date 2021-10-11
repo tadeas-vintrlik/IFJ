@@ -4,17 +4,21 @@ LFLAGS=
 MAIN=main
 OBJ=$(MAIN).o common.o
 
-.PHONY: all debug debug_cflags clean test test_clean
+.PHONY: all debug debug_cflags clean test test_clean format
 
 all: $(MAIN)
 
-# For running tests
+# For building tests
 test: debug
 	make -C ./tests
 
 # For cleaning the test directory
 test_clean:
 	make clean -C ./tests
+
+# Formatting test source files
+test_format:
+	make format -C ./tests
 
 # Debug build
 debug: clean debug_cflags all
@@ -29,5 +33,10 @@ $(MAIN): $(OBJ)
 %.o: %.c
 	$(CC) $(CFLAGS) -c $<
 
+# Formatting source files
+format: test_format
+	clang-format -style="{BasedOnStyle: WebKit, PointerAlignment: Right, ColumnLimit: 100}" -i *.c *.h
+
+# Cleaning objects and binaries
 clean: test_clean
 	rm -rf $(OBJ) $(MAIN)

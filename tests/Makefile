@@ -4,9 +4,11 @@ LFLAGS=-lcmocka
 OBJ=../common.o
 TESTS=test_common
 
-.PHONY: all setup clean format
+.PHONY: all setup clean format run
 
 all: setup $(TESTS)
+run: setup $(TESTS)
+	./test*
 
 # For creating object files of units under test
 setup:

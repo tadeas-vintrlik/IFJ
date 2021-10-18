@@ -50,3 +50,12 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+
+# Vim-workflow stuff
+compile_commands.json
+tags
+.vimspector.json
+.vimspector.session
+.clang-format
+.cache

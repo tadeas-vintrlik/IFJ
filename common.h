@@ -6,6 +6,8 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
+#include <stdio.h>
+
 /**
  * @brief Stucture for storing the entire source file.
  * Inflatable array (vector) was used for implementation.
@@ -44,7 +46,7 @@ typedef enum rc {
 /**
  * @brief A marco for unified handling of allocation failure.
  */
-#define ALLOC_CHECK(x)                                                                            \
+#define ALLOC_CHECK(x)                                                                             \
     if (!x) {                                                                                      \
         fputs("Out of memory.", stderr);                                                           \
         fprintf(stderr, "Allocation in %s:%d failed.\n", __FILE__, __LINE__);                      \

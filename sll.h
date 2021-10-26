@@ -32,21 +32,21 @@ typedef struct sll {
 void sll_init(sll_s *list);
 
 /**
- * @brief Insert element into the list as new first element.
+ * @brief Insert element into the list as new head.
  *
  * @param[in/out] list The list where to insert the new element.
  * @param[in] data A generic pointer to the data to insert. Will be freed upon sll_destroy.
  */
-void sll_insert_first(sll_s *list, void *data);
+void sll_insert_head(sll_s *list, void *data);
 
 /**
- * @brief Delete the first element of the list.
+ * @brief Delete the head of the list.
  *
- * @note Does nothing when there was no first element. If first was active activity is lost.
+ * @note Does nothing when there was no head. If head was active activity is lost.
  *
- * @param[in/out] list List where to remove the first element.
+ * @param[in/out] list List where to remove the head.
  */
-void sll_delete_first(sll_s *list);
+void sll_delete_head(sll_s *list);
 
 /**
  * @brief Destructor for the Single Linked List structure.
@@ -56,7 +56,7 @@ void sll_delete_first(sll_s *list);
 void sll_destroy(sll_s *list);
 
 /**
- * @brief Set active element to the first element of the list.
+ * @brief Set active element to the head of the list.
  *
  * @param[in/out] list The list where to set active element in.
  */
@@ -107,11 +107,11 @@ void sll_insert_after(sll_s *list, void *data);
 void sll_delete_after(sll_s *list);
 
 /**
- * @brief Get the data of first element.
+ * @brief Get the data of head of the list.
  *
- * @return Gerenic pointer to the data of first element or NULL if empty.
+ * @return Gerenic pointer to the data of head of the list or NULL if empty.
  */
-void *sll_get_first(sll_s *list);
+void *sll_get_head(sll_s *list);
 
 /**
  * @brief Get the data of active element.

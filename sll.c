@@ -1,7 +1,7 @@
 /**
  * @file sll.c
  * @author Tadeas Vintrlik <xvintr04@stud.fit.vutbr.cz>
- * @brief Implementation of Singe Linked List ADT.
+ * @brief Implementation of Single Linked List ADT.
  */
 #include <stdbool.h>
 #include <stdio.h>
@@ -19,7 +19,7 @@ void sll_init(sll_s *list)
     list->active = NULL;
 }
 
-void sll_insert_first(sll_s *list, void *data)
+void sll_insert_head(sll_s *list, void *data)
 {
     sll_elem_s *new, *tmp;
 
@@ -38,7 +38,7 @@ void sll_insert_first(sll_s *list, void *data)
     new->next = tmp;
 }
 
-void sll_delete_first(sll_s *list)
+void sll_delete_head(sll_s *list)
 {
     sll_elem_s *deleted, *tmp = NULL;
 
@@ -52,7 +52,7 @@ void sll_delete_first(sll_s *list)
         list->active = NULL;
     }
     if (deleted) {
-        /* If there was a first element free it */
+        /* If there was a head free it */
         tmp = deleted->next;
         FREE(deleted->data);
     }
@@ -139,7 +139,7 @@ void sll_delete_after(sll_s *list)
     list->active->next = tmp;
 }
 
-void *sll_get_first(sll_s *list)
+void *sll_get_head(sll_s *list)
 {
     if (!list) {
         return NULL;

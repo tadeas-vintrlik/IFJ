@@ -12,23 +12,20 @@
 
 int main(void)
 {
-    char *line = NULL;
-    size_t read = 0;
-    source_file_s source;
+    int ch = '\0';
+    dynamic_string_s source;
 
-    sf_init(&source);
+    ds_init(&source);
 
-    while (getline(&line, &read, stdin) != EOF) {
-        sf_add_line(&source, line);
-        FREE(line);
-    }
-    FREE(line);
-
-    for (unsigned i = 0; i < source.no_lines; i++) {
-        printf("%s", source.line[i]);
+    while (ch != EOF) {
+        ch = getc(stdin);
+        ds_add_char(&source, ch);
     }
 
-    sf_destroy(&source);
+    for (unsigned i = 0; i < source.size; i++) {
+        printf("%c", source.line[i]);
+    }
+    ds_destroy(&source);
 
     return RC_OK;
 }

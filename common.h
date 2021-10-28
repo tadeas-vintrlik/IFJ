@@ -6,7 +6,16 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
-#include <stdio.h>
+/**
+ * @brief Structure for storing a string of
+ * (possibly) infinite length
+ *
+ */
+typedef struct dynamic_string {
+    char *line;
+    unsigned size;
+    unsigned limit;
+} dynamic_string_s;
 
 /**
  * @brief Stucture for storing the entire source file.
@@ -46,13 +55,36 @@ typedef enum rc {
 /**
  * @brief A marco for unified handling of allocation failure.
  */
-#define ALLOC_CHECK(x)                                                                             \
+#define ALLOCK_CHECK(x)                                                                            \
     if (!x) {                                                                                      \
         fputs("Out of memory.", stderr);                                                           \
         fprintf(stderr, "Allocation in %s:%d failed.\n", __FILE__, __LINE__);                      \
         exit(RC_INTERNAL_ERR);                                                                     \
     }
 
+/**
+ * @brief Initialize the dynamic_string structure.
+ *
+ * @param[in/out] dynamic_string Dynamic string to initialize.
+ */
+void ds_init(dynamic_string_s *dynamic_string);
+
+/**
+ * @brief Add a character to the end of dynamic string.
+ *
+ * @param[in/out] dynamic_string Dynamic string structure where the character c will be stored.
+ * @param[in] c character to add.
+ *
+ * @return RC_OK on success.
+ */
+rc_e ds_add_char(dynamic_string_s *dynamic_string, const char c);
+
+/**
+ * @brief Destructor for the dynamic_string structure.
+ *
+ * @param[in/out] source The structure to destroy.
+ */
+void ds_destroy(dynamic_string_s *dynamic_string);
 /**
  * @brief Initialization of the source_file structure.
  *

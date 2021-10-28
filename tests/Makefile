@@ -1,14 +1,14 @@
 CC=gcc
-CFLAGS=-std=c99 -Wall -Werror -Wextra -pedantic
+CFLAGS=-std=c99 -Wall -Werror -Wextra -pedantic -g
 LFLAGS=-lcmocka
-OBJ=../common.o
-TESTS=test_common
+OBJ=../common.o ../sll.o
+TESTS=test_common test_sll
 
 .PHONY: all setup clean format run
 
 all: setup $(TESTS)
 run: setup $(TESTS)
-	./test*
+	./test_run.sh
 
 # For creating object files of units under test
 setup:

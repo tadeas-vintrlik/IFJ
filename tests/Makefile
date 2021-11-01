@@ -1,8 +1,8 @@
 CC=gcc
 CFLAGS=-std=c99 -Wall -Werror -Wextra -pedantic -g
 LFLAGS=-lcmocka
-OBJ=../common.o ../sll.o ../scanner.o
-TESTS=test_common test_sll sc_tests/test_scanner1 sc_tests/test_scanner2 sc_tests/test_scanner3 sc_tests/test_scanner4 sc_tests/test_scanner5
+OBJ=../common.o ../sll.o ../scanner.o ../avl.o
+TESTS=test_common test_sll sc_tests/test_scanner1 sc_tests/test_scanner2 sc_tests/test_scanner3 sc_tests/test_scanner4 sc_tests/test_scanner5 test_avl
 
 .PHONY: all setup clean format run
 
@@ -12,7 +12,7 @@ run: setup $(TESTS)
 
 # For creating object files of units under test
 setup:
-	make -C ../
+	make debug -C ../
 
 # Gerenic rule for creating tests
 %: %.c $(OBJ)

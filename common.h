@@ -63,6 +63,16 @@ typedef enum rc {
     }
 
 /**
+ * @brief A macro for getting maximum of two numbers.
+ */
+#define MAX(a, b) (a > b ? a : b)
+
+/*
+ * @brief A macro for getting absolute value of a number.
+ */
+#define ABS(a) (a < 0 ? -a : a)
+
+/**
  * @brief Initialize the dynamic_string structure.
  *
  * @param[in,out] dynamic_string Dynamic string to initialize.
@@ -85,6 +95,7 @@ rc_e ds_add_char(dynamic_string_s *dynamic_string, const char c);
  * @param[in/out] source The structure to destroy.
  */
 void ds_destroy(dynamic_string_s *dynamic_string);
+
 /**
  * @brief Initialization of the source_file structure.
  *

@@ -1,8 +1,8 @@
 CC=gcc
 CFLAGS=-std=c99 -Wall -Werror -Wextra -pedantic -g
 LFLAGS=-lcmocka
-OBJ=../common.o ../sll.o
-TESTS=test_common test_sll
+OBJ=../common.o ../sll.o ../scanner.o
+TESTS=test_common test_sll test_scanner1
 
 .PHONY: all setup clean format run
 

@@ -7,8 +7,10 @@
 #include <string.h>
 
 int get_next_token(T_token *token)
-{
-    (void)token;
+{ // feel completely free to edit, just fake data to test a test
+    token->line = 1;
+    token->type = KEYWORD;
+    token->value = "hell";
     return 1;
     /* size_t lineSize = 0;
      char *line;

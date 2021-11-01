@@ -4,7 +4,7 @@
 /**
  * @brief Enum for different types of tokens.
  */
-typedef enum { ID, KEYWORD, DOUBLE } token_type;
+typedef enum { ID, KEYWORD, DOUBLE, LEFT_PAR, RIGHT_PAR, STRING, COMMA } token_type;
 
 /**
  * @brief Structure for storing a token
@@ -13,7 +13,7 @@ typedef struct Token {
     token_type type;
     char *value;
     int line;
-} * T_token;
+} T_token;
 /**
  * @brief Main function of scanner, returns a token
  * as a structure, returns a error code TODO

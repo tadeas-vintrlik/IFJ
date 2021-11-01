@@ -62,7 +62,7 @@ static void test_is_empty(void **state)
     assert_true(sll_is_empty(list));
 }
 
-static void test_insert_first(void **state)
+static void test_insert_head(void **state)
 {
     ts_s *ts = *state;
     sll_s *list = ts->list;
@@ -70,22 +70,22 @@ static void test_insert_first(void **state)
     first = strdup("World");
     second = strdup("Hello");
 
-    sll_insert_first(list, first);
+    sll_insert_head(list, first);
 
     /* It should not be empty anymore */
     assert_false(sll_is_empty(list));
     /* Check if storing the right value */
-    assert_string_equal(first, (char *)sll_get_first(list));
+    assert_string_equal(first, (char *)sll_get_head(list));
 
-    sll_insert_first(list, second);
+    sll_insert_head(list, second);
 
     /* It still should not be empty */
     assert_false(sll_is_empty(list));
     /* Check if inserted as new first */
-    assert_string_equal(second, (char *)sll_get_first(list));
+    assert_string_equal(second, (char *)sll_get_head(list));
 }
 
-static void test_delete_first(void **state)
+static void test_delete_head(void **state)
 {
     ts_s *ts = *state;
     sll_s *list = ts->list;
@@ -94,11 +94,11 @@ static void test_delete_first(void **state)
     assert_false(sll_is_empty(list));
 
     /* Delete first should not be empty */
-    sll_delete_first(list);
+    sll_delete_head(list);
     assert_false(sll_is_empty(list));
 
     /* Delete second should be empty */
-    sll_delete_first(list);
+    sll_delete_head(list);
     assert_true(sll_is_empty(list));
 }
 
@@ -123,7 +123,7 @@ static int setup_test_activate(void **state)
     char *first;
 
     first = strdup("World");
-    sll_insert_first(list, first);
+    sll_insert_head(list, first);
 
     return 0;
 }
@@ -139,7 +139,7 @@ static void test_activate(void **state)
     /* Now first should be active */
     sll_activate(list);
     assert_true(sll_is_active(list));
-    assert_int_equal(sll_get_active(list), sll_get_first(list));
+    assert_int_equal(sll_get_active(list), sll_get_head(list));
 }
 
 static int teardown_test_activate(void **state)
@@ -147,7 +147,7 @@ static int teardown_test_activate(void **state)
     ts_s *ts = *state;
     sll_s *list = ts->list;
 
-    sll_delete_first(list);
+    sll_delete_head(list);
     assert_true(sll_is_empty(list));
 
     return 0;
@@ -162,7 +162,7 @@ static void test_lose_activity(void **state)
     test_activate(state);
 
     /* Removing active should lead to losing activity */
-    sll_delete_first(list);
+    sll_delete_head(list);
     assert_false(sll_is_active(list));
     assert_true(sll_is_empty(list));
 }
@@ -179,9 +179,9 @@ static int setup_list_three(void **state)
     second = strdup("List");
     third = strdup("Hello");
 
-    sll_insert_first(list, first);
-    sll_insert_first(list, second);
-    sll_insert_first(list, third);
+    sll_insert_head(list, first);
+    sll_insert_head(list, second);
+    sll_insert_head(list, third);
 
     return 0;
 }
@@ -219,9 +219,9 @@ static int teardown_list_three(void **state)
     ts_s *ts = *state;
     sll_s *list = ts->list;
 
-    sll_delete_first(list);
-    sll_delete_first(list);
-    sll_delete_first(list);
+    sll_delete_head(list);
+    sll_delete_head(list);
+    sll_delete_head(list);
 
     assert_true(sll_is_empty(list));
 
@@ -273,8 +273,8 @@ int main(void)
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_init),
         cmocka_unit_test(test_is_empty),
-        cmocka_unit_test(test_insert_first),
-        cmocka_unit_test(test_delete_first),
+        cmocka_unit_test(test_insert_head),
+        cmocka_unit_test(test_delete_head),
         cmocka_unit_test(test_activate_empty),
         cmocka_unit_test_setup_teardown(test_activate, setup_test_activate, teardown_test_activate),
         cmocka_unit_test_setup(test_lose_activity, setup_test_activate),

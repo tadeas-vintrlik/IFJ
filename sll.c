@@ -68,7 +68,7 @@ void sll_destroy(sll_s *list)
     }
 
     while (list->head) {
-        sll_delete_first(list);
+        sll_delete_head(list);
     }
 
     /* Set the default values to the list */

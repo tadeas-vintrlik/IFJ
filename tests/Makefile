@@ -24,4 +24,4 @@ format:
 
 # Cleaning binaries
 clean:
-	rm -rf $(TESTS)
+	rm -rf $(TESTS) *.dSYM

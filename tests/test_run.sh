@@ -2,7 +2,7 @@
 echo "$0"
 for file in $(ls -A)
 do
-    if [ -x "$file" ] && [ "$file" != "test_run.sh" ]
+    if [ -f "$file" ]&&[ -x "$file" ]&&[ "$file" != "test_run.sh" ]
     then
         echo "=== Running $file ==="
         ./"$file"

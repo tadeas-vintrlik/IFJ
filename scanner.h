@@ -60,11 +60,11 @@ typedef struct Token {
 } T_token;
 /**
  * @brief Main function of scanner, returns a token
- * as a structure, returns a error code TODO
+ * as a structure, returns an error code.
  *
  * @param[in/out] token Token structure for storing information about tokens.
  *
- * @return int Error value TODO.
+ * @return int Error value.
  */
 int get_next_token(T_token *token);
 #endif

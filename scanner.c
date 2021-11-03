@@ -77,7 +77,7 @@ int get_next_token(T_token *token)
                 state = STATE_ID_OR_KEYWORD;
             }
             // with whitespaces we go back to start
-            else if (c == '\n' || c == '\t' || c == ' ' || c == EOF) {
+            else if (c == '\n' || c == '\t' || c == '\r' || c == ' ' || c == EOF) {
                 if (c == '\n') {
                     curr_line++;
                     token->line = curr_line;

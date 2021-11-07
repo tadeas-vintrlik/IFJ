@@ -10,7 +10,6 @@
 /**
  * @brief Structure for storing a string of
  * (possibly) infinite length
- *
  */
 typedef struct dynamic_string
 {
@@ -70,14 +69,14 @@ typedef enum rc
 /**
  * @brief Initialize the dynamic_string structure.
  *
- * @param[in/out] dynamic_string Dynamic string to initialize.
+ * @param[in,out] dynamic_string Dynamic string to initialize.
  */
 void ds_init(dynamic_string_s *dynamic_string);
 
 /**
  * @brief Add a character to the end of dynamic string.
  *
- * @param[in/out] dynamic_string Dynamic string structure where the character c will be stored.
+ * @param[in,out] dynamic_string Dynamic string structure where the character c will be stored.
  * @param[in] c character to add.
  *
  * @return RC_OK on success.
@@ -93,14 +92,14 @@ void ds_destroy(dynamic_string_s *dynamic_string);
 /**
  * @brief Initialization of the source_file structure.
  *
- * @param[in/out] source The structure to initialize.
+ * @param[in,out] source The structure to initialize.
  */
 void sf_init(source_file_s *source);
 
 /**
  * @brief Add a line of source code to the structure.
  *
- * @param[in/out] source The structure where to add the line.
+ * @param[in,out] source The structure where to add the line.
  * @param[in] line The line to add.
  *
  * @return RC_OK on success.
@@ -111,7 +110,7 @@ rc_e sf_add_line(source_file_s *source, const char *line);
 /**
  * @brief Destructor for the source_file sturcture.
  *
- * @param[in/out] source The structure to destroy.
+ * @param[in,out] source The structure to destroy.
  */
 void sf_destroy(source_file_s *source);
 

@@ -17,10 +17,6 @@
 
 #define GET_VALUE(x) (*(int *)x->value)
 #define CAST_INT(x) (*(int *)x)
-#define ALLOC_KEY(id, val)                                                                         \
-    id = malloc(strlen(id) * sizeof *id);                                                          \
-    assert_non_null(val);                                                                          \
-    strcpy(id, val);
 
 typedef struct test_state {
     avl_node_s *node;
@@ -79,7 +75,6 @@ static void test_insert(void **state)
 {
     ts_s *ts = *state;
     int *data = malloc(sizeof *data);
-    char *key;
 
     /* Check test preconditions */
     assert_non_null(data);
@@ -87,8 +82,7 @@ static void test_insert(void **state)
 
     /* Insert a node */
     *data = 5;
-    ALLOC_KEY(key, "5");
-    avl_insert(&ts->node, key, data);
+    avl_insert(&ts->node, "5", data);
 
     /* Check if inserted correctly */
     assert_non_null(ts->node);
@@ -103,19 +97,16 @@ static void test_insert(void **state)
 static void test_insert_order(void **state)
 {
     ts_s *ts = *state;
-    char *key;
 
     /* Should get inserted on the left - balance checked accordingly */
-    ALLOC_KEY(key, "4");
-    avl_insert(&ts->node, key, NULL);
+    avl_insert(&ts->node, "4", NULL);
     assert_non_null(ts->node->left);
     assert_null(ts->node->right);
     assert_int_equal(avl_node_get_balance(ts->node), -1);
     assert_string_equal(ts->node->left->key, "4");
 
     /* Should get inserted on the right - should be balanced again */
-    ALLOC_KEY(key, "6");
-    avl_insert(&ts->node, key, NULL);
+    avl_insert(&ts->node, "6", NULL);
     assert_non_null(ts->node->left);
     assert_non_null(ts->node->right);
     assert_int_equal(avl_node_get_balance(ts->node), 0);
@@ -142,10 +133,7 @@ static void test_search(void **state)
 
     /* Try finding a non-existent key */
     assert_false(avl_search(ts->node, "12", NULL));
-
-    /* Out param should be set to NULL if key was not found */
     assert_false(avl_search(ts->node, "3", &value));
-    assert_null(value);
 
     /* Try finding both children */
     assert_true(avl_search(ts->node, "4", NULL));
@@ -163,7 +151,7 @@ static void test_delete_nonexistant(void **state)
      */
 
     /* Deleting a non-existant key should change nothing and return false */
-    assert_false(avl_delete(&ts->node, "12"));
+    assert_false(avl_delete(&ts->node, "12", NULL));
     assert_non_null(ts->node);
     assert_non_null(ts->node->left);
     assert_non_null(ts->node->right);
@@ -172,7 +160,6 @@ static void test_delete_nonexistant(void **state)
 static void test_delete_terminal(void **state)
 {
     ts_s *ts = *state;
-    char *key;
 
     /*
      *    |- 6
@@ -181,7 +168,7 @@ static void test_delete_terminal(void **state)
      */
 
     /* Delete left child - check if left and balanced have changed accordingly */
-    assert_true(avl_delete(&ts->node, "4"));
+    assert_true(avl_delete(&ts->node, "4", NULL));
     assert_null(ts->node->left);
     assert_int_equal(avl_node_get_balance(ts->node), 1);
 
@@ -192,14 +179,12 @@ static void test_delete_terminal(void **state)
      */
 
     /* Reinsert it back */
-    ALLOC_KEY(key, "4");
-    avl_insert(&ts->node, key, NULL);
+    avl_insert(&ts->node, "4", NULL);
 }
 
 static void test_delete_one_child(void **state)
 {
     ts_s *ts = *state;
-    char *key;
 
     /*
      *    |- 6
@@ -208,8 +193,7 @@ static void test_delete_one_child(void **state)
      */
 
     /* Insert another node */
-    ALLOC_KEY(key, "3");
-    avl_insert(&ts->node, key, NULL);
+    avl_insert(&ts->node, "3", NULL);
     assert_string_equal(ts->node->left->left->key, "3");
     assert_int_equal(avl_node_get_balance(ts->node), -1);
 
@@ -221,7 +205,7 @@ static void test_delete_one_child(void **state)
      */
 
     /* Delete node with key 4 to check if node with key 3 is relinked correctly */
-    assert_true(avl_delete(&ts->node, "4"));
+    assert_true(avl_delete(&ts->node, "4", NULL));
     assert_string_equal(ts->node->left->key, "3");
     assert_int_equal(avl_node_get_balance(ts->node), 0);
 
@@ -243,7 +227,7 @@ static void test_delete_two_children(void **state)
      */
 
     /* Try deleting the root */
-    assert_true(avl_delete(&ts->node, "5"));
+    assert_true(avl_delete(&ts->node, "5", NULL));
 
     /*
      *    |- 6
@@ -260,7 +244,6 @@ static void test_delete_two_children(void **state)
 static void test_insert_rebalance(void **state)
 {
     ts_s *ts = *state;
-    char *key;
 
     /*
      *    |- 6
@@ -269,11 +252,9 @@ static void test_insert_rebalance(void **state)
 
     assert_int_equal(avl_node_get_balance(ts->node), 1);
 
-    ALLOC_KEY(key, "2");
-    avl_insert(&ts->node, key, NULL);
+    avl_insert(&ts->node, "2", NULL);
     assert_int_equal(avl_node_get_balance(ts->node), 0);
-    ALLOC_KEY(key, "1");
-    avl_insert(&ts->node, key, NULL);
+    avl_insert(&ts->node, "1", NULL);
     assert_int_equal(avl_node_get_balance(ts->node), -1);
 
     /*
@@ -283,8 +264,7 @@ static void test_insert_rebalance(void **state)
      *          |- 1
      */
 
-    ALLOC_KEY(key, "0");
-    avl_insert(&ts->node, key, NULL);
+    avl_insert(&ts->node, "0", NULL);
 
     /*
      *    |- 6
@@ -321,7 +301,7 @@ static void test_delete_rebalace(void **state)
      *          |- 0
      */
 
-    assert_true(avl_delete(&ts->node, "6"));
+    assert_true(avl_delete(&ts->node, "6", NULL));
 
     /* This should cause rebalancing...
      * 3 -|     |- 2
@@ -352,7 +332,7 @@ static void test_rl_rotate(void **state)
      *    |- 0
      */
 
-    assert_true(avl_delete(&ts->node, "0"));
+    assert_true(avl_delete(&ts->node, "0", NULL));
 
     /* This should cause rebalancing...
      *    |- 3 -|
@@ -375,7 +355,7 @@ static void test_destroy(void **state)
     ts_s *ts = *state;
 
     assert_non_null(ts->node);
-    avl_destroy(&ts->node);
+    avl_destroy(&ts->node, NULL);
     assert_null(ts->node);
 }
 

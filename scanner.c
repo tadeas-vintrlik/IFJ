@@ -67,6 +67,16 @@ int unget_token(T_token *token)
     }
 }
 
+void token_destroy(T_token *token)
+{
+    if (!token) {
+        return;
+    }
+    ds_destroy(token->value);
+    FREE(token->value);
+    FREE(token);
+}
+
 int get_next_token(T_token *token)
 {
     if (held_token != NULL) {

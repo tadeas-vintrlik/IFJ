@@ -46,11 +46,26 @@ typedef enum rc {
 } rc_e;
 
 /**
+ * @brief Destructor for the data found inside a generic ADT.
+ */
+typedef void (*destructor)(void *);
+
+/**
  * @brief A macro for better freeing to avoid double frees.
  */
 #define FREE(x)                                                                                    \
     free(x);                                                                                       \
     x = NULL;
+
+/**
+ * @brief Free callback that calls the correct destructor for a generic ADT.
+ */
+#define FREE_VALUE(x, destructor)                                                                  \
+    if (!destructor) {                                                                             \
+        FREE(x->value);                                                                            \
+    } else {                                                                                       \
+        (*destructor)(x->value);                                                                   \
+    }
 
 /**
  * @brief A marco for unified handling of allocation failure.
@@ -71,6 +86,15 @@ typedef enum rc {
  * @brief A macro for getting absolute value of a number.
  */
 #define ABS(a) (a < 0 ? -a : a)
+
+/**
+ * @brief Duplicates the @p str.
+ *
+ * @param[in] str The string to duplicate.
+ *
+ * @return Pointer to a new string. NULL if memory allocation error.
+ */
+char *my_strdup(const char *str);
 
 /**
  * @brief Initialize the dynamic_string structure.

@@ -6,12 +6,8 @@
  * Most of the source was taken from mine (Tadeas Vintrlik) binary search tree implementation
  * in the second IAL homework. Modifications were made to match the AVL tree specification.
  */
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 #include "avl.h"
-#include "common.h"
 
 /**
  * @brief Enumeration type to determine side of the imbalance.
@@ -227,7 +223,7 @@ void avl_init(avl_node_s **node)
     *node = NULL;
 }
 
-void avl_insert(avl_node_s **node, char *key, void *value)
+void avl_insert(avl_node_s **node, const char *key, void *value)
 {
     avl_node_s *new = NULL;
     int cmp;
@@ -235,7 +231,9 @@ void avl_insert(avl_node_s **node, char *key, void *value)
     if (!*node) {
         /* Node with given key not found - Allocate new node */
         new = malloc(sizeof *new);
-        new->key = key;
+        ALLOC_CHECK(new);
+        new->key = my_strdup(key);
+        ALLOC_CHECK(key);
         new->value = value;
         new->left = NULL;
         new->right = NULL;
@@ -266,9 +264,6 @@ bool avl_search(avl_node_s *node, const char *key, void **value)
 
     if (!node) {
         /* Empty tree */
-        if (value) {
-            *value = NULL;
-        }
         return false;
     }
 
@@ -293,28 +288,30 @@ bool avl_search(avl_node_s *node, const char *key, void **value)
  *
  * @param target The node to replace by the rightmost.
  * @param node AVL Tree where to find the rightmost node in.
+ * @param destructor Free callback.
  */
-static void avl_replace_by_rightmost(avl_node_s *target, avl_node_s **node)
+static void avl_replace_by_rightmost(avl_node_s *target, avl_node_s **node, destructor destructor)
 {
     avl_node_s *left = NULL;
 
     if (!(*node)->right) {
         /* Found the rightmost node - replace it */
-        target->key = strdup((*node)->key);
+        FREE(target->key);
+        FREE_VALUE(target, destructor);
+        target->key = (*node)->key;
         target->value = (*node)->value;
         target->height--;
 
         /* Link the left subtree of the rightmost node to the parent */
         left = (*node)->left;
-        FREE((*node)->key);
         FREE(*node);
         *node = left;
         return;
     }
-    avl_replace_by_rightmost(target, &(*node)->right);
+    avl_replace_by_rightmost(target, &(*node)->right, destructor);
 }
 
-bool avl_delete(avl_node_s **node, const char *key)
+bool avl_delete(avl_node_s **node, const char *key, destructor destructor)
 {
     avl_node_s *tmp = NULL;
     bool ret;
@@ -328,14 +325,14 @@ bool avl_delete(avl_node_s **node, const char *key)
     cmp = strcmp(key, (*node)->key);
     if (cmp < 0) {
         /* Search in left subtree */
-        if ((ret = avl_delete(&(*node)->left, key))) {
+        if ((ret = avl_delete(&(*node)->left, key, destructor))) {
             (*node)->height--;
             avl_rebalance(node);
         }
         return ret;
     } else if (cmp > 0) {
         /* Search in right subtree */
-        if ((ret = avl_delete(&(*node)->right, key))) {
+        if ((ret = avl_delete(&(*node)->right, key, destructor))) {
             (*node)->height--;
             avl_rebalance(node);
         }
@@ -346,6 +343,7 @@ bool avl_delete(avl_node_s **node, const char *key)
         if (!(*node)->left && !(*node)->right) {
             /* Terminal node */
             FREE((*node)->key);
+            FREE_VALUE((*node), destructor);
             FREE(*node);
             *node = NULL;
         }
@@ -354,6 +352,7 @@ bool avl_delete(avl_node_s **node, const char *key)
             /* Has only left child */
             tmp = (*node)->left;
             FREE((*node)->key);
+            FREE_VALUE((*node), destructor);
             FREE(*node);
             *node = tmp;
         }
@@ -362,20 +361,21 @@ bool avl_delete(avl_node_s **node, const char *key)
             /* Has only right child */
             tmp = (*node)->right;
             FREE((*node)->key);
+            FREE_VALUE((*node), destructor);
             FREE(*node);
             *node = tmp;
         }
 
         else {
             /* Has both children */
-            avl_replace_by_rightmost(*node, &(*node)->left);
+            avl_replace_by_rightmost(*node, &(*node)->left, destructor);
         }
 
         return true;
     }
 }
 
-void avl_destroy(avl_node_s **node)
+void avl_destroy(avl_node_s **node, destructor destructor)
 {
 
     /* Check for pointers */
@@ -384,6 +384,6 @@ void avl_destroy(avl_node_s **node)
     }
 
     while (*node) {
-        avl_delete(node, (*node)->key);
+        avl_delete(node, (*node)->key, destructor);
     }
 }

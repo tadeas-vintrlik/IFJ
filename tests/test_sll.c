@@ -38,7 +38,7 @@ static int local_teardown(void **state)
 {
     ts_s *ts = *state;
     sll_s *list = ts->list;
-    sll_destroy(list);
+    sll_destroy(list, true);
     free(ts->list);
     free(ts);
     return 0;
@@ -94,11 +94,11 @@ static void test_delete_head(void **state)
     assert_false(sll_is_empty(list));
 
     /* Delete first should not be empty */
-    sll_delete_head(list);
+    sll_delete_head(list, true);
     assert_false(sll_is_empty(list));
 
     /* Delete second should be empty */
-    sll_delete_head(list);
+    sll_delete_head(list, true);
     assert_true(sll_is_empty(list));
 }
 
@@ -147,7 +147,7 @@ static int teardown_test_activate(void **state)
     ts_s *ts = *state;
     sll_s *list = ts->list;
 
-    sll_delete_head(list);
+    sll_delete_head(list, true);
     assert_true(sll_is_empty(list));
 
     return 0;
@@ -162,7 +162,7 @@ static void test_lose_activity(void **state)
     test_activate(state);
 
     /* Removing active should lead to losing activity */
-    sll_delete_head(list);
+    sll_delete_head(list, true);
     assert_false(sll_is_active(list));
     assert_true(sll_is_empty(list));
 }
@@ -219,9 +219,9 @@ static int teardown_list_three(void **state)
     ts_s *ts = *state;
     sll_s *list = ts->list;
 
-    sll_delete_head(list);
-    sll_delete_head(list);
-    sll_delete_head(list);
+    sll_delete_head(list, true);
+    sll_delete_head(list, true);
+    sll_delete_head(list, true);
 
     assert_true(sll_is_empty(list));
 
@@ -251,11 +251,11 @@ static void test_after(void **state)
     assert_string_equal("!", (char *)sll_get_after(list));
 
     /* Delete element after active, active is last yet again */
-    sll_delete_after(list);
+    sll_delete_after(list, true);
     assert_null(sll_get_after(list));
 
     /* Delete after active when there is no such element should do nothing */
-    sll_delete_after(list);
+    sll_delete_after(list, true);
     assert_null(sll_get_after(list));
 
     /* Lose activity, check if functions handle it okay */
@@ -265,7 +265,7 @@ static void test_after(void **state)
 
     assert_null(sll_get_after(list));
     sll_insert_after(list, data);
-    sll_delete_after(list);
+    sll_delete_after(list, true);
 }
 
 int main(void)

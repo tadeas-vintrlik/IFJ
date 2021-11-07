@@ -70,6 +70,7 @@ typedef struct Token {
 } T_token;
 
 /**
+<<<<<<< HEAD
  * @brief Main function of scanner, returns a token
  * as a structure, returns an error code.
  *
@@ -87,4 +88,12 @@ int get_next_token(T_token *token);
  * @return int Error code.
  */
 int unget_token(T_token *token);
+
+/**
+ * @brief A desctructor for the token type. Frees all allocated memory.
+ *
+ * @param token The token to free.
+ */
+void token_destroy(T_token *token);
+
 #endif

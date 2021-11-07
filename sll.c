@@ -3,11 +3,7 @@
  * @author Tadeas Vintrlik <xvintr04@stud.fit.vutbr.cz>
  * @brief Implementation of Single Linked List ADT.
  */
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
 
-#include "common.h"
 #include "sll.h"
 
 void sll_init(sll_s *list)
@@ -19,7 +15,7 @@ void sll_init(sll_s *list)
     list->active = NULL;
 }
 
-void sll_insert_head(sll_s *list, void *data)
+void sll_insert_head(sll_s *list, void *value)
 {
     sll_elem_s *new, *tmp;
 
@@ -34,11 +30,11 @@ void sll_insert_head(sll_s *list, void *data)
     list->head = new;
 
     /* Set element attributes */
-    new->data = data;
+    new->value = value;
     new->next = tmp;
 }
 
-void sll_delete_head(sll_s *list)
+void sll_delete_head(sll_s *list, bool destroy)
 {
     sll_elem_s *deleted, *tmp = NULL;
 
@@ -54,21 +50,23 @@ void sll_delete_head(sll_s *list)
     if (deleted) {
         /* If there was a head free it */
         tmp = deleted->next;
-        FREE(deleted->data);
+        if (destroy) {
+            FREE(deleted->value);
+        }
     }
 
     FREE(deleted); /* Free on null does nothing */
     list->head = tmp;
 }
 
-void sll_destroy(sll_s *list)
+void sll_destroy(sll_s *list, bool destory)
 {
     if (!list) {
         return;
     }
 
     while (list->head) {
-        sll_delete_head(list);
+        sll_delete_head(list, destory);
     }
 
     /* Set the default values to the list */
@@ -100,7 +98,7 @@ void sll_next(sll_s *list)
     list->active = list->active->next;
 }
 
-void sll_insert_after(sll_s *list, void *data)
+void sll_insert_after(sll_s *list, void *value)
 {
     sll_elem_s *new;
 
@@ -113,13 +111,13 @@ void sll_insert_after(sll_s *list, void *data)
     }
     new = malloc(sizeof *new);
     ALLOC_CHECK(new);
-    new->data = data;
+    new->value = value;
     new->next = list->active->next;
 
     list->active->next = new;
 }
 
-void sll_delete_after(sll_s *list)
+void sll_delete_after(sll_s *list, bool destroy)
 {
     sll_elem_s *tmp;
 
@@ -134,7 +132,9 @@ void sll_delete_after(sll_s *list)
     }
 
     tmp = list->active->next->next;
-    FREE(list->active->next->data);
+    if (destroy) {
+        FREE(list->active->next->value);
+    }
     FREE(list->active->next);
     list->active->next = tmp;
 }
@@ -147,7 +147,7 @@ void *sll_get_head(sll_s *list)
     if (!list->head) {
         return NULL;
     }
-    return list->head->data;
+    return list->head->value;
 }
 
 void *sll_get_active(sll_s *list)
@@ -159,7 +159,7 @@ void *sll_get_active(sll_s *list)
         return NULL;
     }
 
-    return list->active->data;
+    return list->active->value;
 }
 
 void *sll_get_after(sll_s *list)
@@ -174,5 +174,5 @@ void *sll_get_after(sll_s *list)
         return NULL;
     }
 
-    return list->active->next->data;
+    return list->active->next->value;
 }

@@ -4,12 +4,23 @@
  * @author Jakub Kozubek <xkozub07@stud.fit.vutbr.cz>
  * @brief Common functions used in the entire project.
  */
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "common.h"
+
+char *my_strdup(const char *str)
+{
+    int len = strlen(str);
+    char *new = malloc((len + 1) * sizeof *new);
+    if (!new) {
+        return NULL;
+    }
+    strcpy(new, str);
+    new[len + 1] = '\0';
+    return new;
+}
 
 void ds_init(dynamic_string_s *dynamic_string)
 {
@@ -66,7 +77,7 @@ rc_e sf_add_line(source_file_s *source, const char *line)
     }
 
     /* Duplicate string and place the duplicate in the structure */
-    dup = strdup(line);
+    dup = my_strdup(line);
     ALLOC_CHECK(dup);
     source->line[source->no_lines++] = dup;
     return RC_OK;

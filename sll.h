@@ -7,12 +7,16 @@
 #define _SLL_H_
 
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "common.h"
 
 /**
  * @brief Single Linked List element structure.
  */
 typedef struct sll_elem {
-    void *data;
+    void *value;
     struct sll_elem *next;
 } sll_elem_s;
 
@@ -35,9 +39,9 @@ void sll_init(sll_s *list);
  * @brief Insert element into the list as new head.
  *
  * @param[in/out] list The list where to insert the new element.
- * @param[in] data A generic pointer to the data to insert. Will be freed upon sll_destroy.
+ * @param[in] value A generic pointer to the value to insert. Will be freed upon sll_destroy.
  */
-void sll_insert_head(sll_s *list, void *data);
+void sll_insert_head(sll_s *list, void *value);
 
 /**
  * @brief Delete the head of the list.
@@ -45,15 +49,17 @@ void sll_insert_head(sll_s *list, void *data);
  * @note Does nothing when there was no head. If head was active activity is lost.
  *
  * @param[in/out] list List where to remove the head.
+ * @param[in] destroy Whether to call FREE on value or no.
  */
-void sll_delete_head(sll_s *list);
+void sll_delete_head(sll_s *list, bool destroy);
 
 /**
  * @brief Destructor for the Single Linked List structure.
  *
  * @param[in/out] list
+ * @param[in] destroy Whether to call FREE on value or no.
  */
-void sll_destroy(sll_s *list);
+void sll_destroy(sll_s *list, bool destroy);
 
 /**
  * @brief Set active element to the head of the list.
@@ -93,9 +99,9 @@ void sll_next(sll_s *list);
  * @note If the list was not active nothing will happen.
  *
  * @param[in/out] list List where to insert the new element.
- * @param[in] data A generic pointer to the new data.
+ * @param[in] value A generic pointer to the new value.
  */
-void sll_insert_after(sll_s *list, void *data);
+void sll_insert_after(sll_s *list, void *value);
 
 /**
  * @brief Delete element after the active element in the list.
@@ -103,28 +109,29 @@ void sll_insert_after(sll_s *list, void *data);
  * @note If the list was not active or activity is on the last element noting will happen.
  *
  * @param[in/out] list List where to delete the element.
+ * @param[in] destroy Whether to call FREE on value or no.
  */
-void sll_delete_after(sll_s *list);
+void sll_delete_after(sll_s *list, bool destroy);
 
 /**
- * @brief Get the data of head of the list.
+ * @brief Get the value of head of the list.
  *
- * @return Gerenic pointer to the data of head of the list or NULL if empty.
+ * @return Gerenic pointer to the value of head of the list or NULL if empty.
  */
 void *sll_get_head(sll_s *list);
 
 /**
- * @brief Get the data of active element.
+ * @brief Get the value of active element.
  *
- * @return Gerenic pointer to the data of active element or NULL if not active.
+ * @return Gerenic pointer to the value of active element or NULL if not active.
  */
 void *sll_get_active(sll_s *list);
 
 /**
- * @brief Get the the data of element after active.
+ * @brief Get the the value of element after active.
  *
- * @return Gerenic pointer to the data element after active or NULL if not active or no next.
+ * @return Gerenic pointer to the value element after active or NULL if not active or no next.
  */
 void *sll_get_after(sll_s *list);
 
-#endif
+#endif /* _SLL_H */

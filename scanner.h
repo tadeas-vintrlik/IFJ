@@ -1,3 +1,10 @@
+/**
+ * @file scanner.h
+ * @author Josef Škorpík <xskorp07@stud.fit.vutbr.cz>
+ * @author Jakub Kozubek <xkozub07@stud.fit.vutbr.cz>
+ * @brief Interface for scanner.
+ */
+
 #include "common.h"
 
 #ifndef _SCANNER_H_
@@ -32,6 +39,9 @@ typedef enum {
     TOKEN_EOF
 } token_type;
 
+/**
+ * @brief Enum for all the keywords.
+ */
 typedef enum {
     DO,
     ELSE,
@@ -58,6 +68,7 @@ typedef struct Token {
     dynamic_string_s *value;
     int line;
 } T_token;
+
 /**
  * @brief Main function of scanner, returns a token
  * as a structure, returns an error code.

@@ -1,4 +1,9 @@
-
+/**
+ * @file scanner.c
+ * @author Josef Škorpík <xskorp07@stud.fit.vutbr.cz>
+ * @author Kryštof Albrecht <xalbre05@stud.fit.vutbr.cz>
+ * @brief Scanner implementation.
+ */
 
 #include <ctype.h>
 #define _GNU_SOURCE
@@ -38,13 +43,13 @@ typedef enum {
 
 } State;
 
-bool is_keyword(char *word)
+static bool is_keyword(char *word)
 {
     char *keywords[] = { "do", "else", "end", "function", "global", "if", "integer", "local", "nil",
         "number", "require", "return", "string", "then", "while" };
 
     for (int i = 0; i < 15; i++) {
-        if (strcmp(word, keywords[i]) == 0) {
+        if (!strcmp(word, keywords[i])) {
             return true;
         }
     }

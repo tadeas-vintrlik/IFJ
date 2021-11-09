@@ -1,6 +1,7 @@
 /**
  * @file common.c
  * @author Tadeas Vintrlik <xvintr04@stud.fit.vutbr.cz>
+ * @author Jakub Kozubek <xkozub07@stud.fit.vutbr.cz>
  * @brief Common functions used in the entire project.
  */
 #define _GNU_SOURCE
@@ -9,6 +10,36 @@
 #include <string.h>
 
 #include "common.h"
+
+void ds_init(dynamic_string_s *dynamic_string)
+{
+    dynamic_string->limit = 32;
+    dynamic_string->content = calloc(dynamic_string->limit, sizeof(char));
+    ALLOC_CHECK(dynamic_string->content);
+    dynamic_string->size = 0;
+}
+
+rc_e ds_add_char(dynamic_string_s *dynamic_string, const char c)
+{
+    /* Realloc line if not enough */
+    if (dynamic_string->limit == dynamic_string->size) {
+        dynamic_string->limit = 2 * dynamic_string->limit;
+        dynamic_string->content = realloc(dynamic_string->content, dynamic_string->limit);
+        ALLOC_CHECK(dynamic_string->content);
+    }
+
+    /* Duplicate string and place the duplicate in the structure */
+
+    dynamic_string->content[dynamic_string->size++] = c;
+    return RC_OK;
+}
+
+void ds_destroy(dynamic_string_s *dynamic_string)
+{
+    FREE(dynamic_string->content);
+    dynamic_string->limit = 0;
+    dynamic_string->size = 0;
+}
 
 void sf_init(source_file_s *source)
 {
@@ -49,4 +80,78 @@ void sf_destroy(source_file_s *source)
     FREE(source->line);
     source->limit = 0;
     source->no_lines = 0;
+}
+void printer(int value)
+{
+    switch (value) {
+    case 0:
+        printf("ID ");
+        return;
+    case 1:
+        printf("KEYWORD ");
+        return;
+    case 2:
+        printf("INT ");
+        return;
+    case 3:
+        printf("NUMBER ");
+        return;
+    case 4:
+        printf("STRING ");
+        return;
+    case 5:
+        printf("EQUAL ");
+        return;
+    case 6:
+        printf("DECLAR ");
+        return;
+    case 7:
+        printf("LESS_THAN ");
+        return;
+    case 8:
+        printf("LESS_EQUAL_THAN ");
+        return;
+    case 9:
+        printf("GREATER_THAN ");
+        return;
+    case 10:
+        printf("GREATER_EQUAL_THAN ");
+        return;
+    case 11:
+        printf("DIVISION ");
+        return;
+    case 12:
+        printf("FLOOR_DIVISION ");
+        return;
+    case 13:
+        printf("MUL ");
+        return;
+    case 14:
+        printf("SUB ");
+        return;
+    case 15:
+        printf("NOT_EQUAL_TO ");
+        return;
+    case 16:
+        printf("ADD ");
+        return;
+    case 17:
+        printf("STRING_LENGTH ");
+        return;
+    case 18:
+        printf("LEFT_BRACKET ");
+        return;
+    case 19:
+        printf("RIGHT_BRACKET ");
+        return;
+    case 20:
+        printf("COMMA ");
+        return;
+    case 21:
+        printf("COLON ");
+        return;
+    case 22:
+        printf("EOF ");
+        return;
+    }
 }

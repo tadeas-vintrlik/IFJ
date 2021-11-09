@@ -1,12 +1,21 @@
 /**
  * @file common.h
  * @author Tadeas Vintrlik <xvintr04@stud.fit.vutbr.cz>
+ * @author Jakub Kozubek <xkozub07@stud.fit.vutbr.cz>
  * @brief Header for common functions used in the entire project.
  */
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
-#include <stdio.h>
+/**
+ * @brief Structure for storing a string of
+ * (possibly) infinite length
+ */
+typedef struct dynamic_string {
+    char *content;
+    unsigned size;
+    unsigned limit;
+} dynamic_string_s;
 
 /**
  * @brief Stucture for storing the entire source file.
@@ -28,7 +37,7 @@ typedef enum rc {
     RC_SEM_UNDEF_ERR = 3, /*<< Semantic errror -undefined function/variable or redefine */
     RC_SEM_ASSIGN_ERR = 4, /*<< Semantic error - assignment type incompatibilty */
     RC_SEM_CALL_ERR = 5, /*<< Semantic error - wrong number or type of
-                            paramaters or return values */
+                        paramaters or return values */
     RC_SEM_EXP_ERR = 6, /*<< Semantic error - wrong type compatibility in expressions */
     RC_SEM_OTHER_ERR = 7, /*<< Semantic error - other */
     RC_RUN_NIL_ERR = 8, /*<< Run error - unexpected nil */
@@ -54,16 +63,39 @@ typedef enum rc {
     }
 
 /**
+ * @brief Initialize the dynamic_string structure.
+ *
+ * @param[in,out] dynamic_string Dynamic string to initialize.
+ */
+void ds_init(dynamic_string_s *dynamic_string);
+
+/**
+ * @brief Add a character to the end of dynamic string.
+ *
+ * @param[in,out] dynamic_string Dynamic string structure where the character c will be stored.
+ * @param[in] c character to add.
+ *
+ * @return RC_OK on success.
+ */
+rc_e ds_add_char(dynamic_string_s *dynamic_string, const char c);
+
+/**
+ * @brief Destructor for the dynamic_string structure.
+ *
+ * @param[in/out] source The structure to destroy.
+ */
+void ds_destroy(dynamic_string_s *dynamic_string);
+/**
  * @brief Initialization of the source_file structure.
  *
- * @param[in/out] source The structure to initialize.
+ * @param[in,out] source The structure to initialize.
  */
 void sf_init(source_file_s *source);
 
 /**
  * @brief Add a line of source code to the structure.
  *
- * @param[in/out] source The structure where to add the line.
+ * @param[in,out] source The structure where to add the line.
  * @param[in] line The line to add.
  *
  * @return RC_OK on success.
@@ -74,8 +106,14 @@ rc_e sf_add_line(source_file_s *source, const char *line);
 /**
  * @brief Destructor for the source_file sturcture.
  *
- * @param[in/out] source The structure to destroy.
+ * @param[in,out] source The structure to destroy.
  */
 void sf_destroy(source_file_s *source);
 
+/**
+ * @brief Printer for token_types as words
+ *
+ * @param[in] value token value to be printed
+ */
+void printer(int value);
 #endif

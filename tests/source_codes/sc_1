@@ -1,0 +1,5 @@
+require "ifj21"
+function hlavni_program()
+write("Hello from IFJ21", "\n")
+end
+hlavni_program()

@@ -22,7 +22,7 @@ int main(void)
     }
 
     for (unsigned i = 0; i < source.size; i++) {
-        printf("%c", source.line[i]);
+        printf("%c", source.content[i]);
     }
     ds_destroy(&source);
 

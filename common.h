@@ -11,9 +11,8 @@
  * @brief Structure for storing a string of
  * (possibly) infinite length
  */
-typedef struct dynamic_string
-{
-    char *line;
+typedef struct dynamic_string {
+    char *content;
     unsigned size;
     unsigned limit;
 } dynamic_string_s;
@@ -22,8 +21,7 @@ typedef struct dynamic_string
  * @brief Stucture for storing the entire source file.
  * Inflatable array (vector) was used for implementation.
  */
-typedef struct source_file
-{
+typedef struct source_file {
     char **line;
     unsigned no_lines;
     unsigned limit;
@@ -32,38 +30,36 @@ typedef struct source_file
 /**
  * @brief An enumeration of valid return codes
  */
-typedef enum rc
-{
-    RC_OK = 0,               /*<< Success */
-    RC_LEX_ERR = 1,          /*<< Lexical analysis error*/
-    RC_SYN_ERR = 2,          /*<< Syntactical analysis error */
-    RC_SEM_UNDEF_ERR = 3,    /*<< Semantic errror -undefined function/variable or redefine */
-    RC_SEM_ASSIGN_ERR = 4,   /*<< Semantic error - assignment type incompatibilty */
-    RC_SEM_CALL_ERR = 5,     /*<< Semantic error - wrong number or type of
-                            paramaters or return values */
-    RC_SEM_EXP_ERR = 6,      /*<< Semantic error - wrong type compatibility in expressions */
-    RC_SEM_OTHER_ERR = 7,    /*<< Semantic error - other */
-    RC_RUN_NIL_ERR = 8,      /*<< Run error - unexpected nil */
+typedef enum rc {
+    RC_OK = 0, /*<< Success */
+    RC_LEX_ERR = 1, /*<< Lexical analysis error*/
+    RC_SYN_ERR = 2, /*<< Syntactical analysis error */
+    RC_SEM_UNDEF_ERR = 3, /*<< Semantic errror -undefined function/variable or redefine */
+    RC_SEM_ASSIGN_ERR = 4, /*<< Semantic error - assignment type incompatibilty */
+    RC_SEM_CALL_ERR = 5, /*<< Semantic error - wrong number or type of
+                        paramaters or return values */
+    RC_SEM_EXP_ERR = 6, /*<< Semantic error - wrong type compatibility in expressions */
+    RC_SEM_OTHER_ERR = 7, /*<< Semantic error - other */
+    RC_RUN_NIL_ERR = 8, /*<< Run error - unexpected nil */
     RC_RUN_ZERO_DIV_ERR = 9, /*<< Run error - zero division */
-    RC_INTERNAL_ERR = 99     /*<< Internal error - allocation errors, etc. */
+    RC_INTERNAL_ERR = 99 /*<< Internal error - allocation errors, etc. */
 } rc_e;
 
 /**
  * @brief A macro for better freeing to avoid double frees.
  */
-#define FREE(x) \
-    free(x);    \
+#define FREE(x)                                                                                    \
+    free(x);                                                                                       \
     x = NULL;
 
 /**
  * @brief A marco for unified handling of allocation failure.
  */
-#define ALLOC_CHECK(x)                                                        \
-    if (!x)                                                                   \
-    {                                                                         \
-        fputs("Out of memory.", stderr);                                      \
-        fprintf(stderr, "Allocation in %s:%d failed.\n", __FILE__, __LINE__); \
-        exit(RC_INTERNAL_ERR);                                                \
+#define ALLOC_CHECK(x)                                                                             \
+    if (!x) {                                                                                      \
+        fputs("Out of memory.", stderr);                                                           \
+        fprintf(stderr, "Allocation in %s:%d failed.\n", __FILE__, __LINE__);                      \
+        exit(RC_INTERNAL_ERR);                                                                     \
     }
 
 /**
@@ -116,8 +112,8 @@ void sf_destroy(source_file_s *source);
 
 /**
  * @brief Printer for token_types as words
- * 
- * @param[in] value token value to be printed 
+ *
+ * @param[in] value token value to be printed
  */
 void printer(int value);
 #endif

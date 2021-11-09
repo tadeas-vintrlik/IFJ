@@ -14,30 +14,29 @@
 void ds_init(dynamic_string_s *dynamic_string)
 {
     dynamic_string->limit = 32;
-    dynamic_string->line = calloc(dynamic_string->limit, sizeof(char));
-    ALLOC_CHECK(dynamic_string->line);
+    dynamic_string->content = calloc(dynamic_string->limit, sizeof(char));
+    ALLOC_CHECK(dynamic_string->content);
     dynamic_string->size = 0;
 }
 
 rc_e ds_add_char(dynamic_string_s *dynamic_string, const char c)
 {
     /* Realloc line if not enough */
-    if (dynamic_string->limit == dynamic_string->size)
-    {
+    if (dynamic_string->limit == dynamic_string->size) {
         dynamic_string->limit = 2 * dynamic_string->limit;
-        dynamic_string->line = realloc(dynamic_string->line, dynamic_string->limit);
-        ALLOC_CHECK(dynamic_string->line);
+        dynamic_string->content = realloc(dynamic_string->content, dynamic_string->limit);
+        ALLOC_CHECK(dynamic_string->content);
     }
 
     /* Duplicate string and place the duplicate in the structure */
 
-    dynamic_string->line[dynamic_string->size++] = c;
+    dynamic_string->content[dynamic_string->size++] = c;
     return RC_OK;
 }
 
 void ds_destroy(dynamic_string_s *dynamic_string)
 {
-    FREE(dynamic_string->line);
+    FREE(dynamic_string->content);
     dynamic_string->limit = 0;
     dynamic_string->size = 0;
 }
@@ -55,14 +54,12 @@ rc_e sf_add_line(source_file_s *source, const char *line)
     char *dup;
 
     /* Check paramaters */
-    if (!line)
-    {
+    if (!line) {
         return RC_INTERNAL_ERR;
     }
 
     /* Realloc line if not enough */
-    if (source->limit == source->no_lines)
-    {
+    if (source->limit == source->no_lines) {
         source->limit = 2 * source->limit;
         source->line = realloc(source->line, source->limit);
         ALLOC_CHECK(source->line);
@@ -77,8 +74,7 @@ rc_e sf_add_line(source_file_s *source, const char *line)
 
 void sf_destroy(source_file_s *source)
 {
-    for (unsigned i = 0; i < source->no_lines; i++)
-    {
+    for (unsigned i = 0; i < source->no_lines; i++) {
         FREE(source->line[i]);
     }
     FREE(source->line);
@@ -87,8 +83,7 @@ void sf_destroy(source_file_s *source)
 }
 void printer(int value)
 {
-    switch (value)
-    {
+    switch (value) {
     case 0:
         printf("ID ");
         return;

@@ -3,7 +3,6 @@
  * @author Tadeas Vintrlik <xvintr04@stud.fit.vutbr.cz>
  * @brief Main file used for creating the executable.
  */
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

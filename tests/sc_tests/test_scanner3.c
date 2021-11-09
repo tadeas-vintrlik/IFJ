@@ -66,19 +66,19 @@ bool test2()
             break;
         }
         passed = token.type == exp_types[no_of_tokens];
-        passed = !strcmp(token.value->line, exp_values[no_of_tokens]);
+        passed = !strcmp(token.value->content, exp_values[no_of_tokens]);
         passed = token.line == exp_lines[no_of_tokens];
         if (!passed)
             printf("ERROR AT INDEX: %d\n", no_of_tokens);
         rec_lines[no_of_tokens] = token.line;
-        rec_values[no_of_tokens] = token.value->line;
+        rec_values[no_of_tokens] = token.value->content;
         rec_types[no_of_tokens] = token.type;
     }
     passed = token.type == exp_types[no_of_tokens];
-    passed = !strcmp(token.value->line, exp_values[no_of_tokens]);
+    passed = !strcmp(token.value->content, exp_values[no_of_tokens]);
     passed = token.line == exp_lines[no_of_tokens];
     rec_lines[no_of_tokens] = token.line;
-    rec_values[no_of_tokens] = token.value->line;
+    rec_values[no_of_tokens] = token.value->content;
     rec_types[no_of_tokens] = token.type;
     if (passed)
     {

@@ -6,7 +6,6 @@
  */
 
 #include <ctype.h>
-#define _GNU_SOURCE
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -155,7 +154,7 @@ int get_next_token(T_token *token)
             if (isalpha(c) || isdigit(c) || c == '_') {
                 ds_add_char(&str, c);
             } else {
-                if (is_keyword(str.line)) {
+                if (is_keyword(str.content)) {
                     token->type = TOKEN_KEYWORD;
                 } else {
                     token->type = TOKEN_ID;

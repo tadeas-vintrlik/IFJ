@@ -215,15 +215,15 @@ int get_next_token(T_token *token)
         case STATE_STRING_START:
             if (c == '\n') {
                 return RC_LEX_ERR;
-            } else if (c >= 31 && c != '"') {
-                state = STATE_STRING_START;
-                ds_add_char(&str, c);
             } else if (c == '\\') {
                 state = STATE_STRING_ESCAPE;
                 ds_add_char(&str, c);
             } else if (c == '"') {
                 token->type = TOKEN_STRING;
                 return RC_OK;
+            } else if (c >= 31) {
+                state = STATE_STRING_START;
+                ds_add_char(&str, c);
             } else {
                 return RC_LEX_ERR;
             }

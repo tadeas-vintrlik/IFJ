@@ -78,4 +78,13 @@ typedef struct Token {
  * @return int Error value.
  */
 int get_next_token(T_token *token);
+
+/**
+ * @brief Ungets a token, so that get_next_token returns it next time it is called.
+ *
+ * @param[in] token Token to unget.
+ *
+ * @return int Error code.
+ */
+int unget_token(T_token *token);
 #endif

@@ -42,7 +42,6 @@ typedef enum {
     STATE_DIV_OR_FLOOR_DIV,
 
 } State;
-
 static bool is_keyword(char *word)
 {
     char *keywords[] = { "do", "else", "end", "function", "global", "if", "integer", "local", "nil",
@@ -57,8 +56,27 @@ static bool is_keyword(char *word)
     return false;
 }
 
+T_token *held_token;
+
+int unget_token(T_token *token)
+{
+    if (held_token == NULL) {
+        held_token = token;
+        return RC_OK;
+    } else {
+        return RC_INTERNAL_ERR;
+    }
+}
+
 int get_next_token(T_token *token)
 {
+    if (held_token != NULL) {
+        *token = *held_token;
+        held_token = NULL;
+
+        return RC_OK;
+    }
+
     static int curr_line = 1;
     // initializce dynamic string str
     dynamic_string_s str;

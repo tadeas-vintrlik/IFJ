@@ -32,16 +32,16 @@ typedef enum op {
  * @brief Precendence table.
  */
 op_e table[10][10] = {
-    {NONE,      LEN,  MULT_DIV, ADD_SUB, CONCAT, REL,  LPAR, RPAR, ID,  DOLLAR},
-    {LEN,       RULE, RULE,     RULE,    RULE,   RULE, PUSH, ERR,  PUSH, ERR},
-    {MULT_DIV,  PUSH, RULE,     RULE,    RULE,   RULE, PUSH, RULE, PUSH, RULE},
-    {ADD_SUB,   PUSH, PUSH,     RULE,    RULE,   RULE, PUSH, RULE, PUSH, RULE},
-    {CONCAT,    PUSH, PUSH,     PUSH,    PUSH,   RULE, PUSH, RULE, PUSH, RULE},
-    {REL,       PUSH, PUSH,     PUSH,    PUSH,   ERR,  PUSH, RULE, PUSH, RULE},
-    {LPAR,      PUSH, PUSH,     PUSH,    PUSH,   PUSH, PUSH, SPEC, PUSH, ERR},
-    {RPAR,      ERR,  RULE,     RULE,    RULE,   RULE, ERR,  RULE, ERR,  RULE},
-    {ID,        ERR,  RULE,     RULE,    RULE,   RULE, PUSH, RULE, ERR,  RULE},
-    {DOLLAR,    ERR,  PUSH,     PUSH,    PUSH,   PUSH, PUSH, ERR,  PUSH, NONE},
+    { NONE, LEN, MULT_DIV, ADD_SUB, CONCAT, REL, LPAR, RPAR, ID, DOLLAR },
+    { LEN, RULE, RULE, RULE, RULE, RULE, PUSH, ERR, PUSH, ERR },
+    { MULT_DIV, PUSH, RULE, RULE, RULE, RULE, PUSH, RULE, PUSH, RULE },
+    { ADD_SUB, PUSH, PUSH, RULE, RULE, RULE, PUSH, RULE, PUSH, RULE },
+    { CONCAT, PUSH, PUSH, PUSH, PUSH, RULE, PUSH, RULE, PUSH, RULE },
+    { REL, PUSH, PUSH, PUSH, PUSH, ERR, PUSH, RULE, PUSH, RULE },
+    { LPAR, PUSH, PUSH, PUSH, PUSH, PUSH, PUSH, SPEC, PUSH, ERR },
+    { RPAR, ERR, RULE, RULE, RULE, RULE, ERR, RULE, ERR, RULE },
+    { ID, ERR, RULE, RULE, RULE, RULE, PUSH, RULE, ERR, RULE },
+    { DOLLAR, ERR, PUSH, PUSH, PUSH, PUSH, PUSH, ERR, PUSH, NONE },
 };
 
 /**
@@ -54,47 +54,53 @@ op_e table[10][10] = {
 static op_e token2op(const T_token *token)
 {
     switch (token->type) {
-        case TOKEN_STRING_LENGTH:
-            return LEN;
+    case TOKEN_STRING_LENGTH:
+        return LEN;
 
-        case TOKEN_MUL:
-            return MULT_DIV;
-        case TOKEN_DIVISION:
-            return MULT_DIV;
-        case TOKEN_FLOOR_DIVISION:
-            return MULT_DIV;
+    case TOKEN_MUL:
+        return MULT_DIV;
+    case TOKEN_DIVISION:
+        return MULT_DIV;
+    case TOKEN_FLOOR_DIVISION:
+        return MULT_DIV;
 
-        case TOKEN_ADD:
-            return ADD_SUB;
-        case TOKEN_SUB:
-            return ADD_SUB;
+    case TOKEN_ADD:
+        return ADD_SUB;
+    case TOKEN_SUB:
+        return ADD_SUB;
 
         /* TODO: TOKEN_STRING_CONCAT? */
 
-        case TOKEN_LESS_THAN:
-            return REL;
-        case TOKEN_LESS_EQUAL_THAN:
-            return REL;
-        case TOKEN_GREATER_THAN:
-            return REL;
-        case TOKEN_GREATER_EQUAL_THAN:
-            return REL;
-        case TOKEN_EQUAL:
-            return REL;
-        case TOKEN_NOT_EQUAL_TO:
-            return REL;
+    case TOKEN_LESS_THAN:
+        return REL;
+    case TOKEN_LESS_EQUAL_THAN:
+        return REL;
+    case TOKEN_GREATER_THAN:
+        return REL;
+    case TOKEN_GREATER_EQUAL_THAN:
+        return REL;
+    case TOKEN_EQUAL:
+        return REL;
+    case TOKEN_NOT_EQUAL_TO:
+        return REL;
 
-        case TOKEN_LEFT_BRACKET:
-            return LPAR;
+    case TOKEN_LEFT_BRACKET:
+        return LPAR;
 
-        case TOKEN_RIGHT_BRACKET:
-            return RPAR;
+    case TOKEN_RIGHT_BRACKET:
+        return RPAR;
 
-        case TOKEN_ID:
-            return ID;
+    case TOKEN_ID:
+        return ID;
+    case TOKEN_INT:
+        return ID;
+    case TOKEN_NUMBER:
+        return ID;
+    case TOKEN_STRING:
+        return ID;
 
-        default:
-            return DOLLAR;
+    default:
+        return DOLLAR;
     }
 }
 

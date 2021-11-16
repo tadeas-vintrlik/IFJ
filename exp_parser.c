@@ -6,6 +6,8 @@
 
 #include "exp_parser.h"
 
+#define TABLE_ELEM 10
+
 /**
  * @brief Enumeration of different values found inside the precendece table.
  */
@@ -31,7 +33,7 @@ typedef enum op {
 /**
  * @brief Precendence table.
  */
-op_e table[10][10] = {
+op_e table[TABLE_ELEM][TABLE_ELEM] = {
     { NONE, LEN, MULT_DIV, ADD_SUB, CONCAT, REL, LPAR, RPAR, ID, DOLLAR },
     { LEN, RULE, RULE, RULE, RULE, RULE, PUSH, ERR, PUSH, ERR },
     { MULT_DIV, PUSH, RULE, RULE, RULE, RULE, PUSH, RULE, PUSH, RULE },
@@ -41,7 +43,7 @@ op_e table[10][10] = {
     { LPAR, PUSH, PUSH, PUSH, PUSH, PUSH, PUSH, SPEC, PUSH, ERR },
     { RPAR, ERR, RULE, RULE, RULE, RULE, ERR, RULE, ERR, RULE },
     { ID, ERR, RULE, RULE, RULE, RULE, PUSH, RULE, ERR, RULE },
-    { DOLLAR, ERR, PUSH, PUSH, PUSH, PUSH, PUSH, ERR, PUSH, NONE },
+    { DOLLAR, ERR, PUSH, PUSH, PUSH, PUSH, PUSH, ERR, PUSH, ERR },
 };
 
 /**
@@ -104,11 +106,46 @@ static op_e token2op(const T_token *token)
     }
 }
 
+/**
+ * @brief Get the right value from the precendece table.
+ *
+ * @param[in] in Terminal from input. Used as a key for columns.
+ * @param[in] stack Terminal found on top of stack. Used as a key for rows.
+ *
+ * @return Action found in the table. NONE if @p in or @p stack was nout found as a key.
+ */
+op_e table_get_action(op_e in, op_e stack)
+{
+    op_e ret = NONE;
+    int row = -1, col = -1;
+
+    /* First find they key in columns */
+    for (unsigned i = 0; i < TABLE_ELEM; i++) {
+        if (table[0][in] == in) {
+            col = i;
+        }
+    }
+
+    /* Then find the key in rows */
+    for (unsigned i = 0; i < TABLE_ELEM; i++) {
+        if (table[i][0] == stack) {
+            row = i;
+        }
+    }
+
+    if (row != -1 && col != -1) {
+        ret = table[row][col];
+    }
+
+    return ret;
+}
+
 avl_node_s *exp_parse(symtable_s *symtable)
 {
     avl_node_s *node;
     avl_init(&node);
 
+    (void)token2op;
     (void)symtable;
     return node;
 }

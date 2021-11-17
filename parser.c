@@ -402,8 +402,7 @@ static bool magic_function()
 
     token = get_next_token();
 
-    switch (token->type) {
-    case TOKEN_LEFT_BRACKET:
+    if (token->type == TOKEN_LEFT_BRACKET) {
         if (!rule_ARG_LIST()) {
             return false;
         }
@@ -412,9 +411,70 @@ static bool magic_function()
         free(token);
 
         return true;
-    case TOKEN_EQUAL:
-    case TOKEN_COMMA:
-    default:
-        return false;
+    } else {
+        int id_count = 1;
+
+        while (token->type != TOKEN_DECLAR) {
+            if (token->type == TOKEN_COMMA) {
+                free(token);
+                token = get_next_token();
+
+                if (token->type != TOKEN_ID) {
+                    return false;
+                }
+
+                id_count++;
+                free(token);
+            } else {
+                return false;
+            }
+
+            token = get_next_token();
+        }
+
+        free(token);
+
+        if (!rule_ARG()) {
+            return false;
+        }
+
+        if (token->type == TOKEN_ID) {
+            token = get_next_token();
+
+            if (token->type == TOKEN_LEFT_BRACKET) {
+                if (!rule_ARG_LIST()) {
+                    return false;
+                }
+
+                GET_CHECK(TOKEN_RIGHT_BRACKET);
+                free(token);
+
+                return true;
+            }
+
+            unget_token(token);
+        }
+
+        id_count--;
+
+        token = get_next_token();
+        while (true) {
+            if (token->type == TOKEN_COMMA) {
+                free(token);
+
+                if (!rule_ARG()) {
+                    return false;
+                }
+
+                id_count--;
+            } else {
+                unget_token(token);
+                return id_count == 0;
+            }
+
+            token = get_next_token();
+        }
     }
+
+    return false;
 }

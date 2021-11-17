@@ -377,6 +377,7 @@ T_token *get_next_token()
                 exit(RC_LEX_ERR);
             }
 
+            break;
         case STATE_SUB_OR_COMMENT:
             if (c == '-') {
                 state = STATE_LINE_OR_BLOCK_COMMENT;

@@ -42,6 +42,13 @@ rc_e ds_add_char(dynamic_string_s *dynamic_string, const char c)
     /* Duplicate string and place the duplicate in the structure */
 
     dynamic_string->content[dynamic_string->size++] = c;
+
+    // Add null byte at the end
+    if (c != '\0') {
+        ds_add_char(dynamic_string, '\0');
+        dynamic_string->size--;
+    }
+
     return RC_OK;
 }
 

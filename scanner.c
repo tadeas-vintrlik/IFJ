@@ -241,6 +241,8 @@ T_token *get_next_token()
             } else {
                 token->type = TOKEN_NUMBER;
                 ungetc(c, stdin);
+
+                return token;
             }
 
             break;

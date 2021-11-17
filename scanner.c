@@ -395,6 +395,7 @@ T_token *get_next_token()
             if (c == '[') {
                 state = STATE_LINE_OR_BLOCK_COMMENT_2;
             } else {
+                ungetc(c, stdin);
                 state = STATE_LINE_COMMENT;
             }
 

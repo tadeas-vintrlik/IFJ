@@ -15,8 +15,12 @@ static bool rule_CODE();
 static bool rule_TOP_ELEM();
 
 static bool rule_DECL();
-/* static bool rule_DEF(); */
+static bool rule_DEF();
 static bool rule_CALL();
+
+static bool rule_PARAM_LIST();
+static bool rule_NEXT_PARAM();
+static bool rule_PARAM();
 
 static bool rule_RET_LIST();
 static bool rule_TYPE_LIST();
@@ -26,6 +30,8 @@ static bool rule_TYPE(bool should_unget);
 static bool rule_ARG_LIST();
 static bool rule_ARG();
 static bool rule_NEXT_ARG();
+
+static bool rule_BODY();
 
 bool start_parsing() { return rule_PROG(); }
 
@@ -71,7 +77,7 @@ static bool rule_TOP_ELEM()
         if (!strcmp("global", first_token->value->content)) {
             return rule_DECL();
         } else if (!strcmp("function", first_token->value->content)) {
-            /* return rule_DEF(); */
+            return rule_DEF();
         }
     }
 
@@ -113,6 +119,70 @@ static bool rule_DECL()
     free(token);
 
     return rule_RET_LIST();
+}
+
+static bool rule_DEF()
+{
+    T_token *token;
+    GET_CHECK_CMP(TOKEN_KEYWORD, "function");
+    free(token);
+
+    GET_CHECK(TOKEN_ID);
+    free(token);
+
+    GET_CHECK(TOKEN_LEFT_BRACKET);
+    free(token);
+
+    if (!rule_PARAM_LIST()) {
+        return false;
+    }
+
+    GET_CHECK(TOKEN_RIGHT_BRACKET);
+    free(token);
+
+    if (!rule_RET_LIST() || !rule_BODY()) {
+        return false;
+    }
+
+    GET_CHECK_CMP(TOKEN_KEYWORD, "end");
+    free(token);
+
+    return true;
+}
+
+static bool rule_PARAM_LIST()
+{
+    if (!rule_PARAM()) {
+        return true;
+    }
+
+    return rule_NEXT_PARAM();
+}
+
+static bool rule_NEXT_PARAM()
+{
+    T_token *token = get_next_token();
+
+    if (token->type == TOKEN_COMMA) {
+        free(token);
+        return rule_PARAM() && rule_NEXT_PARAM();
+    } else {
+        unget_token(token);
+        return true;
+    }
+}
+
+static bool rule_PARAM()
+{
+    T_token *token;
+
+    GET_CHECK(TOKEN_ID);
+    free(token);
+
+    GET_CHECK(TOKEN_COLON);
+    free(token);
+
+    return rule_TYPE(false);
 }
 
 static bool rule_RET_LIST()
@@ -215,4 +285,17 @@ static bool rule_NEXT_ARG()
     default:
         return false;
     }
+}
+
+///////////
+
+static bool rule_BODY()
+{
+    /* ____ ____  _____   ____   ___  ______   __ */
+    /* / ___|  _ \| ____| | __ ) / _ \|  _ \ \ / / */
+    /* | |  _| | | |  _|   |  _ \| | | | | | \ V / */
+    /* | |_| | |_| | |___  | |_) | |_| | |_| || | */
+    /* \____|____/|_____| |____/ \___/|____/ |_| */
+
+    return true;
 }

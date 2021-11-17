@@ -58,9 +58,9 @@
 	\drule{CODE}{\ter{$\epsilon$}}
 	\drule{CODE}{\nter{TOP\_ELEM} \nter{CODE}}
 
+	\drule{TOP\_ELEM}{\nter{CALL}}
 	\drule{TOP\_ELEM}{\nter{DECL}}
 	\grule{TOP\_ELEM}{\nter{DEF}}
-	\drule{TOP\_ELEM}{\nter{CALL}}
 
 	Jednotlivé vrchní elementy pak vypadají následovně:
 
@@ -87,19 +87,20 @@
 
 	\subsection{Argumenty volání funkcí}
 
-	\grule{ARG\_LIST}{\nter{ARG} \nter{NEXT\_ARG}}
-	\grule{ARG\_LIST}{\ter{)}}
-	\grule{NEXT\_ARG}{\ter{,} \nter{ARG} \nter{NEXT\_ARG}}
-	\grule{NEXT\_ARG}{\ter{)}}
-	\grule{ARG}{\ter{id}}
-	\grule{ARG}{\ter{lit\_number}}
-	\grule{ARG}{\ter{lit\_int}}
-	\grule{ARG}{\ter{lit\_string}}
-	\grule{ARG}{\ter{nil}}
+	\drule{ARG\_LIST}{\nter{ARG} \nter{NEXT\_ARG}}
+	\drule{ARG\_LIST}{\ter{)}}
+	\drule{NEXT\_ARG}{\ter{,} \nter{ARG} \nter{NEXT\_ARG}}
+	\drule{NEXT\_ARG}{\ter{)}}
+	\drule{ARG}{\ter{id}}
+	\drule{ARG}{\ter{lit\_number}}
+	\drule{ARG}{\ter{lit\_int}}
+	\drule{ARG}{\ter{lit\_string}}
+	\drule{ARG}{\ter{nil}}
 
 	\subsection{Parametry definice funkcí}
 
 	\grule{PARAM\_LIST}{\nter{PARAM} \nter{NEXT\_PARAM}}
+	\grule{PARAM\_LIST}{\ter{$\epsilon$}}
 	\grule{NEXT\_PARAM}{\ter{,} \nter{PARAM} \nter{NEXT\_PARAM}}
 	\grule{NEXT\_PARAM}{\ter{$\epsilon$}}
 	\grule{PARAM}{\ter{id} \ter{:} \nter{TYPE}}

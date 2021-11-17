@@ -47,21 +47,21 @@
 
 	Program vždy musí začínat prologem \texttt{require "ifj21"}.
 
-	\grule{PROG}{\ter{require} \ter{lit\_string} \nter{CODE}}
+	% \grule{PROG}{\ter{require} \ter{lit\_string} \nter{CODE}}
 
 		Hlavní blok programu (pod \texttt{require "ifj21"}) může obsahovat pouze konstrukce vyhovující pravidlu \nter{TOP\_ELEM} -- tedy pouze deklarace, definice a volání funkcí.
 
-	\grule{CODE}{\ter{$\epsilon$}}
-	\grule{CODE}{\nter{TOP\_ELEM} \nter{CODE}}
+	% \grule{CODE}{\ter{$\epsilon$}}
+	% \grule{CODE}{\nter{TOP\_ELEM} \nter{CODE}}
 
-	\grule{TOP\_ELEM}{\nter{DECL}}
+	% \grule{TOP\_ELEM}{\nter{DECL}}
 	\grule{TOP\_ELEM}{\nter{DEF}}
-	\grule{TOP\_ELEM}{\nter{CALL}}
+	% \grule{TOP\_ELEM}{\nter{CALL}}
 
 	Jednotlivé vrchní elementy pak vypadají následovně:
 
-	\grule{DECL}{\ter{global} \ter{id} \ter{:} \ter{(}\nter{TYPE\_LIST}\ter{)} \ter{:} \nter{TYPE\_LIST}}
-	\grule{DEF}{\ter{function} \ter{id} \ter{(} \nter{PARAM\_LIST} \ter{)} \ter{:} \nter{TYPE\_LIST} \nter{BODY} \ter{end}}
+	\grule{DECL}{\ter{global} \ter{id} \ter{:} \ter{function} \ter{(}\nter{TYPE\_LIST}\ter{)} \nter{RET\_LIST}}
+	\grule{DEF}{\ter{function} \ter{id} \ter{(} \nter{PARAM\_LIST} \ter{)} \nter{RET\_LIST} \nter{BODY} \ter{end}}
 	\grule{CALL}{\ter{id} \ter{(} \nter{ARG\_LIST} \footnote{Ukončovací závorka je v \nter{ARG\_LIST}}} % TODO Toto by melo fungovat jenom pro konstanty jako parametry, volani funkci uvnitr funkci bude resit magic funkce
 
 
@@ -69,13 +69,17 @@
 
 	Seznam typů musí vždy obsahovat alespoň typ \texttt{nil}.
 
+	\grule{RET\_LIST}{\ter{:} \nter{TYPE} \nter{NEXT\_TYPE}}
+	\grule{RET\_LIST}{\ter{$\epsilon$}}
+
 	\grule{TYPE\_LIST}{\nter{TYPE} \nter{NEXT\_TYPE}}
+	\grule{TYPE\_LIST}{\ter{$\epsilon$}}
 	\grule{NEXT\_TYPE}{\ter{,} \nter{TYPE} \nter{NEXT\_TYPE}}
 	\grule{NEXT\_TYPE}{\ter{$\epsilon$}}
-	\grule{TYPE}{\ter{nil}}
-	\grule{TYPE}{\ter{integer}}
-	\grule{TYPE}{\ter{number}}
-	\grule{TYPE}{\ter{string}}
+	% \grule{TYPE}{\ter{nil}}
+	% \grule{TYPE}{\ter{integer}}
+	% \grule{TYPE}{\ter{number}}
+	% \grule{TYPE}{\ter{string}}
 
 	\subsection{Argumenty volání funkcí}
 
@@ -115,7 +119,6 @@
 
 	\grule{IF\_ELSE}{\ter{if} \nter{EXPR} \ter{then} \nter{BODY} \ter{else} \nter{BODY} \ter{end}}
 	\grule{WHILE}{\ter{while} \nter{EXPR} \ter{do} \nter{BODY} \ter{end}}
-	\grule{BODY\_END}{\ter{return} \nter{ARG\_LIST}} %TODO ARG_LIST se možná bude měnit, změnit to tu taky
 
 	\end{multicols}
 

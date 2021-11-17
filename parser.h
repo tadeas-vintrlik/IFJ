@@ -7,10 +7,11 @@
 #define _PARSER_H_
 
 #include "scanner.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-int start_parsing();
+bool start_parsing();
 
 #endif

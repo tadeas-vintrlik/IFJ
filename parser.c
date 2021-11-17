@@ -38,6 +38,8 @@ static bool rule_IF_ELSE();
 static bool rule_WHILE();
 static bool rule_EXPR(); // TODO Use the expression analyzer
 
+static bool magic_function();
+
 bool start_parsing() { return rule_PROG(); }
 
 static bool rule_PROG()
@@ -323,8 +325,10 @@ static bool rule_BODY()
         }
 
         return true;
-    /* case TOKEN_ID: */
-    /*     /1* MAAAAGIC *1/ */
+    case TOKEN_ID:
+        unget_token(token);
+
+        return magic_function() && rule_BODY();
     default:
         unget_token(token);
         return true;
@@ -387,3 +391,30 @@ static bool rule_WHILE()
 }
 
 static bool rule_EXPR() { return true; } // TODO Use the expression analyzer
+
+static bool magic_function()
+{
+    T_token *token = get_next_token();
+
+    if (token->type != TOKEN_ID) {
+        return false;
+    }
+
+    token = get_next_token();
+
+    switch (token->type) {
+    case TOKEN_LEFT_BRACKET:
+        if (!rule_ARG_LIST()) {
+            return false;
+        }
+
+        GET_CHECK(TOKEN_RIGHT_BRACKET);
+        free(token);
+
+        return true;
+    case TOKEN_EQUAL:
+    case TOKEN_COMMA:
+    default:
+        return false;
+    }
+}

@@ -9,6 +9,9 @@
 \usepackage{color}
 \usepackage{parskip}
 
+\usepackage{tikz}
+\def\checkmark{\tikz\fill[green,scale=0.4](0,.35) -- (.25,0) -- (1,.7) -- (.25,.15) -- cycle;} 
+
 \usepackage{multicol}
 
 \usepackage{amsmath}
@@ -20,6 +23,7 @@
 \newcommand{\nter}[1]{\textcolor{blue}{\,#1\,}}
 \newcommand{\ter}[1]{\textbf{\textcolor{red}{\,#1\,}}}
 \newcommand{\grule}[2]{{\small\nter{#1} $\to$ #2}\\}
+\newcommand{\drule}[2]{\checkmark \grule{#1}{#2}}
 
 
 \title{Gramatická pravidla jazyka IFJ21}
@@ -47,39 +51,39 @@
 
 	Program vždy musí začínat prologem \texttt{require "ifj21"}.
 
-	% \grule{PROG}{\ter{require} \ter{lit\_string} \nter{CODE}}
+	\drule{PROG}{\ter{require} \ter{lit\_string} \nter{CODE}}
 
 		Hlavní blok programu (pod \texttt{require "ifj21"}) může obsahovat pouze konstrukce vyhovující pravidlu \nter{TOP\_ELEM} -- tedy pouze deklarace, definice a volání funkcí.
 
-	% \grule{CODE}{\ter{$\epsilon$}}
-	% \grule{CODE}{\nter{TOP\_ELEM} \nter{CODE}}
+	\drule{CODE}{\ter{$\epsilon$}}
+	\drule{CODE}{\nter{TOP\_ELEM} \nter{CODE}}
 
-	% \grule{TOP\_ELEM}{\nter{DECL}}
+	\drule{TOP\_ELEM}{\nter{DECL}}
 	\grule{TOP\_ELEM}{\nter{DEF}}
-	% \grule{TOP\_ELEM}{\nter{CALL}}
+	\drule{TOP\_ELEM}{\nter{CALL}}
 
 	Jednotlivé vrchní elementy pak vypadají následovně:
 
-	\grule{DECL}{\ter{global} \ter{id} \ter{:} \ter{function} \ter{(}\nter{TYPE\_LIST}\ter{)} \nter{RET\_LIST}}
+	\drule{DECL}{\ter{global} \ter{id} \ter{:} \ter{function} \ter{(}\nter{TYPE\_LIST}\ter{)} \nter{RET\_LIST}}
 	\grule{DEF}{\ter{function} \ter{id} \ter{(} \nter{PARAM\_LIST} \ter{)} \nter{RET\_LIST} \nter{BODY} \ter{end}}
-	\grule{CALL}{\ter{id} \ter{(} \nter{ARG\_LIST} \footnote{Ukončovací závorka je v \nter{ARG\_LIST}}} % TODO Toto by melo fungovat jenom pro konstanty jako parametry, volani funkci uvnitr funkci bude resit magic funkce
+	\drule{CALL}{\ter{id} \ter{(} \nter{ARG\_LIST} \footnote{Ukončovací závorka je v \nter{ARG\_LIST}}} % TODO Toto by melo fungovat jenom pro konstanty jako parametry, volani funkci uvnitr funkci bude resit magic funkce
 
 
 	\subsection{Typy}
 
 	Seznam typů musí vždy obsahovat alespoň typ \texttt{nil}.
 
-	\grule{RET\_LIST}{\ter{:} \nter{TYPE} \nter{NEXT\_TYPE}}
-	\grule{RET\_LIST}{\ter{$\epsilon$}}
+	\drule{RET\_LIST}{\ter{:} \nter{TYPE} \nter{NEXT\_TYPE}}
+	\drule{RET\_LIST}{\ter{$\epsilon$}}
 
-	\grule{TYPE\_LIST}{\nter{TYPE} \nter{NEXT\_TYPE}}
-	\grule{TYPE\_LIST}{\ter{$\epsilon$}}
-	\grule{NEXT\_TYPE}{\ter{,} \nter{TYPE} \nter{NEXT\_TYPE}}
-	\grule{NEXT\_TYPE}{\ter{$\epsilon$}}
-	% \grule{TYPE}{\ter{nil}}
-	% \grule{TYPE}{\ter{integer}}
-	% \grule{TYPE}{\ter{number}}
-	% \grule{TYPE}{\ter{string}}
+	\drule{TYPE\_LIST}{\nter{TYPE} \nter{NEXT\_TYPE}}
+	\drule{TYPE\_LIST}{\ter{$\epsilon$}}
+	\drule{NEXT\_TYPE}{\ter{,} \nter{TYPE} \nter{NEXT\_TYPE}}
+	\drule{NEXT\_TYPE}{\ter{$\epsilon$}}
+	\drule{TYPE}{\ter{nil}}
+	\drule{TYPE}{\ter{integer}}
+	\drule{TYPE}{\ter{number}}
+	\drule{TYPE}{\ter{string}}
 
 	\subsection{Argumenty volání funkcí}
 

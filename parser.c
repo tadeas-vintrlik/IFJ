@@ -80,7 +80,7 @@ static bool rule_TOP_ELEM()
 
 static bool rule_CALL()
 {
-    T_token *token = get_next_token();
+    T_token *token;
     GET_CHECK(TOKEN_ID); // TODO Semantic
 
     GET_CHECK(TOKEN_LEFT_BRACKET);

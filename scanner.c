@@ -57,32 +57,46 @@ static bool is_keyword(char *word)
 
 T_token *held_token;
 
-int unget_token(T_token *token)
+void unget_token(T_token *token)
 {
     if (held_token == NULL) {
         held_token = token;
-        return RC_OK;
     } else {
-        return RC_INTERNAL_ERR;
+        exit(RC_INTERNAL_ERR);
     }
 }
 
-int get_next_token(T_token *token)
+void token_destroy(T_token *token)
+{
+    if (token == NULL) {
+        return;
+    }
+    ds_destroy(token->value);
+    free(token->value);
+    free(token);
+}
+
+T_token *get_next_token()
 {
     if (held_token != NULL) {
-        *token = *held_token;
+        T_token *result = held_token;
         held_token = NULL;
 
-        return RC_OK;
+        return result;
     }
 
     static int curr_line = 1;
     // initializce dynamic string str
-    dynamic_string_s str;
-    ds_init(&str);
+
+    T_token *token = malloc(sizeof(T_token));
+    ALLOC_CHECK(token);
+    token->value = malloc(sizeof(dynamic_string_s));
+    ALLOC_CHECK(token->value);
+
+    ds_init(token->value);
 
     token->line = curr_line;
-    token->value = &str;
+    dynamic_string_s *str = token->value;
 
     // first, state is at the start
     State state = STATE_START;
@@ -94,7 +108,7 @@ int get_next_token(T_token *token)
         switch (state) {
         case (STATE_START):
             if (isalpha(c) || c == '_') {
-                ds_add_char(&str, c);
+                ds_add_char(str, c);
                 state = STATE_ID_OR_KEYWORD;
             }
             // with whitespaces we go back to start
@@ -104,35 +118,35 @@ int get_next_token(T_token *token)
                     token->line = curr_line;
                 } else if (c == EOF) {
                     token->type = TOKEN_EOF;
-                    return RC_OK;
+                    return token;
                 }
                 state = STATE_START;
             } else if (isdigit(c)) {
-                ds_add_char(&str, c);
+                ds_add_char(str, c);
                 state = STATE_INT;
             } else if (c == '"') {
                 state = STATE_STRING_START;
             } else if (c == '+') {
                 token->type = TOKEN_ADD;
-                return RC_OK;
+                return token;
             } else if (c == '*') {
                 token->type = TOKEN_MUL;
-                return RC_OK;
+                return token;
             } else if (c == '#') {
                 token->type = TOKEN_STRING_LENGTH;
-                return RC_OK;
+                return token;
             } else if (c == '(') {
                 token->type = TOKEN_LEFT_BRACKET;
-                return RC_OK;
+                return token;
             } else if (c == ')') {
                 token->type = TOKEN_RIGHT_BRACKET;
-                return RC_OK;
+                return token;
             } else if (c == ',') {
                 token->type = TOKEN_COMMA;
-                return RC_OK;
+                return token;
             } else if (c == ':') {
                 token->type = TOKEN_COLON;
-                return RC_OK;
+                return token;
             } else if (c == '=') {
                 state = STATE_EQUAL_OR_DECLAR;
             } else if (c == '<') {
@@ -146,15 +160,15 @@ int get_next_token(T_token *token)
             } else if (c == '/') {
                 state = STATE_DIV_OR_FLOOR_DIV;
             } else {
-                return RC_LEX_ERR;
+                exit(RC_LEX_ERR);
             }
 
             break;
         case STATE_ID_OR_KEYWORD:
             if (isalpha(c) || isdigit(c) || c == '_') {
-                ds_add_char(&str, c);
+                ds_add_char(str, c);
             } else {
-                if (is_keyword(str.content)) {
+                if (is_keyword(str->content)) {
                     token->type = TOKEN_KEYWORD;
                 } else {
                     token->type = TOKEN_ID;
@@ -162,132 +176,130 @@ int get_next_token(T_token *token)
 
                 ungetc(c, stdin);
 
-                return RC_OK;
+                return token;
             }
 
             break;
         case STATE_INT:
             if (isdigit(c)) {
                 state = STATE_INT;
-                ds_add_char(&str, c);
+                ds_add_char(str, c);
             } else if (c == 'e' || c == 'E') {
                 state = STATE_EXPONENT;
-                ds_add_char(&str, c);
+                ds_add_char(str, c);
             } else if (c == '.') {
                 state = STATE_DOT;
-                ds_add_char(&str, c);
+                ds_add_char(str, c);
             } else {
                 token->type = TOKEN_INT;
                 ungetc(c, stdin);
 
-                return RC_OK;
+                return token;
             }
 
             break;
         case STATE_DOT:
             if (isdigit(c)) {
                 state = STATE_NUMBER;
-                ds_add_char(&str, c);
+                ds_add_char(str, c);
             } else {
-                return RC_LEX_ERR;
+                exit(RC_LEX_ERR);
             }
 
             break;
         case STATE_EXPONENT:
             if (isdigit(c) || c == '+' || c == '-') {
                 state = STATE_EXP_NUMBER;
-                ds_add_char(&str, c);
+                ds_add_char(str, c);
             } else {
-                return RC_LEX_ERR;
+                exit(RC_LEX_ERR);
             }
 
             break;
         case STATE_NUMBER:
             if (isdigit(c)) {
                 state = STATE_NUMBER;
-                ds_add_char(&str, c);
+                ds_add_char(str, c);
             } else if (c == 'e' || c == 'E') {
                 state = STATE_EXPONENT;
-                ds_add_char(&str, c);
+                ds_add_char(str, c);
             } else {
                 token->type = TOKEN_NUMBER;
                 ungetc(c, stdin);
 
-                return RC_OK;
+                return token;
             }
 
             break;
         case STATE_EXP_NUMBER:
             if (isdigit(c)) {
                 state = STATE_EXP_NUMBER;
-                ds_add_char(&str, c);
+                ds_add_char(str, c);
             } else {
                 token->type = TOKEN_NUMBER;
                 ungetc(c, stdin);
-
-                return RC_OK;
             }
 
             break;
         case STATE_STRING_START:
             if (c == '\n') {
-                return RC_LEX_ERR;
+                exit(RC_LEX_ERR);
             } else if (c == '\\') {
                 state = STATE_STRING_ESCAPE;
-                ds_add_char(&str, c);
+                ds_add_char(str, c);
             } else if (c == '"') {
                 token->type = TOKEN_STRING;
-                return RC_OK;
+                return token;
             } else if (c >= 31) {
                 state = STATE_STRING_START;
-                ds_add_char(&str, c);
+                ds_add_char(str, c);
             } else {
-                return RC_LEX_ERR;
+                exit(RC_LEX_ERR);
             }
 
             break;
         case STATE_STRING_ESCAPE:
             if (c == '0' || c == '1') {
                 state = STATE_STRING_ESCAPE_FIRST_ZERO_ONE;
-                ds_add_char(&str, c);
+                ds_add_char(str, c);
             } else if (c == '2') {
                 state = STATE_STRING_ESCAPE_FIRST_TWO;
-                ds_add_char(&str, c);
+                ds_add_char(str, c);
             } else if (c == 'n' || c == 't' || c == '"' || c == '\\') {
                 state = STATE_STRING_START;
-                ds_add_char(&str, c);
+                ds_add_char(str, c);
             } else {
-                return RC_LEX_ERR;
+                exit(RC_LEX_ERR);
             }
 
             break;
         case STATE_STRING_ESCAPE_FIRST_TWO:
             if (c == '5') {
                 state = STATE_STRING_ESCAPE_SECOND_FIVE;
-                ds_add_char(&str, c);
+                ds_add_char(str, c);
             } else if (c >= '0' && c <= '4') {
                 state = STATE_STRING_ESCAPE_SECOND_ZERO_TO_FOUR;
-                ds_add_char(&str, c);
+                ds_add_char(str, c);
             } else {
-                return RC_LEX_ERR;
+                exit(RC_LEX_ERR);
             }
 
             break;
         case STATE_STRING_ESCAPE_FIRST_ZERO_ONE:
             if (isdigit(c)) {
                 state = STATE_STRING_ESCAPE_SECOND_ZERO_TO_NINE;
-                ds_add_char(&str, c);
+                ds_add_char(str, c);
             } else {
-                return RC_LEX_ERR;
+                exit(RC_LEX_ERR);
             }
 
             break;
         case STATE_STRING_ESCAPE_SECOND_FIVE:
             if (c >= '0' && c <= '5') {
                 state = STATE_STRING_START;
-                ds_add_char(&str, c);
+                ds_add_char(str, c);
             } else {
-                return RC_LEX_ERR;
+                exit(RC_LEX_ERR);
             }
 
             break;
@@ -295,18 +307,18 @@ int get_next_token(T_token *token)
         case STATE_STRING_ESCAPE_SECOND_ZERO_TO_FOUR:
             if (isdigit(c)) {
                 state = STATE_STRING_START;
-                ds_add_char(&str, c);
+                ds_add_char(str, c);
             } else {
-                return RC_LEX_ERR;
+                exit(RC_LEX_ERR);
             }
 
             break;
         case STATE_STRING_ESCAPE_SECOND_ZERO_TO_NINE:
             if (isdigit(c)) {
                 state = STATE_STRING_START;
-                ds_add_char(&str, c);
+                ds_add_char(str, c);
             } else {
-                return RC_LEX_ERR;
+                exit(RC_LEX_ERR);
             }
 
             break;
@@ -318,7 +330,7 @@ int get_next_token(T_token *token)
                 ungetc(c, stdin);
             }
 
-            return RC_OK;
+            return token;
         case STATE_LESS_THAN_OR_LESS_EQUAL:
             if (c == '=') {
                 token->type = TOKEN_LESS_EQUAL_THAN;
@@ -327,7 +339,7 @@ int get_next_token(T_token *token)
                 ungetc(c, stdin);
             }
 
-            return RC_OK;
+            return token;
         case STATE_GREATER_THAN_OR_GREATER_EQUAL:
             if (c == '=') {
                 token->type = TOKEN_GREATER_EQUAL_THAN;
@@ -336,13 +348,13 @@ int get_next_token(T_token *token)
                 ungetc(c, stdin);
             }
 
-            return RC_OK;
+            return token;
         case STATE_NOT_EQUAL:
             if (c == '=') {
                 token->type = TOKEN_NOT_EQUAL_TO;
-                return RC_OK;
+                return token;
             } else {
-                return RC_LEX_ERR;
+                exit(RC_LEX_ERR);
             }
 
             break;
@@ -354,7 +366,7 @@ int get_next_token(T_token *token)
                 ungetc(c, stdin);
             }
 
-            return RC_OK;
+            return token;
         case STATE_SUB_OR_COMMENT:
             if (c == '-') {
                 state = STATE_LINE_OR_BLOCK_COMMENT;
@@ -362,7 +374,7 @@ int get_next_token(T_token *token)
                 token->type = TOKEN_SUB;
                 ungetc(c, stdin);
 
-                return RC_OK;
+                return token;
             }
 
             break;
@@ -393,7 +405,7 @@ int get_next_token(T_token *token)
             if (c == ']') {
                 state = STATE_BLOCK_COMMENT_ENDING;
             } else if (c == EOF) {
-                return RC_LEX_ERR;
+                exit(RC_LEX_ERR);
             }
 
             break;
@@ -408,5 +420,5 @@ int get_next_token(T_token *token)
         }
     }
 
-    return RC_OK;
+    return token;
 }

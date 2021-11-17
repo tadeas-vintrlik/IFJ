@@ -33,7 +33,6 @@ typedef enum {
 } Keyword;
 
 /**
-<<<<<<< HEAD
  * @brief Main function of scanner, returns a token
  * as a structure, returns an error code.
  *
@@ -41,15 +40,13 @@ typedef enum {
  *
  * @return int Error value.
  */
-int get_next_token(T_token *token);
+T_token *get_next_token();
 
 /**
  * @brief Ungets a token, so that get_next_token returns it next time it is called.
  *
  * @param[in] token Token to unget.
- *
- * @return int Error code.
  */
-int unget_token(T_token *token);
+void unget_token(T_token *token);
 
 #endif

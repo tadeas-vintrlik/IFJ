@@ -34,6 +34,10 @@ static bool rule_NEXT_ARG();
 
 static bool rule_BODY();
 
+static bool rule_IF_ELSE();
+static bool rule_WHILE();
+static bool rule_EXPR(); // TODO Use the expression analyzer
+
 bool start_parsing() { return rule_PROG(); }
 
 static bool rule_PROG()
@@ -312,6 +316,10 @@ static bool rule_BODY()
             free(token);
 
             return rule_ARG_LIST();
+        } else if (!strcmp("if", token->value->content)) {
+            return rule_IF_ELSE() && rule_BODY();
+        } else if (!strcmp("while", token->value->content)) {
+            return rule_WHILE() && rule_BODY();
         }
 
         return true;
@@ -322,3 +330,60 @@ static bool rule_BODY()
         return true;
     }
 }
+
+static bool rule_IF_ELSE()
+{
+    T_token *token;
+
+    GET_CHECK_CMP(TOKEN_KEYWORD, "if");
+    free(token);
+
+    if (!rule_EXPR()) {
+        return false;
+    }
+
+    GET_CHECK_CMP(TOKEN_KEYWORD, "then");
+    free(token);
+
+    if (!rule_BODY()) {
+        return false;
+    }
+
+    GET_CHECK_CMP(TOKEN_KEYWORD, "else");
+    free(token);
+
+    if (!rule_BODY()) {
+        return false;
+    }
+
+    GET_CHECK_CMP(TOKEN_KEYWORD, "end");
+    free(token);
+
+    return true;
+}
+
+static bool rule_WHILE()
+{
+    T_token *token;
+
+    GET_CHECK_CMP(TOKEN_KEYWORD, "while");
+    free(token);
+
+    if (!rule_EXPR()) {
+        return false;
+    }
+
+    GET_CHECK_CMP(TOKEN_KEYWORD, "do");
+    free(token);
+
+    if (!rule_BODY()) {
+        return false;
+    }
+
+    GET_CHECK_CMP(TOKEN_KEYWORD, "end");
+    free(token);
+
+    return true;
+}
+
+static bool rule_EXPR() { return true; } // TODO Use the expression analyzer

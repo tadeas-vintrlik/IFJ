@@ -32,6 +32,7 @@ typedef enum {
     STATE_LESS_THAN_OR_LESS_EQUAL,
     STATE_GREATER_THAN_OR_GREATER_EQUAL,
     STATE_NOT_EQUAL,
+    STATE_CONCAT,
     STATE_SUB_OR_COMMENT,
     STATE_LINE_OR_BLOCK_COMMENT,
     STATE_LINE_OR_BLOCK_COMMENT_2,
@@ -157,6 +158,8 @@ T_token *get_next_token()
                 state = STATE_NOT_EQUAL;
             } else if (c == '-') {
                 state = STATE_SUB_OR_COMMENT;
+            } else if (c == '.') {
+                state = STATE_CONCAT;
             } else if (c == '/') {
                 state = STATE_DIV_OR_FLOOR_DIV;
             } else {
@@ -367,6 +370,13 @@ T_token *get_next_token()
             }
 
             return token;
+        case STATE_CONCAT:
+            if (c == '.') {
+                token->type = TOKEN_STRING_CONCAT;
+            } else {
+                exit(RC_LEX_ERR);
+            }
+
         case STATE_SUB_OR_COMMENT:
             if (c == '-') {
                 state = STATE_LINE_OR_BLOCK_COMMENT;

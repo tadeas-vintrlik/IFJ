@@ -1,4 +1,5 @@
 #include "parser.h"
+#include <stdbool.h>
 
 #define GET_CHECK(TYPE)                                                                            \
     token = get_next_token();                                                                      \
@@ -25,7 +26,7 @@ static bool rule_PARAM();
 static bool rule_RET_LIST();
 static bool rule_TYPE_LIST();
 static bool rule_NEXT_TYPE();
-static bool rule_TYPE(bool should_unget);
+static bool rule_TYPE();
 
 static bool rule_ARG_LIST();
 static bool rule_ARG();
@@ -88,10 +89,19 @@ static bool rule_CALL()
 {
     T_token *token;
     GET_CHECK(TOKEN_ID); // TODO Semantic
+    free(token);
 
     GET_CHECK(TOKEN_LEFT_BRACKET);
+    free(token);
 
-    return rule_ARG_LIST();
+    if (!rule_ARG_LIST()) {
+        return false;
+    }
+
+    GET_CHECK(TOKEN_RIGHT_BRACKET);
+    free(token);
+
+    return true;
 }
 
 static bool rule_DECL()
@@ -174,15 +184,17 @@ static bool rule_NEXT_PARAM()
 
 static bool rule_PARAM()
 {
-    T_token *token;
+    T_token *token = get_next_token();
 
-    GET_CHECK(TOKEN_ID);
-    free(token);
+    if (token->type != TOKEN_ID) {
+        unget_token(token);
+        return false;
+    }
 
     GET_CHECK(TOKEN_COLON);
     free(token);
 
-    return rule_TYPE(false);
+    return rule_TYPE();
 }
 
 static bool rule_RET_LIST()
@@ -191,7 +203,7 @@ static bool rule_RET_LIST()
 
     if (token->type == TOKEN_COLON) {
         free(token);
-        return rule_TYPE(false) && rule_NEXT_TYPE();
+        return rule_TYPE() && rule_NEXT_TYPE();
     } else {
         unget_token(token);
         return true;
@@ -200,7 +212,7 @@ static bool rule_RET_LIST()
 
 static bool rule_TYPE_LIST()
 {
-    if (!rule_TYPE(true)) {
+    if (!rule_TYPE()) {
         return true;
     }
 
@@ -213,14 +225,14 @@ static bool rule_NEXT_TYPE()
 
     if (token->type == TOKEN_COMMA) {
         free(token);
-        return rule_TYPE(false) && rule_NEXT_TYPE();
+        return rule_TYPE() && rule_NEXT_TYPE();
     } else {
         unget_token(token);
         return true;
     }
 }
 
-static bool rule_TYPE(bool should_unget_on_fail)
+static bool rule_TYPE()
 {
     // TODO Semantic
     T_token *token = get_next_token();
@@ -230,7 +242,7 @@ static bool rule_TYPE(bool should_unget_on_fail)
             || !strcmp("number", token->value->content)
             || !strcmp("string", token->value->content));
 
-    if (should_unget_on_fail && !is_type) {
+    if (!is_type) {
         unget_token(token);
     } else {
         free(token);
@@ -241,14 +253,11 @@ static bool rule_TYPE(bool should_unget_on_fail)
 
 static bool rule_ARG_LIST()
 {
-    T_token *token = get_next_token();
-
-    if (token->type == TOKEN_RIGHT_BRACKET) {
+    if (!rule_ARG()) {
         return true;
-    } else {
-        unget_token(token);
-        return rule_ARG() && rule_NEXT_ARG();
     }
+
+    return rule_NEXT_ARG();
 }
 
 static bool rule_ARG()
@@ -267,8 +276,10 @@ static bool rule_ARG()
             return true;
         }
 
+        unget_token(token);
         return false;
     default:
+        unget_token(token);
         return false;
     }
 }
@@ -277,13 +288,12 @@ static bool rule_NEXT_ARG()
 {
     T_token *token = get_next_token();
 
-    switch (token->type) {
-    case TOKEN_COMMA:
+    if (token->type == TOKEN_COMMA) {
+        free(token);
         return rule_ARG() && rule_NEXT_ARG();
-    case TOKEN_RIGHT_BRACKET:
+    } else {
+        unget_token(token);
         return true;
-    default:
-        return false;
     }
 }
 
@@ -291,11 +301,24 @@ static bool rule_NEXT_ARG()
 
 static bool rule_BODY()
 {
-    /* ____ ____  _____   ____   ___  ______   __ */
-    /* / ___|  _ \| ____| | __ ) / _ \|  _ \ \ / / */
-    /* | |  _| | | |  _|   |  _ \| | | | | | \ V / */
-    /* | |_| | |_| | |___  | |_) | |_| | |_| || | */
-    /* \____|____/|_____| |____/ \___/|____/ |_| */
+    T_token *token = get_next_token();
 
-    return true;
+    switch (token->type) {
+    case TOKEN_KEYWORD:
+        unget_token(token);
+
+        if (!strcmp("return", token->value->content)) {
+            token = get_next_token();
+            free(token);
+
+            return rule_ARG_LIST();
+        }
+
+        return true;
+    /* case TOKEN_ID: */
+    /*     /1* MAAAAGIC *1/ */
+    default:
+        unget_token(token);
+        return true;
+    }
 }

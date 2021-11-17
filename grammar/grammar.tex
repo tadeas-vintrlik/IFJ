@@ -66,7 +66,7 @@
 
 	\drule{DECL}{\ter{global} \ter{id} \ter{:} \ter{function} \ter{(}\nter{TYPE\_LIST}\ter{)} \nter{RET\_LIST}}
 	\grule{DEF}{\ter{function} \ter{id} \ter{(} \nter{PARAM\_LIST} \ter{)} \nter{RET\_LIST} \nter{BODY} \ter{end}}
-	\drule{CALL}{\ter{id} \ter{(} \nter{ARG\_LIST} \footnote{Ukončovací závorka je v \nter{ARG\_LIST}}} % TODO Toto by melo fungovat jenom pro konstanty jako parametry, volani funkci uvnitr funkci bude resit magic funkce
+	\drule{CALL}{\ter{id} \ter{(} \nter{ARG\_LIST} \ter{)}} % TODO Toto by melo fungovat jenom pro konstanty jako parametry, volani funkci uvnitr funkci bude resit magic funkce
 
 
 	\subsection{Typy}
@@ -88,9 +88,9 @@
 	\subsection{Argumenty volání funkcí}
 
 	\drule{ARG\_LIST}{\nter{ARG} \nter{NEXT\_ARG}}
-	\drule{ARG\_LIST}{\ter{)}}
+	\drule{ARG\_LIST}{\ter{$\epsilon$}}
 	\drule{NEXT\_ARG}{\ter{,} \nter{ARG} \nter{NEXT\_ARG}}
-	\drule{NEXT\_ARG}{\ter{)}}
+	\drule{NEXT\_ARG}{\ter{$\epsilon$}}
 	\drule{ARG}{\ter{id}}
 	\drule{ARG}{\ter{lit\_number}}
 	\drule{ARG}{\ter{lit\_int}}
@@ -99,20 +99,22 @@
 
 	\subsection{Parametry definice funkcí}
 
-	\grule{PARAM\_LIST}{\nter{PARAM} \nter{NEXT\_PARAM}}
-	\grule{PARAM\_LIST}{\ter{$\epsilon$}}
-	\grule{NEXT\_PARAM}{\ter{,} \nter{PARAM} \nter{NEXT\_PARAM}}
-	\grule{NEXT\_PARAM}{\ter{$\epsilon$}}
-	\grule{PARAM}{\ter{id} \ter{:} \nter{TYPE}}
+	\drule{PARAM\_LIST}{\nter{PARAM} \nter{NEXT\_PARAM}}
+	\drule{PARAM\_LIST}{\ter{$\epsilon$}}
+	\drule{NEXT\_PARAM}{\ter{,} \nter{PARAM} \nter{NEXT\_PARAM}}
+	\drule{NEXT\_PARAM}{\ter{$\epsilon$}}
+	\drule{PARAM}{\ter{id} \ter{:} \nter{TYPE}}
 
+	\end{multicols}
+	\newpage
+	\begin{multicols}{2}
 	\subsection{Bloky kódu (sekvence)}
 
 	\grule{BODY}{\ter{$\epsilon$}}
 	\grule{BODY}{\nter{VAR\_DECL} \nter{BODY}}
 	\grule{BODY}{\nter{IF\_ELSE} \nter{BODY}}
 	\grule{BODY}{\nter{WHILE} \nter{BODY}}
-	\grule{BODY}{\nter{BODY\_END}}
-	\grule{BODY\_END}{\ter{return} \nter{ARG\_LIST}}
+	\drule{BODY}{\ter{return} \nter{ARG\_LIST}}
 
 	\subsubsection{Deklarace proměnných}
 	\grule{VAR\_DECL}{\ter{local} \ter{id} \ter{:} \nter{TYPE} \ter{=} \nter{INIT\_VAL}}

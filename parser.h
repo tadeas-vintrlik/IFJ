@@ -7,6 +7,7 @@
 #define _PARSER_H_
 
 #include "scanner.h"
+#include "sll.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>

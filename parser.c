@@ -1,5 +1,4 @@
 #include "parser.h"
-#include <stdbool.h>
 
 #define GET_CHECK(TYPE)                                                                            \
     token = get_next_token();                                                                      \
@@ -37,8 +36,10 @@ static bool rule_BODY();
 static bool rule_IF_ELSE();
 static bool rule_WHILE();
 static bool rule_EXPR(); // TODO Use the expression analyzer
+static bool rule_VAR_DECL();
 
 static bool magic_function();
+static bool right_side_function(sll_s *left_side_ids);
 
 bool start_parsing() { return rule_PROG(); }
 
@@ -322,6 +323,8 @@ static bool rule_BODY()
             return rule_IF_ELSE() && rule_BODY();
         } else if (!strcmp("while", token->value->content)) {
             return rule_WHILE() && rule_BODY();
+        } else if (!strcmp("local", token->value->content)) {
+            return rule_VAR_DECL() && rule_BODY();
         }
 
         return true;
@@ -390,91 +393,116 @@ static bool rule_WHILE()
     return true;
 }
 
+static bool rule_VAR_DECL()
+{
+    T_token *token;
+    sll_s id;
+    sll_init(&id);
+
+    GET_CHECK_CMP(TOKEN_KEYWORD, "local");
+    free(token);
+
+    // TODO Semantika
+    GET_CHECK(TOKEN_ID);
+    sll_insert_head(&id, token);
+    free(token);
+
+    GET_CHECK(TOKEN_COLON);
+    free(token);
+
+    if (!rule_TYPE()) {
+        return false;
+    }
+
+    // TODO Insert symbol into symtable
+
+    GET_CHECK(TOKEN_DECLAR);
+    free(token);
+
+    // TODO Error on multiple expressions on right side
+    return right_side_function(&id);
+}
+
 static bool rule_EXPR() { return true; } // TODO Use the expression analyzer
 
 static bool magic_function()
 {
     T_token *token = get_next_token();
+    sll_s left_side_ids;
+    sll_init(&left_side_ids);
 
     if (token->type != TOKEN_ID) {
         return false;
     }
 
-    token = get_next_token();
+    T_token *token2 = get_next_token();
 
-    if (token->type == TOKEN_LEFT_BRACKET) {
-        if (!rule_ARG_LIST()) {
+    unget_token(token2);
+    unget_token(token);
+
+    if (token2->type == TOKEN_LEFT_BRACKET) {
+        return right_side_function(&left_side_ids);
+    }
+
+    while (true) {
+        token = get_next_token();
+
+        if (token->type != TOKEN_ID) {
             return false;
         }
 
-        GET_CHECK(TOKEN_RIGHT_BRACKET);
-        free(token);
-
-        return true;
-    } else {
-        int id_count = 1;
-
-        while (token->type != TOKEN_DECLAR) {
-            if (token->type == TOKEN_COMMA) {
-                free(token);
-                token = get_next_token();
-
-                if (token->type != TOKEN_ID) {
-                    return false;
-                }
-
-                id_count++;
-                free(token);
-            } else {
-                return false;
-            }
-
-            token = get_next_token();
-        }
-
-        free(token);
-
-        if (!rule_ARG()) {
-            return false;
-        }
-
-        if (token->type == TOKEN_ID) {
-            token = get_next_token();
-
-            if (token->type == TOKEN_LEFT_BRACKET) {
-                if (!rule_ARG_LIST()) {
-                    return false;
-                }
-
-                GET_CHECK(TOKEN_RIGHT_BRACKET);
-                free(token);
-
-                return true;
-            }
-
-            unget_token(token);
-        }
-
-        id_count--;
+        // TODO Change to sll_insert_last, right_side_function reads from left to right
+        sll_insert_head(&left_side_ids, token);
 
         token = get_next_token();
-        while (true) {
-            if (token->type == TOKEN_COMMA) {
-                free(token);
 
-                if (!rule_ARG()) {
-                    return false;
-                }
+        if (token->type == TOKEN_DECLAR) {
+            break;
+        }
 
-                id_count--;
-            } else {
-                unget_token(token);
-                return id_count == 0;
-            }
-
-            token = get_next_token();
+        if (token->type != TOKEN_COMMA) {
+            return false;
         }
     }
 
-    return false;
+    return right_side_function(&left_side_ids);
+}
+
+static bool right_side_function(sll_s *left_side_ids)
+{
+    T_token *token = get_next_token();
+
+    if (token->type == TOKEN_ID) {
+        T_token *token2 = get_next_token();
+        if (token2->type == TOKEN_LEFT_BRACKET) {
+            unget_token(token2);
+            unget_token(token);
+
+            return rule_CALL();
+        }
+        unget_token(token2);
+    }
+
+    unget_token(token);
+
+    while (true) {
+        token = get_next_token();
+
+        if (!rule_EXPR()) {
+            return false;
+        }
+
+        // TODO Assignment!
+
+        sll_delete_head(left_side_ids, false);
+
+        token = get_next_token();
+
+        if (token->type != TOKEN_COMMA) {
+            unget_token(token);
+            break;
+        }
+    }
+
+    return sll_is_empty(left_side_ids);
 }

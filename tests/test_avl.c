@@ -15,6 +15,9 @@
 
 #include "avl.h"
 
+#define ALLOC_KEY(in, out)\
+    out = my_strdup(in);\
+    assert_non_null(out);
 #define GET_VALUE(x) (*(int *)x->value)
 #define CAST_INT(x) (*(int *)x)
 
@@ -74,6 +77,7 @@ static void test_init(void **state)
 static void test_insert(void **state)
 {
     ts_s *ts = *state;
+    char *key;
     int *data = malloc(sizeof *data);
 
     /* Check test preconditions */
@@ -81,8 +85,9 @@ static void test_insert(void **state)
     assert_null(ts->node);
 
     /* Insert a node */
+    ALLOC_KEY("5", key);
     *data = 5;
-    avl_insert(&ts->node, "5", data);
+    avl_insert(&ts->node, key, data);
 
     /* Check if inserted correctly */
     assert_non_null(ts->node);
@@ -96,17 +101,20 @@ static void test_insert(void **state)
 
 static void test_insert_order(void **state)
 {
+    char *key4, *key6;
     ts_s *ts = *state;
 
     /* Should get inserted on the left - balance checked accordingly */
-    avl_insert(&ts->node, "4", NULL);
+    ALLOC_KEY("4", key4);
+    avl_insert(&ts->node, key4, NULL);
     assert_non_null(ts->node->left);
     assert_null(ts->node->right);
     assert_int_equal(avl_node_get_balance(ts->node), -1);
     assert_string_equal(ts->node->left->key, "4");
 
     /* Should get inserted on the right - should be balanced again */
-    avl_insert(&ts->node, "6", NULL);
+    ALLOC_KEY("6", key6);
+    avl_insert(&ts->node, key6, NULL);
     assert_non_null(ts->node->left);
     assert_non_null(ts->node->right);
     assert_int_equal(avl_node_get_balance(ts->node), 0);
@@ -160,6 +168,7 @@ static void test_delete_nonexistant(void **state)
 static void test_delete_terminal(void **state)
 {
     ts_s *ts = *state;
+    char *key4;
 
     /*
      *    |- 6
@@ -179,12 +188,14 @@ static void test_delete_terminal(void **state)
      */
 
     /* Reinsert it back */
-    avl_insert(&ts->node, "4", NULL);
+    ALLOC_KEY("4", key4)
+    avl_insert(&ts->node, key4, NULL);
 }
 
 static void test_delete_one_child(void **state)
 {
     ts_s *ts = *state;
+    char *key3;
 
     /*
      *    |- 6
@@ -193,7 +204,8 @@ static void test_delete_one_child(void **state)
      */
 
     /* Insert another node */
-    avl_insert(&ts->node, "3", NULL);
+    ALLOC_KEY("3", key3);
+    avl_insert(&ts->node, key3, NULL);
     assert_string_equal(ts->node->left->left->key, "3");
     assert_int_equal(avl_node_get_balance(ts->node), -1);
 
@@ -244,6 +256,7 @@ static void test_delete_two_children(void **state)
 static void test_insert_rebalance(void **state)
 {
     ts_s *ts = *state;
+    char *key2, *key1, *key0;
 
     /*
      *    |- 6
@@ -252,9 +265,11 @@ static void test_insert_rebalance(void **state)
 
     assert_int_equal(avl_node_get_balance(ts->node), 1);
 
-    avl_insert(&ts->node, "2", NULL);
+    ALLOC_KEY("2", key2);
+    avl_insert(&ts->node, key2, NULL);
     assert_int_equal(avl_node_get_balance(ts->node), 0);
-    avl_insert(&ts->node, "1", NULL);
+    ALLOC_KEY("1", key1);
+    avl_insert(&ts->node, key1, NULL);
     assert_int_equal(avl_node_get_balance(ts->node), -1);
 
     /*
@@ -264,7 +279,8 @@ static void test_insert_rebalance(void **state)
      *          |- 1
      */
 
-    avl_insert(&ts->node, "0", NULL);
+    ALLOC_KEY("0", key0);
+    avl_insert(&ts->node, key0, NULL);
 
     /*
      *    |- 6

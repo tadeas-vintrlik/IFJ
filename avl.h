@@ -37,10 +37,10 @@ void avl_init(avl_node_s **node);
  * @brief Insertion into the AVL Tree sturcture.
  *
  * @param[in,out] node The root node of the tree into which to insert.
- * @param[in] key The key that will be used for searching. The value is copied.
+ * @param[in] key The key that will be used for searching.
  * @param[in] value A generic pointer to the value to insert.
  */
-void avl_insert(avl_node_s **node, const char *key, void *value);
+void avl_insert(avl_node_s **node, char *key, void *value);
 
 /**
  * @brief Searching inside the AVL Tree sturcture.

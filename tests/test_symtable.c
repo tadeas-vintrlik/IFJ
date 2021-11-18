@@ -192,6 +192,36 @@ static void test_frame_priority(void **state)
     assert_int_equal(token, local);
 }
 
+static void test_frames_depth(void **state)
+{
+    st_s *st = *state;
+
+    /**
+     * Frames: {{func1}}
+     * Global: {func1, func2, main}
+     */
+
+    /* Check frame depth */
+    assert_int_equal(symtable_frames_depth(st->symtable), 1);
+
+    symtable_new_frame(st->symtable);
+    assert_int_equal(symtable_frames_depth(st->symtable), 2);
+
+    symtable_new_frame(st->symtable);
+    assert_int_equal(symtable_frames_depth(st->symtable), 3);
+
+    symtable_pop_frame(st->symtable);
+    assert_int_equal(symtable_frames_depth(st->symtable), 2);
+
+    symtable_pop_frame(st->symtable);
+    assert_int_equal(symtable_frames_depth(st->symtable), 1);
+
+    /* Zero frames means empty should be true */
+    symtable_pop_frame(st->symtable);
+    assert_int_equal(symtable_frames_depth(st->symtable), 0);
+    assert_true(symtable_frames_empty(st->symtable));
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -200,6 +230,7 @@ int main(void)
         cmocka_unit_test(test_new_frame),
         cmocka_unit_test(test_pop_frame),
         cmocka_unit_test(test_frame_priority),
+        cmocka_unit_test(test_frames_depth),
     };
     return cmocka_run_group_tests(tests, local_setup, local_teardown);
 }

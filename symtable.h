@@ -41,7 +41,7 @@ void symtable_init(symtable_s *symtable);
  *
  * @return True if token was found. False if not found.
  */
-bool symtable_search_all(symtable_s *symtable, const char *key, T_token **token);
+bool symtable_search_all(const symtable_s *symtable, const char *key, T_token **token);
 
 /**
  * @brief Search for a token in the top frame. Always returns false if there is no local frame.
@@ -53,7 +53,7 @@ bool symtable_search_all(symtable_s *symtable, const char *key, T_token **token)
  *
  * @return True if token was found. False if not found.
  */
-bool symtable_search_top(symtable_s *symtable, const char *key, T_token **token);
+bool symtable_search_top(const symtable_s *symtable, const char *key, T_token **token);
 
 /**
  * @brief Search for a token in the global frame.
@@ -65,7 +65,7 @@ bool symtable_search_top(symtable_s *symtable, const char *key, T_token **token)
  *
  * @return True if token was found. False if not found.
  */
-bool symtable_search_global(symtable_s *symtable, const char *key, T_token **token);
+bool symtable_search_global(const symtable_s *symtable, const char *key, T_token **token);
 
 /**
  * @brief Creates a new top local frame.
@@ -82,13 +82,22 @@ void symtable_new_frame(symtable_s *symtable);
 void symtable_pop_frame(symtable_s *symtable);
 
 /**
+ * @brief Returns the number of frames in the symtable.
+ *
+ * @param[in] symtable The table of symbols where count frame depth.
+ *
+ * @return The depth of symtable frames.
+ */
+unsigned symtable_frames_depth(const symtable_s *symtable);
+
+/**
  * @brief Check if there are any local frames in the symtable.
  *
  * @param[in,out] symtable The table of symbols where to check for local frames.
  *
  * @return True if there are no frames. False otherwise.
  */
-bool symtable_frames_empty(symtable_s *symtable);
+bool symtable_frames_empty(const symtable_s *symtable);
 
 /**
  * @brief Insert a new token in the top local frame. If there is no top frame it does nothing.

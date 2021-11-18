@@ -59,7 +59,6 @@ bool symtable_search_top(symtable_s *symtable, const char *key, T_token **token)
     }
 
     return avl_search(sll_get_head(symtable->frames), key, (void **)token);
-    ;
 }
 
 bool symtable_search_global(symtable_s *symtable, const char *key, T_token **token)

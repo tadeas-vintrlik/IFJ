@@ -223,7 +223,7 @@ void avl_init(avl_node_s **node)
     *node = NULL;
 }
 
-void avl_insert(avl_node_s **node, const char *key, void *value)
+void avl_insert(avl_node_s **node, char *key, void *value)
 {
     avl_node_s *new = NULL;
     int cmp;
@@ -232,8 +232,7 @@ void avl_insert(avl_node_s **node, const char *key, void *value)
         /* Node with given key not found - Allocate new node */
         new = malloc(sizeof *new);
         ALLOC_CHECK(new);
-        new->key = my_strdup(key);
-        ALLOC_CHECK(key);
+        new->key = key;
         new->value = value;
         new->left = NULL;
         new->right = NULL;
@@ -296,7 +295,6 @@ static void avl_replace_by_rightmost(avl_node_s *target, avl_node_s **node, dest
 
     if (!(*node)->right) {
         /* Found the rightmost node - replace it */
-        FREE(target->key);
         FREE_VALUE(target, destructor);
         target->key = (*node)->key;
         target->value = (*node)->value;
@@ -342,7 +340,6 @@ bool avl_delete(avl_node_s **node, const char *key, destructor destructor)
 
         if (!(*node)->left && !(*node)->right) {
             /* Terminal node */
-            FREE((*node)->key);
             FREE_VALUE((*node), destructor);
             FREE(*node);
             *node = NULL;
@@ -351,7 +348,6 @@ bool avl_delete(avl_node_s **node, const char *key, destructor destructor)
         else if ((*node)->left && !(*node)->right) {
             /* Has only left child */
             tmp = (*node)->left;
-            FREE((*node)->key);
             FREE_VALUE((*node), destructor);
             FREE(*node);
             *node = tmp;
@@ -360,7 +356,6 @@ bool avl_delete(avl_node_s **node, const char *key, destructor destructor)
         else if ((*node)->right && !(*node)->left) {
             /* Has only right child */
             tmp = (*node)->right;
-            FREE((*node)->key);
             FREE_VALUE((*node), destructor);
             FREE(*node);
             *node = tmp;

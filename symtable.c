@@ -24,7 +24,7 @@ void symtable_init(symtable_s *symtable)
     symtable->global = global;
 }
 
-bool symtable_search_all(symtable_s *symtable, const char *key, T_token **token)
+bool symtable_search_all(const symtable_s *symtable, const char *key, T_token **token)
 {
     bool found = false;
 
@@ -48,7 +48,7 @@ bool symtable_search_all(symtable_s *symtable, const char *key, T_token **token)
     return found;
 }
 
-bool symtable_search_top(symtable_s *symtable, const char *key, T_token **token)
+bool symtable_search_top(const symtable_s *symtable, const char *key, T_token **token)
 {
     if (!symtable) {
         return false;
@@ -61,7 +61,7 @@ bool symtable_search_top(symtable_s *symtable, const char *key, T_token **token)
     return avl_search(sll_get_head(symtable->frames), key, (void **)token);
 }
 
-bool symtable_search_global(symtable_s *symtable, const char *key, T_token **token)
+bool symtable_search_global(const symtable_s *symtable, const char *key, T_token **token)
 {
     if (!symtable) {
         return false;
@@ -91,13 +91,31 @@ void symtable_pop_frame(symtable_s *symtable)
     sll_delete_head(symtable->frames, false);
 }
 
-bool symtable_frames_empty(symtable_s *symtable)
+unsigned symtable_frames_depth(const symtable_s *symtable)
+{
+    unsigned depth = 0;
+    sll_elem_s *elem;
+
+    if (!symtable) {
+        return depth;
+    }
+
+    elem = symtable->frames->head;
+    while (elem) {
+        depth++;
+        elem = elem->next;
+    }
+
+    return depth;
+}
+
+bool symtable_frames_empty(const symtable_s *symtable)
 {
     if (!symtable) {
         return false;
     }
 
-    return symtable->frames->head == NULL;
+    return symtable_frames_depth(symtable) == 0;
 }
 
 void symtable_insert_token_top(symtable_s *symtable, T_token *token)

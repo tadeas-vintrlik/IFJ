@@ -81,9 +81,9 @@ void sll_activate(sll_s *list)
     list->active = list->head;
 }
 
-bool sll_is_empty(sll_s *list) { return list->head == NULL; }
+bool sll_is_empty(const sll_s *list) { return list->head == NULL; }
 
-bool sll_is_active(sll_s *list) { return list->active != NULL; }
+bool sll_is_active(const sll_s *list) { return list->active != NULL; }
 
 void sll_next(sll_s *list)
 {
@@ -139,7 +139,7 @@ void sll_delete_after(sll_s *list, bool destroy)
     list->active->next = tmp;
 }
 
-void *sll_get_head(sll_s *list)
+void *sll_get_head(const sll_s *list)
 {
     if (!list) {
         return NULL;
@@ -150,7 +150,7 @@ void *sll_get_head(sll_s *list)
     return list->head->value;
 }
 
-void *sll_get_active(sll_s *list)
+void *sll_get_active(const sll_s *list)
 {
     if (!list) {
         return NULL;
@@ -162,7 +162,7 @@ void *sll_get_active(sll_s *list)
     return list->active->value;
 }
 
-void *sll_get_after(sll_s *list)
+void *sll_get_after(const sll_s *list)
 {
     if (!list) {
         return NULL;
@@ -175,4 +175,22 @@ void *sll_get_after(sll_s *list)
     }
 
     return list->active->next->value;
+}
+
+unsigned sll_get_length(const sll_s *list)
+{
+    unsigned len = 0;
+    sll_elem_s *elem;
+
+    if (!list) {
+        return len;
+    }
+
+    elem = list->head;
+    while (elem) {
+        len++;
+        elem = elem->next;
+    }
+
+    return len;
 }

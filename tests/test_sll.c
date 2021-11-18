@@ -268,6 +268,23 @@ static void test_after(void **state)
     sll_delete_after(list, true);
 }
 
+static void test_length(void **state)
+{
+    ts_s *ts = *state;
+    sll_s *list = ts->list;
+
+    assert_int_equal(sll_get_length(list), 3);
+
+    sll_delete_head(list, true);
+    assert_int_equal(sll_get_length(list), 2);
+
+    sll_delete_head(list, true);
+    assert_int_equal(sll_get_length(list), 1);
+
+    sll_delete_head(list, true);
+    assert_int_equal(sll_get_length(list), 0);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -280,6 +297,7 @@ int main(void)
         cmocka_unit_test_setup(test_lose_activity, setup_test_activate),
         cmocka_unit_test_setup_teardown(test_next, setup_list_three, teardown_list_three),
         cmocka_unit_test_setup_teardown(test_after, setup_list_three, teardown_list_three),
+        cmocka_unit_test_setup(test_length, setup_list_three),
     };
     return cmocka_run_group_tests(tests, local_setup, local_teardown);
 }

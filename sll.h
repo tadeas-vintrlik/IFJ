@@ -73,14 +73,14 @@ void sll_activate(sll_s *list);
  *
  * @param[in] list List to check for emptiness.
  */
-bool sll_is_empty(sll_s *list);
+bool sll_is_empty(const sll_s *list);
 
 /**
  * @brief Check if list is active.
  *
  * @param[in] list List to check for activity.
  */
-bool sll_is_active(sll_s *list);
+bool sll_is_active(const sll_s *list);
 
 /**
  * @brief Set the active element to the next element of the list.
@@ -118,20 +118,27 @@ void sll_delete_after(sll_s *list, bool destroy);
  *
  * @return Gerenic pointer to the value of head of the list or NULL if empty.
  */
-void *sll_get_head(sll_s *list);
+void *sll_get_head(const sll_s *list);
 
 /**
  * @brief Get the value of active element.
  *
  * @return Gerenic pointer to the value of active element or NULL if not active.
  */
-void *sll_get_active(sll_s *list);
+void *sll_get_active(const sll_s *list);
 
 /**
- * @brief Get the the value of element after active.
+ * @brief Get the value of element after active.
  *
  * @return Gerenic pointer to the value element after active or NULL if not active or no next.
  */
-void *sll_get_after(sll_s *list);
+void *sll_get_after(const sll_s *list);
+
+/**
+ * @brief Get the length of the list.
+ *
+ * @return Length of the list.
+ */
+unsigned sll_get_length(const sll_s *list);
 
 #endif /* _SLL_H */

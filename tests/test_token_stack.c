@@ -83,6 +83,8 @@ static void test_terminal_top(void **arg)
     out = tstack_terminal_top(&ts);
     assert_non_null(out);
     assert_string_equal(out->value->content, "second");
+
+    tstack_destroy(&ts);
 }
 
 int main(void)

@@ -108,10 +108,18 @@ T_token *tstack_terminal_top(tstack_s *tstack);
 /**
  * @brief Check if stack is empty.
  *
- * @param[in] tstack Token Stak to check for emptiness.
+ * @param[in] tstack Token Stack to check for emptiness.
  *
  * @return If the token stack was empty.
  */
 bool tstack_empty(const tstack_s *tstack);
+
+
+/**
+ * @brief Destructor for Token Stack..
+ *
+ * @param[in] tstack Token Stack to destory.
+ */
+void tstack_destroy(tstack_s *tstack);
 
 #endif /* _TOKEN_STACK_H */

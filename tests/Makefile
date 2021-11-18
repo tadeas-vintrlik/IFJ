@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-std=c99 -g -Wall -Werror -Wextra -pedantic -g -fsanitize=address
+CFLAGS=-std=c99 -g -Wall -Werror -Wextra -pedantic -g
 LFLAGS=-lcmocka
 OBJ=../common.o ../sll.o ../scanner.o ../avl.o ../symtable.o ../token_stack.o
 TESTS=test_common test_sll sc_tests/test_scanner1 sc_tests/test_scanner2 sc_tests/test_scanner3 sc_tests/test_scanner4 sc_tests/test_scanner5 test_avl test_symtable test_token_stack

@@ -49,3 +49,10 @@ T_token *tstack_terminal_top(tstack_s *tstack)
 }
 
 bool tstack_empty(const tstack_s *tstack) { return sll_is_empty(tstack); }
+
+void tstack_destroy(tstack_s *tstack)
+{
+    while (!tstack_empty(tstack)) {
+        tstack_pop(tstack);
+    }
+}

@@ -57,10 +57,14 @@ static bool is_keyword(char *word)
 }
 
 T_token *held_token;
+T_token *held_token_2;
 
 void unget_token(T_token *token)
 {
     if (held_token == NULL) {
+        held_token = token;
+    } else if (held_token_2 == NULL) {
+        held_token_2 = held_token;
         held_token = token;
     } else {
         exit(RC_INTERNAL_ERR);
@@ -81,7 +85,9 @@ T_token *get_next_token()
 {
     if (held_token != NULL) {
         T_token *result = held_token;
-        held_token = NULL;
+
+        held_token = held_token_2;
+        held_token_2 = NULL;
 
         return result;
     }

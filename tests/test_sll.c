@@ -268,6 +268,56 @@ static void test_after(void **state)
     sll_delete_after(list, true);
 }
 
+static void test_length(void **state)
+{
+    ts_s *ts = *state;
+    sll_s *list = ts->list;
+
+    assert_int_equal(sll_get_length(list), 3);
+
+    sll_delete_head(list, true);
+    assert_int_equal(sll_get_length(list), 2);
+
+    sll_delete_head(list, true);
+    assert_int_equal(sll_get_length(list), 1);
+
+    sll_delete_head(list, true);
+    assert_int_equal(sll_get_length(list), 0);
+}
+
+static void test_last(void **state)
+{
+    ts_s *ts = *state;
+    sll_s *list = ts->list;
+    char *insert;
+
+    assert_string_equal("World", sll_get_last(list));
+
+    insert = strdup("!");
+    sll_insert_last(list, insert);
+    assert_string_equal("!", sll_get_last(list));
+
+    sll_delete_last(list, true);
+    assert_string_equal("World", sll_get_last(list));
+
+    sll_delete_last(list, true);
+    assert_string_equal("List", sll_get_last(list));
+
+    sll_delete_last(list, true);
+    assert_string_equal("Hello", sll_get_last(list));
+
+    sll_delete_last(list, true);
+    assert_null(sll_get_last(list));
+
+    insert = strdup("!");
+    sll_insert_last(list, insert);
+    assert_string_equal("!", sll_get_last(list));
+    assert_string_equal("!", sll_get_head(list));
+
+    sll_delete_last(list, true);
+    assert_int_equal(0, sll_get_length(list));
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -280,6 +330,8 @@ int main(void)
         cmocka_unit_test_setup(test_lose_activity, setup_test_activate),
         cmocka_unit_test_setup_teardown(test_next, setup_list_three, teardown_list_three),
         cmocka_unit_test_setup_teardown(test_after, setup_list_three, teardown_list_three),
+        cmocka_unit_test_setup(test_length, setup_list_three),
+        cmocka_unit_test_setup(test_last, setup_list_three),
     };
     return cmocka_run_group_tests(tests, local_setup, local_teardown);
 }

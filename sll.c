@@ -81,9 +81,9 @@ void sll_activate(sll_s *list)
     list->active = list->head;
 }
 
-bool sll_is_empty(sll_s *list) { return list->head == NULL; }
+bool sll_is_empty(const sll_s *list) { return list->head == NULL; }
 
-bool sll_is_active(sll_s *list) { return list->active != NULL; }
+bool sll_is_active(const sll_s *list) { return list->active != NULL; }
 
 void sll_next(sll_s *list)
 {
@@ -139,7 +139,7 @@ void sll_delete_after(sll_s *list, bool destroy)
     list->active->next = tmp;
 }
 
-void *sll_get_head(sll_s *list)
+void *sll_get_head(const sll_s *list)
 {
     if (!list) {
         return NULL;
@@ -150,7 +150,7 @@ void *sll_get_head(sll_s *list)
     return list->head->value;
 }
 
-void *sll_get_active(sll_s *list)
+void *sll_get_active(const sll_s *list)
 {
     if (!list) {
         return NULL;
@@ -162,7 +162,7 @@ void *sll_get_active(sll_s *list)
     return list->active->value;
 }
 
-void *sll_get_after(sll_s *list)
+void *sll_get_after(const sll_s *list)
 {
     if (!list) {
         return NULL;
@@ -176,3 +176,97 @@ void *sll_get_after(sll_s *list)
 
     return list->active->next->value;
 }
+
+unsigned sll_get_length(const sll_s *list)
+{
+    unsigned len = 0;
+    sll_elem_s *elem;
+
+    if (!list) {
+        return len;
+    }
+
+    elem = list->head;
+    while (elem) {
+        len++;
+        elem = elem->next;
+    }
+
+    return len;
+}
+
+void sll_insert_last(sll_s *list, void *value)
+{
+    sll_elem_s *old_last;
+    sll_elem_s *new;
+
+    if (!list) {
+        return;
+    }
+
+    new = malloc(sizeof *new);
+    ALLOC_CHECK(new);
+    new->value = value;
+    new->next = NULL;
+
+    old_last = list->head;
+    if (!old_last) {
+        list->head = new;
+        return;
+    }
+
+    while (old_last->next) {
+        old_last = old_last->next;
+    }
+    old_last->next = new;
+}
+
+void sll_delete_last(sll_s *list, bool destroy)
+{
+    sll_elem_s *old_last;
+
+    if (!list) {
+        return;
+    }
+
+    old_last = list->head;
+    if (!old_last) {
+        return;
+    }
+
+    while (old_last->next && old_last->next->next) {
+        old_last = old_last->next;
+    }
+
+    if (old_last == list->head && !list->head->next) {
+        /* When only one it is the same as deleting head */
+        sll_delete_head(list, destroy);
+    } else {
+        if (destroy) {
+            FREE(old_last->next->value);
+        }
+        FREE(old_last->next);
+    }
+
+}
+
+void *sll_get_last(const sll_s *list)
+{
+    sll_elem_s *last;
+
+    if (!list) {
+        return NULL;
+    }
+
+    last = list->head;
+    if (!last) {
+        return NULL;
+    }
+
+    while (last->next) {
+        last = last->next;
+    }
+
+    return last->value;
+}
+

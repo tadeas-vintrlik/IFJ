@@ -14,27 +14,7 @@
 #include <cmocka.h>
 
 #include "symtable.h"
-
-static T_token *create_token(const char *key, token_type type)
-{
-    T_token *new;
-    dynamic_string_s *ds;
-
-    new = malloc(sizeof *new);
-    assert_non_null(new);
-    ds = malloc(sizeof *ds);
-    assert_non_null(ds);
-
-    ds_init(ds);
-    for (unsigned i = 0; key[i]; i++) {
-        ds_add_char(ds, key[i]);
-    }
-    ds_add_char(ds, '\0');
-    new->value = ds;
-    new->type = type;
-
-    return new;
-}
+#include "tests.h"
 
 typedef struct state {
     symtable_s *symtable;

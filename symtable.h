@@ -13,8 +13,8 @@
 
 #include "avl.h"
 #include "common.h"
-#include "scanner.h"
 #include "sll.h"
+#include "token_stack.h"
 
 /**
  * @brief Structure for the table of symbols.

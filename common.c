@@ -47,6 +47,9 @@ rc_e ds_add_char(dynamic_string_s *dynamic_string, const char c)
 
 void ds_destroy(dynamic_string_s *dynamic_string)
 {
+    if (!dynamic_string) {
+        return;
+    }
     FREE(dynamic_string->content);
     dynamic_string->limit = 0;
     dynamic_string->size = 0;

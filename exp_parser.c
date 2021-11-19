@@ -177,6 +177,63 @@ static bool term2expr(tstack_s *tstack, tstack_s *help)
 }
 
 /**
+ * @brief Reduce non-terminal expression into atomic expression.
+ *
+ * @param[out] tstack Stack into which to insert the new expression.
+ * @param[in] help Temporary stack to reduce using rules.
+ */
+static bool nonterm2expr(tstack_s *tstack, tstack_s *help)
+{
+    T_token *first, *second, *third;
+
+    /* Pop all three expected tokens */
+    first = tstack_top(help);
+    tstack_pop(help, false);
+    second = tstack_top(help);
+    tstack_pop(help, false);
+    third = tstack_top(help);
+    tstack_pop(help, false);
+
+    /* First was already checked in caller */
+    if (!second || !third) {
+        return false;
+    }
+    if (third->type != TOKEN_NON_TERMINAL) {
+        return false;
+    }
+    if (!tstack_empty(help)) {
+        return false;
+    }
+
+    switch (second->type) {
+        /* Just need to check if valid operator */
+        case TOKEN_MUL:
+        case TOKEN_DIVISION:
+        case TOKEN_FLOOR_DIVISION:
+        case TOKEN_ADD:
+        case TOKEN_SUB:
+        case TOKEN_STRING_CONCAT:
+        case TOKEN_LESS_THAN:
+        case TOKEN_LESS_EQUAL_THAN:
+        case TOKEN_GREATER_THAN:
+        case TOKEN_GREATER_EQUAL_THAN:
+        case TOKEN_EQUAL:
+        case TOKEN_NOT_EQUAL_TO:
+            break;
+
+        default:
+            token_destroy(second);
+            return false;
+    }
+
+    /* When we get here, the expression is valid */
+    /* TODO: Code gen call */
+    tstack_push(tstack, third); /* Push back one reduced expression */
+
+    return true;
+}
+
+/**
  * @brief Choose an expression rule to apply and modify the stack.
  *
  * @param[in,out] tstack Stack of tokens of expression to reduce using rules.
@@ -188,6 +245,7 @@ static bool apply_rule(tstack_s *tstack)
 
     tstack_init(&help);
 
+    /* Get tokens until handle */
     while (!tstack_empty(tstack)) {
         tmp = tstack_top(tstack);
 
@@ -199,12 +257,13 @@ static bool apply_rule(tstack_s *tstack)
     }
     tmp = tstack_top(&help);
 
+    /* If there were no tokens or no handle - syntax error */
     if (!tmp || (tmp && tmp->type != TOKEN_HANDLE)) {
         return false;
     }
+    tstack_pop(&help, false); /* Remove the explicit handle */
 
-    tstack_pop(&help, false);
-
+    /* Choose the rule according to left-most token */
     switch (tmp->type) {
     case TOKEN_STRING_LENGTH:
         tmp = tstack_top(&help);
@@ -255,7 +314,10 @@ static bool apply_rule(tstack_s *tstack)
         }
         break;
     case TOKEN_NON_TERMINAL:
-        // TODO: continue here
+        tstack_push(&help, tmp); /* return the non-terminal needed to generate code */
+        if (nonterm2expr(tstack, &help)) {
+            return false;
+        }
         break;
 
     default:

@@ -57,6 +57,7 @@ void tstack_destroy(tstack_s *tstack)
     while (!tstack_empty(tstack)) {
         tstack_pop(tstack, true);
     }
+    FREE(tstack);
 }
 
 static T_token *create_handle(void)

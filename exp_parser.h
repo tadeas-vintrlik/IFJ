@@ -12,12 +12,12 @@
 #include "symtable.h"
 
 /**
- * @brief Parses expression. Creates Abstract Syntatic Tree.
+ * @brief Parses expression. Calls code generator.
  *
  * @param[in] symtable Table of symbols to search for identifiers.
  *
- * @return Syntactic tree. NULL on invalid expression syntax.
+ * @return If expression parsing succeeded.
  */
-avl_node_s *exp_parse(symtable_s *symtable);
+bool exp_parse(symtable_s *symtable);
 
 #endif /* _EXP_PARSER_H */

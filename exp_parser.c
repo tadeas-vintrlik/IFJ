@@ -54,9 +54,9 @@ op_e table[TABLE_ELEM][TABLE_ELEM] = {
  *
  * @return op_e value.
  */
-static op_e token2op(const T_token *token)
+static op_e token2op(const T_token token)
 {
-    switch (token->type) {
+    switch (token.type) {
     case TOKEN_STRING_LENGTH:
         return LEN;
 
@@ -206,24 +206,24 @@ static bool nonterm2expr(tstack_s *tstack, tstack_s *help)
     }
 
     switch (second->type) {
-        /* Just need to check if valid operator */
-        case TOKEN_MUL:
-        case TOKEN_DIVISION:
-        case TOKEN_FLOOR_DIVISION:
-        case TOKEN_ADD:
-        case TOKEN_SUB:
-        case TOKEN_STRING_CONCAT:
-        case TOKEN_LESS_THAN:
-        case TOKEN_LESS_EQUAL_THAN:
-        case TOKEN_GREATER_THAN:
-        case TOKEN_GREATER_EQUAL_THAN:
-        case TOKEN_EQUAL:
-        case TOKEN_NOT_EQUAL_TO:
-            break;
+    /* Just need to check if valid operator */
+    case TOKEN_MUL:
+    case TOKEN_DIVISION:
+    case TOKEN_FLOOR_DIVISION:
+    case TOKEN_ADD:
+    case TOKEN_SUB:
+    case TOKEN_STRING_CONCAT:
+    case TOKEN_LESS_THAN:
+    case TOKEN_LESS_EQUAL_THAN:
+    case TOKEN_GREATER_THAN:
+    case TOKEN_GREATER_EQUAL_THAN:
+    case TOKEN_EQUAL:
+    case TOKEN_NOT_EQUAL_TO:
+        break;
 
-        default:
-            token_destroy(second);
-            return false;
+    default:
+        token_destroy(second);
+        return false;
     }
 
     /* When we get here, the expression is valid */
@@ -326,14 +326,48 @@ static bool apply_rule(tstack_s *tstack)
     return true;
 }
 
-avl_node_s *exp_parse(symtable_s *symtable)
+bool exp_parse(symtable_s *symtable)
 {
-    avl_node_s *node;
-    avl_init(&node);
+    T_token token, *out;
+    op_e op;
+    tstack_s tstack;
 
-    (void)token2op;
-    (void)symtable;
-    (void)apply_rule;
+    get_next_token(&token);
+    if (token.type == TOKEN_ID) {
+        if (!symtable_search_top(symtable, token.value->content, NULL)) {
+            return false;
+        }
+    }
 
-    return node;
+    op = token2op(token);
+    switch (op) {
+    case RULE:
+        apply_rule(&tstack);
+        break;
+    case PUSH:
+        tstack_terminal_push(&tstack, &token);
+        break;
+    case SPEC:
+        tstack_push(&tstack, &token);
+        break;
+    case ERR:
+        /* This is no necessarily an error, that is determined by the state of the stack */
+        break;
+    default:
+        /* This will never happen - but compiler */
+        break;
+    }
+
+    /* There should by only one non-terminal on stack */
+    out = tstack_top(&tstack);
+    if (out->type != TOKEN_NON_TERMINAL) {
+        return false;
+    }
+    tstack_pop(&tstack, false);
+    if (!tstack_empty(&tstack)) {
+        return false;
+    }
+
+    tstack_destroy(&tstack);
+    return true;
 }

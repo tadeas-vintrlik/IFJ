@@ -108,6 +108,11 @@ static op_e token2op(const T_token *token)
     }
 }
 
+/**
+ * @brief Create a non-terminal token.
+ *
+ * @return Newly allocated non-terminal token.
+ */
 static T_token *create_non_terminal(void)
 {
     T_token *handle = malloc(sizeof *handle);
@@ -151,6 +156,13 @@ op_e table_get_action(op_e in, op_e stack)
 
     return ret;
 }
+
+/**
+ * @brief Convert terminal to expression.
+ *
+ * @param[out] tstack Stack into which to insert the new expression.
+ * @param[in] help Temporary stack to reduce using rules.
+ */
 static bool term2expr(tstack_s *tstack, tstack_s *help)
 {
     T_token *non_terminal;
@@ -164,6 +176,11 @@ static bool term2expr(tstack_s *tstack, tstack_s *help)
     return true;
 }
 
+/**
+ * @brief Choose an expression rule to apply and modify the stack.
+ *
+ * @param[in,out] tstack Stack of tokens of expression to reduce using rules.
+ */
 static bool apply_rule(tstack_s *tstack)
 {
     tstack_s help;

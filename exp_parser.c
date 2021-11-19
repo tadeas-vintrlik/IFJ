@@ -71,7 +71,8 @@ static op_e token2op(const T_token *token)
     case TOKEN_SUB:
         return ADD_SUB;
 
-        /* TODO: TOKEN_STRING_CONCAT? */
+    case TOKEN_STRING_CONCAT:
+        return CONCAT;
 
     case TOKEN_LESS_THAN:
         return REL;

@@ -331,31 +331,34 @@ bool exp_parse(symtable_s *symtable)
     T_token token, *out;
     op_e op;
     tstack_s tstack;
+    bool end = false;
 
-    get_next_token(&token);
-    if (token.type == TOKEN_ID) {
-        if (!symtable_search_top(symtable, token.value->content, NULL)) {
-            return false;
+    while (!end) {
+        get_next_token(&token);
+        if (token.type == TOKEN_ID) {
+            if (!symtable_search_top(symtable, token.value->content, NULL)) {
+                return false;
+            }
         }
-    }
 
-    op = token2op(token);
-    switch (op) {
-    case RULE:
-        apply_rule(&tstack);
-        break;
-    case PUSH:
-        tstack_terminal_push(&tstack, &token);
-        break;
-    case SPEC:
-        tstack_push(&tstack, &token);
-        break;
-    case ERR:
-        /* This is no necessarily an error, that is determined by the state of the stack */
-        break;
-    default:
-        /* This will never happen - but compiler */
-        break;
+        op = token2op(token);
+        switch (op) {
+        case RULE:
+            apply_rule(&tstack);
+            break;
+        case PUSH:
+            tstack_terminal_push(&tstack, &token);
+            break;
+        case SPEC:
+            tstack_push(&tstack, &token);
+            break;
+        default:
+
+            /* This is not necessarily an error, that is determined by the state of the stack */
+            end = true;
+            unget_token(&token);
+            break;
+        }
     }
 
     /* There should by only one non-terminal on stack */

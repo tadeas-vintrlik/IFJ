@@ -50,3 +50,9 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# MacOS and Xcode
+.DS_Store
+Compiler.xcodeproj/
+cmocka-1.1.5/
+cmocka

@@ -2,7 +2,8 @@ CC=gcc
 CFLAGS=-std=c99 -Wall -Werror -Wextra -pedantic
 LFLAGS=
 MAIN=main
-OBJ=$(MAIN).o common.o sll.o scanner.o parser.o avl.o symtable.o token_stack.o
+
+OBJ=$(MAIN).o common.o sll.o scanner.o parser.o avl.o symtable.o token_stack.o exp_parser.o
 
 .PHONY: all debug debug_cflags clean test test_clean test_run format
 

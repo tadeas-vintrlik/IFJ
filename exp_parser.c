@@ -54,9 +54,12 @@ op_e table[TABLE_ELEM][TABLE_ELEM] = {
  *
  * @return op_e value.
  */
-static op_e token2op(const T_token token)
+static op_e token2op(const T_token *token)
 {
-    switch (token.type) {
+    if (!token) {
+        return DOLLAR;
+    }
+    switch (token->type) {
     case TOKEN_STRING_LENGTH:
         return LEN;
 
@@ -131,21 +134,22 @@ static T_token *create_non_terminal(void)
  *
  * @return Action found in the table. NONE if @p in or @p stack was nout found as a key.
  */
-op_e table_get_action(op_e in, op_e stack)
+op_e table_get_action(op_e in, tstack_s *stack)
 {
-    op_e ret = NONE;
+    op_e ret = NONE, op_top;
     int row = -1, col = -1;
 
     /* First find they key in columns */
     for (unsigned i = 0; i < TABLE_ELEM; i++) {
-        if (table[0][in] == in) {
+        if (table[0][i] == in) {
             col = i;
         }
     }
 
     /* Then find the key in rows */
+    op_top = token2op(tstack_top(stack));
     for (unsigned i = 0; i < TABLE_ELEM; i++) {
-        if (table[i][0] == stack) {
+        if (table[i][0] == op_top) {
             row = i;
         }
     }
@@ -166,6 +170,9 @@ op_e table_get_action(op_e in, op_e stack)
 static bool term2expr(tstack_s *tstack, tstack_s *help)
 {
     T_token *non_terminal;
+    T_token *terminal = tstack_top(help);
+    tstack_pop(help, false);
+
     if (!tstack_empty(help)) {
         // TODO: possibly free stack
         return false;
@@ -173,6 +180,7 @@ static bool term2expr(tstack_s *tstack, tstack_s *help)
     non_terminal = create_non_terminal();
     tstack_push(tstack, non_terminal);
     // TODO: CODE_GEN call
+    (void)terminal;
     return true;
 }
 
@@ -185,9 +193,10 @@ static bool term2expr(tstack_s *tstack, tstack_s *help)
 static bool nonterm2expr(tstack_s *tstack, tstack_s *help)
 {
     T_token *first, *second, *third;
+    (void)first;
 
     /* Pop all three expected tokens */
-    first = tstack_top(help);
+    /* first = tstack_top(help); */
     tstack_pop(help, false);
     second = tstack_top(help);
     tstack_pop(help, false);
@@ -249,8 +258,8 @@ static bool apply_rule(tstack_s *tstack)
     while (!tstack_empty(tstack)) {
         tmp = tstack_top(tstack);
 
-        tstack_push(&help, tmp);
         tstack_pop(tstack, false);
+        tstack_push(&help, tmp);
         if (tmp->type == TOKEN_HANDLE) {
             break;
         }
@@ -262,6 +271,7 @@ static bool apply_rule(tstack_s *tstack)
         return false;
     }
     tstack_pop(&help, false); /* Remove the explicit handle */
+    tmp = tstack_top(&help);
 
     /* Choose the rule according to left-most token */
     switch (tmp->type) {
@@ -328,41 +338,48 @@ static bool apply_rule(tstack_s *tstack)
 
 bool exp_parse(symtable_s *symtable)
 {
-    T_token token, *out;
-    op_e op;
+    T_token *token, *out;
+    op_e op, action;
     tstack_s tstack;
+    tstack_init(&tstack);
     bool end = false;
 
     while (!end) {
-        get_next_token(&token);
-        if (token.type == TOKEN_ID) {
-            if (!symtable_search_top(symtable, token.value->content, NULL)) {
+        token = get_next_token();
+        if (token->type == TOKEN_ID) {
+            if (!symtable_search_top(symtable, token->value->content, NULL)) {
                 return false;
             }
         }
 
         op = token2op(token);
-        switch (op) {
+        action = table_get_action(op, &tstack);
+        switch (action) {
         case RULE:
             apply_rule(&tstack);
             break;
         case PUSH:
-            tstack_terminal_push(&tstack, &token);
+            tstack_terminal_push(&tstack, token);
             break;
         case SPEC:
-            tstack_push(&tstack, &token);
+            tstack_push(&tstack, token);
             break;
         default:
 
             /* This is not necessarily an error, that is determined by the state of the stack */
             end = true;
-            unget_token(&token);
+            unget_token(token);
             break;
         }
     }
 
     /* There should by only one non-terminal on stack */
     out = tstack_top(&tstack);
+    if (!out) {
+        /* Very first token was invalid */
+        return false;
+    }
+
     if (out->type != TOKEN_NON_TERMINAL) {
         return false;
     }

@@ -66,7 +66,7 @@ T_token *get_next_token()
 {
     if (!tstack_empty(&token_stack)) {
         T_token *result = tstack_top(&token_stack);
-        tstack_pop(&token_stack);
+        tstack_pop(&token_stack, false);
 
         return result;
     }

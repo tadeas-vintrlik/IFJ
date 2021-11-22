@@ -423,7 +423,7 @@ static bool rule_VAR_DECL()
     return right_side_function(&id);
 }
 
-static bool rule_EXPR() { return true; } // TODO Use the expression analyzer
+static bool rule_EXPR() { return exp_parse(NULL); } // TODO Use the expression analyzer
 
 static bool magic_function()
 {
@@ -486,7 +486,6 @@ static bool right_side_function(sll_s *left_side_ids)
     unget_token(token);
 
     while (true) {
-        token = get_next_token();
 
         if (!rule_EXPR()) {
             return false;

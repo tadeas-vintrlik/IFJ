@@ -9,5 +9,10 @@
 #include <string.h>
 
 #include "parser.h"
+#include "scanner.h"
 
-int main(void) { return !start_parsing(); }
+int main(void)
+{
+    initialize_scanner();
+    return !start_parsing();
+}

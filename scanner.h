@@ -49,4 +49,9 @@ T_token *get_next_token();
  */
 void unget_token(T_token *token);
 
+/**
+ * @brief Initializes the scanner.
+ */
+void initialize_scanner();
+
 #endif

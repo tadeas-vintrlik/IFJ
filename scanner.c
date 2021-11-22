@@ -56,28 +56,17 @@ static bool is_keyword(char *word)
     return false;
 }
 
-T_token *held_token;
-T_token *held_token_2;
+tstack_s token_stack;
 
-void unget_token(T_token *token)
-{
-    if (held_token == NULL) {
-        held_token = token;
-    } else if (held_token_2 == NULL) {
-        held_token_2 = held_token;
-        held_token = token;
-    } else {
-        exit(RC_INTERNAL_ERR);
-    }
-}
+void initialize_scanner() { tstack_init(&token_stack); }
+
+void unget_token(T_token *token) { tstack_push(&token_stack, token); }
 
 T_token *get_next_token()
 {
-    if (held_token != NULL) {
-        T_token *result = held_token;
-
-        held_token = held_token_2;
-        held_token_2 = NULL;
+    if (!tstack_empty(&token_stack)) {
+        T_token *result = tstack_top(&token_stack);
+        tstack_pop(&token_stack);
 
         return result;
     }

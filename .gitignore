@@ -56,3 +56,11 @@ dkms.conf
 Compiler.xcodeproj/
 cmocka-1.1.5/
 cmocka
+
+# Vim-workflow stuff
+compile_commands.json
+tags
+.vimspector.json
+.vimspector.session
+.clang-format
+.cache

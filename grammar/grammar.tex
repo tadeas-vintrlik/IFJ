@@ -1,0 +1,132 @@
+\documentclass[a4paper]{article}
+
+\usepackage[text={18cm, 25cm}, left=1.8cm, top=1.8cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8x]{inputenc}
+\usepackage[linguistics]{forest}
+\usepackage[hidelinks,unicode]{hyperref}
+\usepackage[czech]{babel}
+\usepackage{color}
+\usepackage{parskip}
+
+\usepackage{tikz}
+\def\checkmark{\tikz\fill[green,scale=0.4](0,.35) -- (.25,0) -- (1,.7) -- (.25,.15) -- cycle;} 
+
+\usepackage{multicol}
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definice}
+
+\newcommand{\nter}[1]{\textcolor{blue}{\,#1\,}}
+\newcommand{\ter}[1]{\textbf{\textcolor{red}{\,#1\,}}}
+\newcommand{\grule}[2]{{\small\nter{#1} $\to$ #2}\\}
+\newcommand{\drule}[2]{\checkmark \grule{#1}{#2}}
+
+
+\title{Gramatická pravidla jazyka IFJ21}
+
+\begin{document}
+	\maketitle
+
+	% \section{Definice používané LL gramatiky}
+
+	% \begin{definition}
+	% 	Nechť $LL(1) = (V, \Sigma, R, \nter{PROG})$.
+
+	% 	\begin{itemize}
+	% 		\item Množina neterminálů $V = \{\nter{PROG}, \nter{EXPR}\}$
+			
+	% 		\item Množina terminálů (tokenů) $\Sigma = \{\ter{if}, \ter{then}, \ter{do}, \ter{while}, \ter{id}\}$
+	% 	\end{itemize}
+	% \end{definition}
+
+	\section{Derivační pravidla (množina $R$)}
+
+	\begin{multicols}{2}
+
+	\subsection{Hlavní tělo programu}
+
+	Program vždy musí začínat prologem \texttt{require "ifj21"}.
+
+	\drule{PROG}{\ter{require} \ter{lit\_string} \nter{CODE}}
+
+		Hlavní blok programu (pod \texttt{require "ifj21"}) může obsahovat pouze konstrukce vyhovující pravidlu \nter{TOP\_ELEM} -- tedy pouze deklarace, definice a volání funkcí.
+
+	\drule{CODE}{\ter{$\epsilon$}}
+	\drule{CODE}{\nter{TOP\_ELEM} \nter{CODE}}
+
+	\drule{TOP\_ELEM}{\nter{CALL}}
+	\drule{TOP\_ELEM}{\nter{DECL}}
+	\grule{TOP\_ELEM}{\nter{DEF}}
+
+	Jednotlivé vrchní elementy pak vypadají následovně:
+
+	\drule{DECL}{\ter{global} \ter{id} \ter{:} \ter{function} \ter{(}\nter{TYPE\_LIST}\ter{)} \nter{RET\_LIST}}
+	\grule{DEF}{\ter{function} \ter{id} \ter{(} \nter{PARAM\_LIST} \ter{)} \nter{RET\_LIST} \nter{BODY} \ter{end}}
+	\drule{CALL}{\ter{id} \ter{(} \nter{ARG\_LIST} \ter{)}} % TODO Toto by melo fungovat jenom pro konstanty jako parametry, volani funkci uvnitr funkci bude resit magic funkce
+
+
+	\subsection{Typy}
+
+	Seznam typů musí vždy obsahovat alespoň typ \texttt{nil}.
+
+	\drule{RET\_LIST}{\ter{:} \nter{TYPE} \nter{NEXT\_TYPE}}
+	\drule{RET\_LIST}{\ter{$\epsilon$}}
+
+	\drule{TYPE\_LIST}{\nter{TYPE} \nter{NEXT\_TYPE}}
+	\drule{TYPE\_LIST}{\ter{$\epsilon$}}
+	\drule{NEXT\_TYPE}{\ter{,} \nter{TYPE} \nter{NEXT\_TYPE}}
+	\drule{NEXT\_TYPE}{\ter{$\epsilon$}}
+	\drule{TYPE}{\ter{nil}}
+	\drule{TYPE}{\ter{integer}}
+	\drule{TYPE}{\ter{number}}
+	\drule{TYPE}{\ter{string}}
+
+	\subsection{Argumenty volání funkcí}
+
+	\drule{ARG\_LIST}{\nter{ARG} \nter{NEXT\_ARG}}
+	\drule{ARG\_LIST}{\ter{$\epsilon$}}
+	\drule{NEXT\_ARG}{\ter{,} \nter{ARG} \nter{NEXT\_ARG}}
+	\drule{NEXT\_ARG}{\ter{$\epsilon$}}
+	\drule{ARG}{\ter{id}}
+	\drule{ARG}{\ter{lit\_number}}
+	\drule{ARG}{\ter{lit\_int}}
+	\drule{ARG}{\ter{lit\_string}}
+	\drule{ARG}{\ter{nil}}
+
+	\subsection{Parametry definice funkcí}
+
+	\drule{PARAM\_LIST}{\nter{PARAM} \nter{NEXT\_PARAM}}
+	\drule{PARAM\_LIST}{\ter{$\epsilon$}}
+	\drule{NEXT\_PARAM}{\ter{,} \nter{PARAM} \nter{NEXT\_PARAM}}
+	\drule{NEXT\_PARAM}{\ter{$\epsilon$}}
+	\drule{PARAM}{\ter{id} \ter{:} \nter{TYPE}}
+
+	\end{multicols}
+	\newpage
+	\begin{multicols}{2}
+	\subsection{Bloky kódu (sekvence)}
+
+	\drule{BODY}{\ter{$\epsilon$}}
+	\grule{BODY}{\nter{VAR\_DECL} \nter{BODY}}
+	\grule{BODY}{\nter{IF\_ELSE} \nter{BODY}}
+	\grule{BODY}{\nter{WHILE} \nter{BODY}}
+	\drule{BODY}{\ter{return} \nter{ARG\_LIST}}
+
+	\subsubsection{Deklarace proměnných}
+	\grule{VAR\_DECL}{\ter{local} \ter{id} \ter{:} \nter{TYPE} \ter{=} \nter{INIT\_VAL}}
+	\subsubsection{Přiřazování proměnných, volání funkcí, \nter{INIT\_VAL}}
+
+	Tyto případy nelze vyjádřit LL(1) gramatikou. Bude se muset použít nějaká zvláštní LL(2) funkce, která se bude dívat dva tokeny dopředu.
+
+	\subsubsection{Řídící konstrukce}
+
+	\grule{IF\_ELSE}{\ter{if} \nter{EXPR} \ter{then} \nter{BODY} \ter{else} \nter{BODY} \ter{end}}
+	\grule{WHILE}{\ter{while} \nter{EXPR} \ter{do} \nter{BODY} \ter{end}}
+
+	\end{multicols}
+
+\end{document}

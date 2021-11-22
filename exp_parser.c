@@ -368,8 +368,13 @@ bool exp_parse(symtable_s *symtable)
 
             /* This is not necessarily an error, that is determined by the state of the stack */
             end = true;
-            unget_token(token);
+            /* Should unget_token but that is handled later */
             break;
+        }
+        if (op == DOLLAR) {
+            /* If input was dollar we asssume end of expression, should try to reduce the stack to
+             * non-temrinals */
+            unget_token(token);
         }
     }
 

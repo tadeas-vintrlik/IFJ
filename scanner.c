@@ -71,16 +71,6 @@ void unget_token(T_token *token)
     }
 }
 
-void token_destroy(T_token *token)
-{
-    if (token == NULL) {
-        return;
-    }
-    ds_destroy(token->value);
-    free(token->value);
-    free(token);
-}
-
 T_token *get_next_token()
 {
     if (held_token != NULL) {

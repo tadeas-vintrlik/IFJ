@@ -10,4 +10,4 @@
 
 #include "parser.h"
 
-int main(void) { return start_parsing(); }
+int main(void) { return !start_parsing(); }

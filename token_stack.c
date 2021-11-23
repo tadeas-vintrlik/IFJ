@@ -6,6 +6,17 @@
 
 #include "token_stack.h"
 
+void token_init(T_token *token)
+{
+    token->value = malloc(sizeof(dynamic_string_s));
+    ALLOC_CHECK(token->value);
+
+    ds_init(token->value);
+
+    token->type = TOKEN_ID;
+    token->line = 0;
+}
+
 void token_destroy(T_token *token)
 {
     if (!token) {

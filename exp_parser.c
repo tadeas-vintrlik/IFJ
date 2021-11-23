@@ -36,7 +36,7 @@ typedef enum op {
  */
 op_e table[TABLE_ELEM][TABLE_ELEM] = {
     { NONE, LEN, MULT_DIV, ADD_SUB, CONCAT, REL, LPAR, RPAR, ID, DOLLAR },
-    { LEN, RULE, RULE, RULE, RULE, RULE, PUSH, ERR, PUSH, ERR },
+    { LEN, RULE, RULE, RULE, RULE, RULE, PUSH, ERR, PUSH, RULE },
     { MULT_DIV, PUSH, RULE, RULE, RULE, RULE, PUSH, RULE, PUSH, RULE },
     { ADD_SUB, PUSH, PUSH, RULE, RULE, RULE, PUSH, RULE, PUSH, RULE },
     { CONCAT, PUSH, PUSH, PUSH, PUSH, RULE, PUSH, RULE, PUSH, RULE },
@@ -44,7 +44,7 @@ op_e table[TABLE_ELEM][TABLE_ELEM] = {
     { LPAR, PUSH, PUSH, PUSH, PUSH, PUSH, PUSH, SPEC, PUSH, ERR },
     { RPAR, ERR, RULE, RULE, RULE, RULE, ERR, RULE, ERR, RULE },
     { ID, ERR, RULE, RULE, RULE, RULE, PUSH, RULE, ERR, RULE },
-    { DOLLAR, ERR, PUSH, PUSH, PUSH, PUSH, PUSH, ERR, PUSH, ERR },
+    { DOLLAR, PUSH, PUSH, PUSH, PUSH, PUSH, PUSH, ERR, PUSH, ERR },
 };
 
 /**
@@ -116,14 +116,14 @@ static op_e token2op(const T_token *token)
  *
  * @return Newly allocated non-terminal token.
  */
-static T_token *create_non_terminal(void)
+static T_token *create_non_terminal(unsigned line)
 {
-    T_token *handle = malloc(sizeof *handle);
-    ALLOC_CHECK(handle);
-    handle->type = TOKEN_NON_TERMINAL;
-    handle->value = NULL;
-    handle->line = -1;
-    return handle;
+    T_token *expr = malloc(sizeof *expr);
+    ALLOC_CHECK(expr);
+    expr->type = TOKEN_NON_TERMINAL;
+    expr->value = NULL;
+    expr->line = line;
+    return expr;
 }
 
 /**
@@ -147,7 +147,7 @@ op_e table_get_action(op_e in, tstack_s *stack)
     }
 
     /* Then find the key in rows */
-    op_top = token2op(tstack_top(stack));
+    op_top = token2op(tstack_terminal_top(stack));
     for (unsigned i = 0; i < TABLE_ELEM; i++) {
         if (table[i][0] == op_top) {
             row = i;
@@ -177,7 +177,7 @@ static bool term2expr(tstack_s *tstack, tstack_s *help)
         // TODO: possibly free stack
         return false;
     }
-    non_terminal = create_non_terminal();
+    non_terminal = create_non_terminal(terminal->line);
     tstack_push(tstack, non_terminal);
     // TODO: CODE_GEN call
     (void)terminal;
@@ -237,6 +237,7 @@ static bool nonterm2expr(tstack_s *tstack, tstack_s *help)
 
     /* When we get here, the expression is valid */
     /* TODO: Code gen call */
+    /* TODO: Check of type */
     tstack_push(tstack, third); /* Push back one reduced expression */
 
     return true;
@@ -250,7 +251,7 @@ static bool nonterm2expr(tstack_s *tstack, tstack_s *help)
 static bool apply_rule(tstack_s *tstack)
 {
     tstack_s help;
-    T_token *tmp;
+    T_token *tmp, *expr;
 
     tstack_init(&help);
 
@@ -276,24 +277,30 @@ static bool apply_rule(tstack_s *tstack)
     /* Choose the rule according to left-most token */
     switch (tmp->type) {
     case TOKEN_STRING_LENGTH:
+       tstack_pop(&help, false);
         tmp = tstack_top(&help);
         if (tmp->type != TOKEN_NON_TERMINAL) {
             return false;
         }
         tstack_pop(&help, false);
+        tstack_push(tstack, tmp);
+        /* TODO: Semantics for type of tmp */
         // TODO: code gen call
         break;
     case TOKEN_LEFT_BRACKET:
+        tstack_pop(&help, false);
         tmp = tstack_top(&help);
         if (tmp->type != TOKEN_NON_TERMINAL) {
             return false;
         }
+        expr = tmp; /* Store the inside expression to put as result */
         tstack_pop(&help, false);
         tmp = tstack_top(&help);
         if (tmp->type != TOKEN_RIGHT_BRACKET) {
             return false;
         }
         tstack_pop(&help, false);
+        tstack_push(tstack, expr);
         break;
     case TOKEN_KEYWORD:
         if (strcmp(tmp->value->content, "nil")) {
@@ -324,8 +331,7 @@ static bool apply_rule(tstack_s *tstack)
         }
         break;
     case TOKEN_NON_TERMINAL:
-        tstack_push(&help, tmp); /* return the non-terminal needed to generate code */
-        if (nonterm2expr(tstack, &help)) {
+        if (!nonterm2expr(tstack, &help)) {
             return false;
         }
         break;
@@ -357,6 +363,7 @@ bool exp_parse(symtable_s *symtable)
         switch (action) {
         case RULE:
             apply_rule(&tstack);
+            unget_token(token);
             break;
         case PUSH:
             tstack_terminal_push(&tstack, token);
@@ -370,11 +377,6 @@ bool exp_parse(symtable_s *symtable)
             end = true;
             /* Should unget_token but that is handled later */
             break;
-        }
-        if (op == DOLLAR) {
-            /* If input was dollar we asssume end of expression, should try to reduce the stack to
-             * non-temrinals */
-            unget_token(token);
         }
     }
 
@@ -394,5 +396,6 @@ bool exp_parse(symtable_s *symtable)
     }
 
     tstack_destroy(&tstack);
+    unget_token(token); /* Return the last unparsed token to top-down parser */
     return true;
 }

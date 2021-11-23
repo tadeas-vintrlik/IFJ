@@ -157,7 +157,6 @@ static bool rule_DEF()
 {
     T_token *token, *original;
     GET_CHECK_CMP(TOKEN_KEYWORD, "function");
-    symtable_new_frame(&symtable);
     free(token);
 
     GET_CHECK(TOKEN_ID);
@@ -191,7 +190,6 @@ static bool rule_DEF()
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "end");
     /* TODO: code-gen gen_func_end */
-    symtable_pop_frame(&symtable);
     free(token);
 
     return true;
@@ -351,7 +349,15 @@ static bool rule_NEXT_ARG()
 
 ///////////
 
-static bool rule_BODY() { return rule_STATEMENT_LIST(); }
+static bool rule_BODY()
+{
+    symtable_new_frame(&symtable);
+    if (!rule_STATEMENT_LIST()) {
+        return false;
+    }
+    symtable_pop_frame(&symtable);
+    return true;
+}
 
 static bool rule_STATEMENT_LIST()
 {
@@ -364,7 +370,6 @@ static bool rule_STATEMENT_LIST()
         if (!strcmp("return", token->value->content)) {
             token = get_next_token();
             free(token);
-
             return rule_ARG_LIST();
         } else if (!strcmp("if", token->value->content)) {
             return rule_IF_ELSE() && rule_STATEMENT_LIST();
@@ -390,7 +395,6 @@ static bool rule_IF_ELSE()
     T_token *token;
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "if");
-    symtable_new_frame(&symtable);
     free(token);
 
     if (!rule_EXPR()) {
@@ -417,7 +421,6 @@ static bool rule_IF_ELSE()
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "end");
     /* TODO: code-gen gen_if_end */
-    symtable_pop_frame(&symtable);
     free(token);
 
     return true;
@@ -428,7 +431,6 @@ static bool rule_WHILE()
     T_token *token;
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "while");
-    symtable_new_frame(&symtable);
     /* TODO: code-gen gen_while_label */
     free(token);
 
@@ -447,7 +449,6 @@ static bool rule_WHILE()
     /* TODO: code-gen gen_jump_while */
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "end");
-    symtable_pop_frame(&symtable);
     /* TODO: code-gen gen_while_end */
     free(token);
 

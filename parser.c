@@ -1,15 +1,20 @@
 #include "parser.h"
 #include "symtable.h"
-static void unexpected_token_exit(T_token *bad_token, char *expected_token);
+static void print_unexpected_token(
+    T_token *bad_token, token_type expected_type, char *expected_content);
+static char *token_type_to_string(token_type token_type);
 
 #define GET_CHECK(TYPE)                                                                            \
     token = get_next_token();                                                                      \
-    if (token->type != TYPE)                                                                       \
-        return false;
+    if (token->type != TYPE) {                                                                     \
+        print_unexpected_token(token, TYPE, "");                                                   \
+        return false;                                                                              \
+    }
 
 #define GET_CHECK_CMP(TYPE, VALUE)                                                                 \
     token = get_next_token();                                                                      \
     if (token->type != TYPE || strcmp(VALUE, token->value->content) != 0) {                        \
+        print_unexpected_token(token, TYPE, VALUE);                                                \
         return false;                                                                              \
     }
 
@@ -56,27 +61,92 @@ bool start_parsing()
     return ret;
 }
 
-static void print_unexpected_token(T_token *bad_token, char *expected_token)
+static char *token_type_to_string(token_type type)
 {
-    fprintf(stderr, "Error on line %d: Got unexpected token %s, expected %s.", bad_token->line,
-        bad_token->value->content, expected_token);
-    exit(RC_SYN_ERR);
+    switch (type) {
+    case TOKEN_COLON:
+        return ":";
+    case TOKEN_LEFT_BRACKET:
+        return "(";
+    case TOKEN_RIGHT_BRACKET:
+        return ")";
+    case TOKEN_DECLAR:
+        return "=";
+    case TOKEN_EQUAL:
+        return "==";
+    case TOKEN_NOT_EQUAL_TO:
+        return "~=";
+    case TOKEN_LESS_THAN:
+        return "<";
+    case TOKEN_LESS_EQUAL_THAN:
+        return "<=";
+    case TOKEN_GREATER_THAN:
+        return ">";
+    case TOKEN_GREATER_EQUAL_THAN:
+        return ">=";
+    case TOKEN_ADD:
+        return "+";
+    case TOKEN_SUB:
+        return "-";
+    case TOKEN_MUL:
+        return "*";
+    case TOKEN_DIVISION:
+        return "/";
+    case TOKEN_FLOOR_DIVISION:
+        return "//";
+    case TOKEN_STRING_CONCAT:
+        return "..";
+    case TOKEN_STRING_LENGTH:
+        return "#";
+    case TOKEN_COMMA:
+        return ",";
+    case TOKEN_ID:
+        return "identifier";
+    case TOKEN_KEYWORD:
+        return "keyword";
+    case TOKEN_INT:
+        return "integer literal";
+    case TOKEN_NUMBER:
+        return "number literal";
+    case TOKEN_STRING:
+        return "string literal";
+    case TOKEN_EOF:
+        return "end of file";
+    case TOKEN_NON_TERMINAL:
+    case TOKEN_HANDLE:
+        return "";
+    }
+
+    return "";
+}
+
+static void print_unexpected_token(
+    T_token *bad_token, token_type expected_type, char *expected_content)
+{
+    char *unexpected_string = (*bad_token->value->content) == '\0'
+        ? token_type_to_string(bad_token->type)
+        : bad_token->value->content;
+    if (*expected_content == '\0') {
+        fprintf(stderr, "Error on line %d: Got unexpected token \"%s\", expected token %s.",
+            bad_token->line, unexpected_string, token_type_to_string(expected_type));
+    } else {
+        fprintf(stderr, "Error on line %d: Got unexpected token \"%s\", expected %s %s.",
+            bad_token->line, unexpected_string, token_type_to_string(expected_type),
+            expected_content);
+    }
 }
 
 static bool rule_PROG()
 {
-    T_token *token = get_next_token();
+    T_token *token;
 
-    if (token->type == TOKEN_KEYWORD && !strcmp("require", token->value->content)) {
-        token_destroy(token);
-        token = get_next_token();
+    GET_CHECK_CMP(TOKEN_KEYWORD, "require");
+    token_destroy(token);
 
-        if (token->type == TOKEN_STRING && !strcmp("ifj21", token->value->content)) {
-            return rule_CODE();
-        }
-    }
+    GET_CHECK_CMP(TOKEN_STRING, "ifj21");
+    token_destroy(token);
 
-    return false;
+    return rule_CODE();
 }
 
 static bool rule_CODE()
@@ -110,6 +180,7 @@ static bool rule_TOP_ELEM()
         }
     }
 
+    print_unexpected_token(first_token, TOKEN_KEYWORD, "global or function or identifier");
     return false;
 }
 
@@ -133,7 +204,7 @@ static bool rule_CALL()
 
     /* TODO: code-gen gen_func_call */
     GET_CHECK(TOKEN_RIGHT_BRACKET);
-    free(token);
+    token_destroy(token);
 
     return true;
 }
@@ -223,6 +294,7 @@ static bool rule_NEXT_PARAM()
 
     if (token->type == TOKEN_COMMA) {
         token_destroy(token);
+        // TODO Print unexpected token errors
         return rule_PARAM() && rule_NEXT_PARAM();
     } else {
         unget_token(token);
@@ -276,6 +348,7 @@ static bool rule_NEXT_TYPE()
 
     if (token->type == TOKEN_COMMA) {
         token_destroy(token);
+        // TODO Print unexpected token errors
         return rule_TYPE() && rule_NEXT_TYPE();
     } else {
         unget_token(token);
@@ -354,6 +427,8 @@ static bool rule_NEXT_ARG()
 
     if (token->type == TOKEN_COMMA) {
         token_destroy(token);
+
+        // TODO Print unexpected token errors
         return rule_ARG() && rule_NEXT_ARG();
     } else {
         unget_token(token);

@@ -14,5 +14,5 @@
 int main(void)
 {
     initialize_scanner();
-    return !start_parsing();
+    return start_parsing();
 }

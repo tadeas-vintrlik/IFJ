@@ -15,6 +15,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-bool start_parsing();
+rc_e start_parsing();
 
 #endif

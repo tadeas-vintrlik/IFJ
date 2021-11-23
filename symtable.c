@@ -5,8 +5,33 @@
  */
 
 #include "symtable.h"
+#include <stdlib.h>
 
 static void data_destroy(void *data) { token_destroy((T_token *)data); }
+
+void symtable_insert_token_global(symtable_s *symtable, T_token *token);
+
+static T_token *create_token(const char *key)
+{
+    T_token *new;
+    dynamic_string_s *ds;
+
+    new = malloc(sizeof *new);
+    ALLOC_CHECK(new);
+    ds = malloc(sizeof *ds);
+    ALLOC_CHECK(ds);
+
+    ds_init(ds);
+    for (unsigned i = 0; key[i]; i++) {
+        ds_add_char(ds, key[i]);
+    }
+    ds_add_char(ds, '\0');
+    new->value = ds;
+    new->type = TOKEN_ID;
+    new->line = -1;
+
+    return new;
+}
 
 void symtable_init(symtable_s *symtable)
 {
@@ -22,6 +47,11 @@ void symtable_init(symtable_s *symtable)
     /* Initialize the global frame AVL tree */
     avl_init(&global);
     symtable->global = global;
+
+    char *built_ins[] = { "reads", "readn", "readi", "write", "tointeger", "substr", "ord", "chr" };
+    for (unsigned i = 0; i < 8; i++) {
+        symtable_insert_token_global(symtable, create_token(built_ins[i]));
+    }
 }
 
 bool symtable_search_all(const symtable_s *symtable, const char *key, T_token **token)

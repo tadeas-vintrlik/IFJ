@@ -1,5 +1,6 @@
 #include "parser.h"
 #include "symtable.h"
+static void unexpected_token_exit(T_token *bad_token, char *expected_token);
 
 #define GET_CHECK(TYPE)                                                                            \
     token = get_next_token();                                                                      \
@@ -8,8 +9,9 @@
 
 #define GET_CHECK_CMP(TYPE, VALUE)                                                                 \
     token = get_next_token();                                                                      \
-    if (token->type != TYPE || strcmp(VALUE, token->value->content) != 0)                          \
-        return false;
+    if (token->type != TYPE || strcmp(VALUE, token->value->content) != 0) {                        \
+        return false;                                                                              \
+    }
 
 symtable_s symtable;
 
@@ -54,18 +56,26 @@ bool start_parsing()
     return ret;
 }
 
+static void print_unexpected_token(T_token *bad_token, char *expected_token)
+{
+    fprintf(stderr, "Error on line %d: Got unexpected token %s, expected %s.", bad_token->line,
+        bad_token->value->content, expected_token);
+    exit(RC_SYN_ERR);
+}
+
 static bool rule_PROG()
 {
     T_token *token = get_next_token();
 
     if (token->type == TOKEN_KEYWORD && !strcmp("require", token->value->content)) {
-        free(token);
+        token_destroy(token);
         token = get_next_token();
 
         if (token->type == TOKEN_STRING && !strcmp("ifj21", token->value->content)) {
             return rule_CODE();
         }
     }
+
     return false;
 }
 
@@ -75,7 +85,7 @@ static bool rule_CODE()
 
     /* TODO: code-gen gen_prog_start */
     if (token->type == TOKEN_EOF) {
-        free(token);
+        token_destroy(token);
         return true;
     } else {
         unget_token(token);
@@ -112,10 +122,10 @@ static bool rule_CALL()
         fprintf(stderr, "'%s'\n", token->value->content);
         return false;
     }
-    free(token);
+    token_destroy(token);
 
     GET_CHECK(TOKEN_LEFT_BRACKET);
-    free(token);
+    token_destroy(token);
 
     if (!rule_ARG_LIST()) {
         return false;
@@ -133,24 +143,24 @@ static bool rule_DECL()
     T_token *token;
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "global");
-    free(token);
+    token_destroy(token);
 
     GET_CHECK(TOKEN_ID);
     symtable_insert_token_global(&symtable, token);
 
     GET_CHECK(TOKEN_COLON);
-    free(token);
+    token_destroy(token);
     GET_CHECK_CMP(TOKEN_KEYWORD, "function");
-    free(token);
+    token_destroy(token);
     GET_CHECK(TOKEN_LEFT_BRACKET);
-    free(token);
+    token_destroy(token);
 
     if (!rule_TYPE_LIST()) {
         return false;
     }
 
     GET_CHECK(TOKEN_RIGHT_BRACKET);
-    free(token);
+    token_destroy(token);
 
     return rule_RET_LIST();
 }
@@ -159,7 +169,7 @@ static bool rule_DEF()
 {
     T_token *token, *original;
     GET_CHECK_CMP(TOKEN_KEYWORD, "function");
-    free(token);
+    token_destroy(token);
 
     GET_CHECK(TOKEN_ID);
     if (symtable_search_global(&symtable, token->value->content, &original)) {
@@ -176,7 +186,7 @@ static bool rule_DEF()
     /* TODO: code-gen gen_func_start and gen_pop_arg */
 
     GET_CHECK(TOKEN_LEFT_BRACKET);
-    free(token);
+    token_destroy(token);
 
     symtable_new_frame(&symtable);
     if (!rule_PARAM_LIST()) {
@@ -184,7 +194,7 @@ static bool rule_DEF()
     }
 
     GET_CHECK(TOKEN_RIGHT_BRACKET);
-    free(token);
+    token_destroy(token);
 
     if (!rule_RET_LIST() || !rule_BODY()) {
         return false;
@@ -193,7 +203,7 @@ static bool rule_DEF()
     GET_CHECK_CMP(TOKEN_KEYWORD, "end");
     symtable_pop_frame(&symtable);
     /* TODO: code-gen gen_func_end */
-    free(token);
+    token_destroy(token);
 
     return true;
 }
@@ -212,7 +222,7 @@ static bool rule_NEXT_PARAM()
     T_token *token = get_next_token();
 
     if (token->type == TOKEN_COMMA) {
-        free(token);
+        token_destroy(token);
         return rule_PARAM() && rule_NEXT_PARAM();
     } else {
         unget_token(token);
@@ -233,7 +243,7 @@ static bool rule_PARAM()
     /* TODO: Add param type to function in global frame */
     /* <TODO: code-gen gen_param_caller>_in */
     GET_CHECK(TOKEN_COLON);
-    free(token);
+    token_destroy(token);
 
     return rule_TYPE();
 }
@@ -243,7 +253,7 @@ static bool rule_RET_LIST()
     T_token *token = get_next_token();
 
     if (token->type == TOKEN_COLON) {
-        free(token);
+        token_destroy(token);
         return rule_TYPE() && rule_NEXT_TYPE();
     } else {
         unget_token(token);
@@ -265,7 +275,7 @@ static bool rule_NEXT_TYPE()
     T_token *token = get_next_token();
 
     if (token->type == TOKEN_COMMA) {
-        free(token);
+        token_destroy(token);
         return rule_TYPE() && rule_NEXT_TYPE();
     } else {
         unget_token(token);
@@ -290,7 +300,7 @@ static bool rule_TYPE()
     if (!is_type) {
         unget_token(token);
     } else {
-        free(token);
+        token_destroy(token);
     }
 
     return is_type;
@@ -343,7 +353,7 @@ static bool rule_NEXT_ARG()
     T_token *token = get_next_token();
 
     if (token->type == TOKEN_COMMA) {
-        free(token);
+        token_destroy(token);
         return rule_ARG() && rule_NEXT_ARG();
     } else {
         unget_token(token);
@@ -371,7 +381,8 @@ static bool rule_STATEMENT_LIST()
 
         if (!strcmp("return", token->value->content)) {
             token = get_next_token();
-            free(token);
+            token_destroy(token);
+
             return rule_ARG_LIST();
         } else if (!strcmp("if", token->value->content)) {
             return rule_IF_ELSE() && rule_STATEMENT_LIST();
@@ -397,7 +408,7 @@ static bool rule_IF_ELSE()
     T_token *token;
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "if");
-    free(token);
+    token_destroy(token);
 
     if (!rule_EXPR()) {
         return false;
@@ -405,7 +416,7 @@ static bool rule_IF_ELSE()
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "then");
     /* TODO: code-gen gen_jump_else */
-    free(token);
+    token_destroy(token);
 
     symtable_new_frame(&symtable);
     if (!rule_BODY()) {
@@ -417,7 +428,7 @@ static bool rule_IF_ELSE()
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "else");
     /* TODO: code-gen gen_else_label */
-    free(token);
+    token_destroy(token);
 
     symtable_new_frame(&symtable);
     if (!rule_BODY()) {
@@ -427,7 +438,7 @@ static bool rule_IF_ELSE()
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "end");
     /* TODO: code-gen gen_if_end */
-    free(token);
+    token_destroy(token);
 
     return true;
 }
@@ -438,7 +449,7 @@ static bool rule_WHILE()
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "while");
     /* TODO: code-gen gen_while_label */
-    free(token);
+    token_destroy(token);
 
     if (!rule_EXPR()) {
         return false;
@@ -446,7 +457,7 @@ static bool rule_WHILE()
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "do");
     /* TODO: code-gen gen_jump_while_end */
-    free(token);
+    token_destroy(token);
 
     symtable_new_frame(&symtable);
     if (!rule_BODY()) {
@@ -458,7 +469,7 @@ static bool rule_WHILE()
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "end");
     /* TODO: code-gen gen_while_end */
-    free(token);
+    token_destroy(token);
 
     return true;
 }
@@ -470,7 +481,7 @@ static bool rule_VAR_DECL()
     sll_init(&id);
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "local");
-    free(token);
+    token_destroy(token);
 
     GET_CHECK(TOKEN_ID);
     if (symtable_search_top(&symtable, token->value->content, NULL)) {
@@ -487,20 +498,20 @@ static bool rule_VAR_DECL()
     sll_insert_head(&id, token);
 
     GET_CHECK(TOKEN_COLON);
-    free(token);
+    token_destroy(token);
 
     if (!rule_TYPE()) {
         return false;
     }
 
     GET_CHECK(TOKEN_DECLAR);
-    free(token);
+    token_destroy(token);
 
     // TODO:Error on multiple expressions on right side
     return right_side_function(&id);
 }
 
-static bool rule_EXPR() { return exp_parse(&symtable); }
+static bool rule_EXPR() { return exp_parse(NULL); } // TODO Use the expression analyzer
 
 static bool magic_function()
 {

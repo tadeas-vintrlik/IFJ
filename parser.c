@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "symtable.h"
 
 #define GET_CHECK(TYPE)                                                                            \
     token = get_next_token();                                                                      \
@@ -83,10 +84,7 @@ static bool rule_TOP_ELEM()
     T_token *first_token = get_next_token();
 
     if (first_token->type == TOKEN_ID) {
-        if (!symtable_search_global(&symtable, first_token->value->content, NULL)) {
-            /* TODO: Error undeclared id */
-            return false;
-        }
+        /* Declaration of function checked in rule_CALL */
         unget_token(first_token);
         return rule_CALL();
     } else if (first_token->type == TOKEN_KEYWORD) {
@@ -106,7 +104,8 @@ static bool rule_CALL()
     T_token *token;
     GET_CHECK(TOKEN_ID);
     if (!symtable_search_global(&symtable, token->value->content, NULL)) {
-        /* TODO: Error undeclared id */
+        ERR_MSG("Use of undefined function: ", token->line);
+        fprintf(stderr, "'%s'\n", token->value->content);
         return false;
     }
     free(token);
@@ -155,12 +154,18 @@ static bool rule_DECL()
 
 static bool rule_DEF()
 {
-    T_token *token;
+    T_token *token, *original;
     GET_CHECK_CMP(TOKEN_KEYWORD, "function");
+     symtable_new_frame(&symtable);
     free(token);
-
+   
     GET_CHECK(TOKEN_ID);
-    /* TODO: code-gen gen_func_start */
+    if (symtable_search_global(&symtable, token->value->content, &original)) {
+        ERR_MSG("Redefining function: ", token->line);
+        fprintf(stderr, "'%s' original declaration on line: %d", token->value->content, original->line);
+        return false;
+    }
+    /* TODO: code-gen gen_func_start and gen_pop_arg */
     free(token);
 
     GET_CHECK(TOKEN_LEFT_BRACKET);
@@ -179,6 +184,7 @@ static bool rule_DEF()
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "end");
     /* TODO: code-gen gen_func_end */
+    symtable_pop_frame(&symtable);
     free(token);
 
     return true;
@@ -216,7 +222,7 @@ static bool rule_PARAM()
     }
 
     /* TODO: Add param type to function in global frame */
-    /* TODO: code-gen gen_param_caller_in */
+    /* <TODO: code-gen gen_param_caller>_in */
     GET_CHECK(TOKEN_COLON);
     free(token);
 
@@ -293,10 +299,15 @@ static bool rule_ARG()
 {
     T_token *token = get_next_token();
 
+    /* 
+     * TODO: code-gen gen_push_ret
+     * TODO: Add param to decide if called as return ARG_LIST or CALL(ARG_LIST)
+     */
     switch (token->type) {
     case TOKEN_ID:
-        if (!symtable_search_global(&symtable, token->value->content, NULL)) {
-            /* TODO: undeclared id error */
+        if (!symtable_search_top(&symtable, token->value->content, NULL)) {
+            ERR_MSG("Use of undeclared variable: ", token->line);
+            fprintf(stderr, "'%s'\n", token->value->content);
             return false;
         }
     case TOKEN_NUMBER:
@@ -371,6 +382,7 @@ static bool rule_IF_ELSE()
     T_token *token;
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "if");
+    symtable_new_frame(&symtable);
     free(token);
 
     if (!rule_EXPR()) {
@@ -378,20 +390,26 @@ static bool rule_IF_ELSE()
     }
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "then");
+    /* TODO: code-gen gen_jump_else */
     free(token);
 
     if (!rule_BODY()) {
         return false;
     }
+
+    /* TODO: code-gen gen_jump_if_end */
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "else");
+    /* TODO: code-gen gen_else_label */
     free(token);
 
     if (!rule_BODY()) {
         return false;
-    }
+    }    
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "end");
+    /* TODO: code-gen gen_if_end */
+    symtable_pop_frame(&symtable);
     free(token);
 
     return true;
@@ -402,6 +420,8 @@ static bool rule_WHILE()
     T_token *token;
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "while");
+    symtable_new_frame(&symtable);
+    /* TODO: code-gen gen_while_label */
     free(token);
 
     if (!rule_EXPR()) {
@@ -409,13 +429,18 @@ static bool rule_WHILE()
     }
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "do");
+    /* TODO: code-gen gen_jump_while_end */
     free(token);
 
     if (!rule_BODY()) {
         return false;
     }
 
+    /* TODO: code-gen gen_jump_while */
+
     GET_CHECK_CMP(TOKEN_KEYWORD, "end");
+    symtable_pop_frame(&symtable);
+    /* TODO: code-gen gen_while_end */
     free(token);
 
     return true;
@@ -430,8 +455,17 @@ static bool rule_VAR_DECL()
     GET_CHECK_CMP(TOKEN_KEYWORD, "local");
     free(token);
 
-    // TODO:Semantika
     GET_CHECK(TOKEN_ID);
+    if (symtable_search_top(&symtable, token->value->content, NULL)) {
+        ERR_MSG("Redeclaring variable error: ", token->line)
+        fprintf(stderr, "'%s'\n", token->value->content);
+        return false;
+    }
+    if (symtable_search_global(&symtable, token->value->content, NULL)) {
+        ERR_MSG("Redeclaring function name as variable error: ", token->line)
+        fprintf(stderr, "'%s'\n", token->value->content);
+        return false;
+    }
     sll_insert_head(&id, token);
 
     GET_CHECK(TOKEN_COLON);
@@ -441,7 +475,7 @@ static bool rule_VAR_DECL()
         return false;
     }
 
-    // TODO:Insert symbol into symtable
+    symtable_insert_token_top(&symtable, token);
 
     GET_CHECK(TOKEN_DECLAR);
     free(token);
@@ -450,7 +484,7 @@ static bool rule_VAR_DECL()
     return right_side_function(&id);
 }
 
-static bool rule_EXPR() { return exp_parse(NULL); } // TODO:Use the expression analyzer
+static bool rule_EXPR() { return exp_parse(&symtable); }
 
 static bool magic_function()
 {
@@ -505,7 +539,9 @@ static bool right_side_function(sll_s *left_side_ids)
             unget_token(token2);
             unget_token(token);
 
+            /* TODO: code-gen gen_push_arg */
             return rule_CALL();
+            /* TODO: code-gen gen_pop_ret */
         }
         unget_token(token2);
     }
@@ -518,7 +554,8 @@ static bool right_side_function(sll_s *left_side_ids)
             return false;
         }
 
-        // TODO:Assignment!
+        /* TODO: semantic check types */
+        /* TODO: code-gen gen_var_assign */
 
         sll_delete_head(left_side_ids, false);
 

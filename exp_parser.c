@@ -271,6 +271,8 @@ static bool apply_rule(tstack_s *tstack)
         return false;
     }
     if (tmp->type != TOKEN_HANDLE) {
+        /* Return it in case it was just one non-terminal */
+        tstack_push(tstack, tmp);
         return false;
     }
     tstack_pop(&help, false); /* Remove the explicit handle */
@@ -355,14 +357,15 @@ bool exp_parse(symtable_s *symtable)
 
     while (!end) {
         token = get_next_token();
-        if (token->type == TOKEN_ID) {
+        op = token2op(token);
+        action = table_get_action(op, &tstack);
+        if (action != ERR && token->type == TOKEN_ID) {
+            /* If an identifier and part of the expression */
             if (!symtable_search_top(symtable, token->value->content, NULL)) {
+                /* TODO: Error message for undeclared identifier */
                 return false;
             }
         }
-
-        op = token2op(token);
-        action = table_get_action(op, &tstack);
         switch (action) {
         case RULE:
             if (!apply_rule(&tstack)) {
@@ -386,12 +389,24 @@ bool exp_parse(symtable_s *symtable)
         }
     }
 
+    /* Try to reduce it to one non-terminal if possible */
+    while (apply_rule(&tstack))
+        ;
+
     /* There should by only one non-terminal on stack */
     out = tstack_top(&tstack);
     if (!out) {
         ERR_MSG("Expected a non-empty expression.", token->line);
         /* Very first token was invalid */
         return false;
+    }
+
+    if (out->type == TOKEN_ID) {
+        /* We assume the identifier was not a part of the expression as it might be a function call
+         */
+        unget_token(out);
+        tstack_pop(&tstack, false);
+        out = tstack_top(&tstack);
     }
 
     if (out->type != TOKEN_NON_TERMINAL) {

@@ -50,3 +50,20 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# MacOS and Xcode
+.DS_Store
+Compiler.xcodeproj/
+cmocka-1.1.5/
+cmocka
+
+# Vim-workflow stuff
+compile_commands.json
+tags
+.vimspector.json
+.vimspector.session
+.clang-format
+.cache
+
+# Vscode stuff
+.vscode

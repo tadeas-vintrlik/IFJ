@@ -82,10 +82,15 @@ typedef void (*destructor)(void *);
  */
 #define MAX(a, b) (a > b ? a : b)
 
-/*
+/**
  * @brief A macro for getting absolute value of a number.
  */
 #define ABS(a) (a < 0 ? -a : a)
+
+/**
+ * @brief A macro for printing error messages.
+ */
+#define ERR_MSG(msg, line) fprintf(stderr, "Error on line %d: %s", line, msg);
 
 /**
  * @brief Duplicates the @p str.
@@ -151,4 +156,14 @@ void sf_destroy(source_file_s *source);
  * @param[in] value token value to be printed
  */
 void printer(int value);
+
+/**
+ * @brief Printer for token_types as symbols used for error messages.
+ *
+ * @note Only works for tokens that do not have a value (will work for TOKEN_ADD as +, but will not
+ *work for TOKEN_ID)
+ * @param[in] type token type to be printed to stderr. Should be token_type but is unsigned to avoid
+ *cyclic include.
+ */
+void err_token_printer(unsigned type);
 #endif

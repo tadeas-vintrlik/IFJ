@@ -93,8 +93,9 @@ T_token *tstack_top(tstack_s *tstack);
  * @brief Remove the top token.
  *
  * @param[in] tstack Token Stack to pop top of.
+ * @param[in] destroy Whether or not to free the Token.
  */
-void tstack_pop(tstack_s *tstack);
+void tstack_pop(tstack_s *tstack, bool destroy);
 
 /**
  * @brief Get the token at the top of the stack.
@@ -114,12 +115,19 @@ T_token *tstack_terminal_top(tstack_s *tstack);
  */
 bool tstack_empty(const tstack_s *tstack);
 
-
 /**
  * @brief Destructor for Token Stack..
  *
  * @param[in] tstack Token Stack to destory.
  */
 void tstack_destroy(tstack_s *tstack);
+
+/**
+ * @brief Push down a terminal with handle. Handle will be pushed under the first terminal.
+ *
+ * @param[in] tstack Token Stack to push into.
+ * @param[in] token Token to push.
+ */
+void tstack_terminal_push(tstack_s *tstack, T_token *token);
 
 #endif /* _TOKEN_STACK_H */

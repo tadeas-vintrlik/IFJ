@@ -247,7 +247,6 @@ void sll_delete_last(sll_s *list, bool destroy)
         }
         FREE(old_last->next);
     }
-
 }
 
 void *sll_get_last(const sll_s *list)
@@ -269,4 +268,3 @@ void *sll_get_last(const sll_s *list)
 
     return last->value;
 }
-

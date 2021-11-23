@@ -42,11 +42,21 @@ rc_e ds_add_char(dynamic_string_s *dynamic_string, const char c)
     /* Duplicate string and place the duplicate in the structure */
 
     dynamic_string->content[dynamic_string->size++] = c;
+
+    // Add null byte at the end
+    if (c != '\0') {
+        ds_add_char(dynamic_string, '\0');
+        dynamic_string->size--;
+    }
+
     return RC_OK;
 }
 
 void ds_destroy(dynamic_string_s *dynamic_string)
 {
+    if (!dynamic_string) {
+        return;
+    }
     FREE(dynamic_string->content);
     dynamic_string->limit = 0;
     dynamic_string->size = 0;
@@ -164,5 +174,70 @@ void printer(int value)
     case 22:
         printf("EOF ");
         return;
+    }
+}
+
+void err_token_printer(unsigned type)
+{
+    switch (type) {
+    case 5:
+        fprintf(stderr, "=");
+        break;
+    case 6:
+        fprintf(stderr, ":=");
+        break;
+    case 7:
+        fprintf(stderr, "<");
+        break;
+    case 8:
+        fprintf(stderr, "<=");
+        break;
+    case 9:
+        fprintf(stderr, ">");
+        break;
+    case 10:
+        fprintf(stderr, ">=");
+        break;
+    case 11:
+        fprintf(stderr, "/");
+        break;
+    case 12:
+        fprintf(stderr, "//");
+        break;
+    case 13:
+        fprintf(stderr, "*");
+        break;
+    case 14:
+        fprintf(stderr, "-");
+        break;
+    case 15:
+        fprintf(stderr, "~=");
+        break;
+    case 16:
+        fprintf(stderr, "..");
+        break;
+    case 17:
+        fprintf(stderr, "+");
+        break;
+    case 18:
+        fprintf(stderr, "#");
+        break;
+    case 19:
+        fprintf(stderr, "(");
+        break;
+    case 20:
+        fprintf(stderr, ")");
+        break;
+    case 21:
+        fprintf(stderr, ",");
+        break;
+    case 22:
+        fprintf(stderr, ":");
+        break;
+    case 23:
+        fprintf(stderr, "end of file");
+        break;
+    default:
+        break;
     }
 }

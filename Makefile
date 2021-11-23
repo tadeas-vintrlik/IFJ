@@ -2,10 +2,10 @@ CC=gcc
 CFLAGS=-std=c99 -Wall -Werror -Wextra -pedantic
 LFLAGS=
 MAIN=main
-
+PACK_NAME=xvintr04.tgz
 OBJ=$(MAIN).o common.o sll.o scanner.o parser.o avl.o symtable.o token_stack.o exp_parser.o
 
-.PHONY: all debug debug_cflags clean test test_clean test_run format
+.PHONY: all debug debug_cflags clean test test_clean test_run format pack
 
 all: $(MAIN)
 
@@ -44,4 +44,8 @@ format: test_format
 
 # Cleaning objects and binaries
 clean: test_clean
-	rm -rf $(OBJ) $(MAIN)
+	rm -rf $(OBJ) $(MAIN) $(PACK_NAME)
+
+# Packing for submission
+pack: clean
+	tar -czvf $(PACK_NAME) *.c *.h dokumentace.pdf rozdeleni Makefile

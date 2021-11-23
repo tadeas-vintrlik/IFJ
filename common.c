@@ -176,3 +176,68 @@ void printer(int value)
         return;
     }
 }
+
+void err_token_printer(unsigned type)
+{
+    switch (type) {
+    case 5:
+        fprintf(stderr, "=");
+        break;
+    case 6:
+        fprintf(stderr, ":=");
+        break;
+    case 7:
+        fprintf(stderr, "<");
+        break;
+    case 8:
+        fprintf(stderr, "<=");
+        break;
+    case 9:
+        fprintf(stderr, ">");
+        break;
+    case 10:
+        fprintf(stderr, ">=");
+        break;
+    case 11:
+        fprintf(stderr, "/");
+        break;
+    case 12:
+        fprintf(stderr, "//");
+        break;
+    case 13:
+        fprintf(stderr, "*");
+        break;
+    case 14:
+        fprintf(stderr, "-");
+        break;
+    case 15:
+        fprintf(stderr, "~=");
+        break;
+    case 16:
+        fprintf(stderr, "..");
+        break;
+    case 17:
+        fprintf(stderr, "+");
+        break;
+    case 18:
+        fprintf(stderr, "#");
+        break;
+    case 19:
+        fprintf(stderr, "(");
+        break;
+    case 20:
+        fprintf(stderr, ")");
+        break;
+    case 21:
+        fprintf(stderr, ",");
+        break;
+    case 22:
+        fprintf(stderr, ":");
+        break;
+    case 23:
+        fprintf(stderr, "end of file");
+        break;
+    default:
+        break;
+    }
+}

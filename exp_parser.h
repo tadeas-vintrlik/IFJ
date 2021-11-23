@@ -8,6 +8,7 @@
 #define _EXP_PARSER_H
 
 #include "avl.h"
+#include "common.h"
 #include "scanner.h"
 #include "symtable.h"
 

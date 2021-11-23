@@ -169,8 +169,7 @@ op_e table_get_action(op_e in, tstack_s *stack)
  */
 static bool term2expr(tstack_s *tstack, tstack_s *help)
 {
-    T_token *non_terminal;
-    T_token *terminal = tstack_top(help);
+    T_token *non_terminal, *terminal = tstack_top(help);
     tstack_pop(help, false);
 
     if (!tstack_empty(help)) {
@@ -180,7 +179,7 @@ static bool term2expr(tstack_s *tstack, tstack_s *help)
     non_terminal = create_non_terminal(terminal->line);
     tstack_push(tstack, non_terminal);
     // TODO: CODE_GEN call
-    (void)terminal;
+    (void)terminal; /* TODO: Remove once the code gen call is added */
     return true;
 }
 
@@ -196,7 +195,7 @@ static bool nonterm2expr(tstack_s *tstack, tstack_s *help)
     (void)first;
 
     /* Pop all three expected tokens */
-    /* first = tstack_top(help); */
+    first = tstack_top(help);
     tstack_pop(help, false);
     second = tstack_top(help);
     tstack_pop(help, false);
@@ -268,7 +267,10 @@ static bool apply_rule(tstack_s *tstack)
     tmp = tstack_top(&help);
 
     /* If there were no tokens or no handle - syntax error */
-    if (!tmp || (tmp && tmp->type != TOKEN_HANDLE)) {
+    if (!tmp) {
+        return false;
+    }
+    if (tmp->type != TOKEN_HANDLE) {
         return false;
     }
     tstack_pop(&help, false); /* Remove the explicit handle */
@@ -277,7 +279,7 @@ static bool apply_rule(tstack_s *tstack)
     /* Choose the rule according to left-most token */
     switch (tmp->type) {
     case TOKEN_STRING_LENGTH:
-       tstack_pop(&help, false);
+        tstack_pop(&help, false);
         tmp = tstack_top(&help);
         if (tmp->type != TOKEN_NON_TERMINAL) {
             return false;
@@ -304,6 +306,7 @@ static bool apply_rule(tstack_s *tstack)
         break;
     case TOKEN_KEYWORD:
         if (strcmp(tmp->value->content, "nil")) {
+            /* FIXME: Is this not a semantic issue? */
             return false;
         }
         if (!term2expr(tstack, &help)) {
@@ -362,7 +365,11 @@ bool exp_parse(symtable_s *symtable)
         action = table_get_action(op, &tstack);
         switch (action) {
         case RULE:
-            apply_rule(&tstack);
+            if (!apply_rule(&tstack)) {
+                /* TODO: Improve the error message */
+                ERR_MSG("Invalid expression.", token->line);
+                return false;
+            }
             unget_token(token);
             break;
         case PUSH:
@@ -372,7 +379,6 @@ bool exp_parse(symtable_s *symtable)
             tstack_push(&tstack, token);
             break;
         default:
-
             /* This is not necessarily an error, that is determined by the state of the stack */
             end = true;
             /* Should unget_token but that is handled later */
@@ -383,15 +389,25 @@ bool exp_parse(symtable_s *symtable)
     /* There should by only one non-terminal on stack */
     out = tstack_top(&tstack);
     if (!out) {
+        ERR_MSG("Expected a non-empty expression.", token->line);
         /* Very first token was invalid */
         return false;
     }
 
     if (out->type != TOKEN_NON_TERMINAL) {
+        ERR_MSG("Could not parse the expression: ", token->line);
+        if (token->value && strlen(token->value->content)) {
+            fprintf(stderr, "%s", token->value->content);
+        } else {
+            err_token_printer(token->type);
+        }
+        fprintf(stderr, " unexpected.\n");
         return false;
     }
     tstack_pop(&tstack, false);
     if (!tstack_empty(&tstack)) {
+        /* TODO: Improve error message */
+        ERR_MSG("Could not parse the entirety of the expression.\n", out->line);
         return false;
     }
 

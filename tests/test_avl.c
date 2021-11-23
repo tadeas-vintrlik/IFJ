@@ -15,8 +15,8 @@
 
 #include "avl.h"
 
-#define ALLOC_KEY(in, out)\
-    out = my_strdup(in);\
+#define ALLOC_KEY(in, out)                                                                         \
+    out = my_strdup(in);                                                                           \
     assert_non_null(out);
 #define GET_VALUE(x) (*(int *)x->value)
 #define CAST_INT(x) (*(int *)x)

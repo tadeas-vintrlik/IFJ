@@ -163,8 +163,12 @@ static bool rule_DEF()
     GET_CHECK(TOKEN_ID);
     if (symtable_search_global(&symtable, token->value->content, &original)) {
         ERR_MSG("Redefining function: ", token->line);
-        fprintf(
-            stderr, "'%s' original declaration on line: %d", token->value->content, original->line);
+        if (original->line == -1) {
+            fprintf(stderr, "'%s' is a built-in function.\n", token->value->content);
+        } else {
+            fprintf(stderr, "'%s' original declaration on line: %d\n", token->value->content,
+                original->line);
+        }
         return false;
     }
     symtable_insert_token_global(&symtable, token);

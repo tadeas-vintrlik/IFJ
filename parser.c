@@ -45,7 +45,8 @@ static bool rule_VAR_DECL();
 static bool magic_function();
 static bool right_side_function(sll_s *left_side_ids);
 
-bool start_parsing() {
+bool start_parsing()
+{
     symtable_init(&symtable);
     return rule_PROG();
 }
@@ -156,15 +157,17 @@ static bool rule_DEF()
 {
     T_token *token, *original;
     GET_CHECK_CMP(TOKEN_KEYWORD, "function");
-     symtable_new_frame(&symtable);
+    symtable_new_frame(&symtable);
     free(token);
-   
+
     GET_CHECK(TOKEN_ID);
     if (symtable_search_global(&symtable, token->value->content, &original)) {
         ERR_MSG("Redefining function: ", token->line);
-        fprintf(stderr, "'%s' original declaration on line: %d", token->value->content, original->line);
+        fprintf(
+            stderr, "'%s' original declaration on line: %d", token->value->content, original->line);
         return false;
     }
+    symtable_insert_token_global(&symtable, token);
     /* TODO: code-gen gen_func_start and gen_pop_arg */
     free(token);
 
@@ -267,7 +270,8 @@ static bool rule_NEXT_TYPE()
 static bool rule_TYPE()
 {
     /*
-     * TODO: Add parameter to rule_TYPE to determine if it was called as return type, param type, argument type or type type
+     * TODO: Add parameter to rule_TYPE to determine if it was called as return type, param type,
+     * argument type or type type
      * TODO: semantics Push as return parameter or input parameter
      */
     T_token *token = get_next_token();
@@ -299,7 +303,7 @@ static bool rule_ARG()
 {
     T_token *token = get_next_token();
 
-    /* 
+    /*
      * TODO: code-gen gen_push_ret
      * TODO: Add param to decide if called as return ARG_LIST or CALL(ARG_LIST)
      */
@@ -405,7 +409,7 @@ static bool rule_IF_ELSE()
 
     if (!rule_BODY()) {
         return false;
-    }    
+    }
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "end");
     /* TODO: code-gen gen_if_end */
@@ -466,6 +470,7 @@ static bool rule_VAR_DECL()
         fprintf(stderr, "'%s'\n", token->value->content);
         return false;
     }
+    symtable_insert_token_top(&symtable, token);
     sll_insert_head(&id, token);
 
     GET_CHECK(TOKEN_COLON);
@@ -474,8 +479,6 @@ static bool rule_VAR_DECL()
     if (!rule_TYPE()) {
         return false;
     }
-
-    symtable_insert_token_top(&symtable, token);
 
     GET_CHECK(TOKEN_DECLAR);
     free(token);

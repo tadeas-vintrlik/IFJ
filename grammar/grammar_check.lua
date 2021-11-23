@@ -13,7 +13,7 @@ local rules = {}
 
 function parse_tex_file() 
 	for line in file:lines() do
-		local rule = line:match("^%s*\\grule(.*)$")
+		local rule = line:match("^%s*\\[gd]rule(.*)$")
 		if rule then
 			local left = rule:match("{([^{}]+)}"):lower():gsub("\\", "")
 			rule = rule:gsub("^{[^{}]+}", "")

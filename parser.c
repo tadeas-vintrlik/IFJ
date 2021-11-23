@@ -32,6 +32,7 @@ static bool rule_ARG();
 static bool rule_NEXT_ARG();
 
 static bool rule_BODY();
+static bool rule_STATEMENT_LIST();
 
 static bool rule_IF_ELSE();
 static bool rule_WHILE();
@@ -306,7 +307,9 @@ static bool rule_NEXT_ARG()
 
 ///////////
 
-static bool rule_BODY()
+static bool rule_BODY() { return rule_STATEMENT_LIST(); }
+
+static bool rule_STATEMENT_LIST()
 {
     T_token *token = get_next_token();
 
@@ -320,18 +323,18 @@ static bool rule_BODY()
 
             return rule_ARG_LIST();
         } else if (!strcmp("if", token->value->content)) {
-            return rule_IF_ELSE() && rule_BODY();
+            return rule_IF_ELSE() && rule_STATEMENT_LIST();
         } else if (!strcmp("while", token->value->content)) {
-            return rule_WHILE() && rule_BODY();
+            return rule_WHILE() && rule_STATEMENT_LIST();
         } else if (!strcmp("local", token->value->content)) {
-            return rule_VAR_DECL() && rule_BODY();
+            return rule_VAR_DECL() && rule_STATEMENT_LIST();
         }
 
         return true;
     case TOKEN_ID:
         unget_token(token);
 
-        return magic_function() && rule_BODY();
+        return magic_function() && rule_STATEMENT_LIST();
     default:
         unget_token(token);
         return true;
@@ -405,7 +408,6 @@ static bool rule_VAR_DECL()
     // TODO Semantika
     GET_CHECK(TOKEN_ID);
     sll_insert_head(&id, token);
-    free(token);
 
     GET_CHECK(TOKEN_COLON);
     free(token);

@@ -108,13 +108,15 @@
 	\end{multicols}
 	\newpage
 	\begin{multicols}{2}
-	\subsection{Bloky kódu (sekvence)}
-
+	\subsection{Bloky kódu}
 	\drule{BODY}{\ter{$\epsilon$}}
-	\grule{BODY}{\nter{VAR\_DECL} \nter{BODY}}
-	\grule{BODY}{\nter{IF\_ELSE} \nter{BODY}}
-	\grule{BODY}{\nter{WHILE} \nter{BODY}}
-	\drule{BODY}{\ter{return} \nter{ARG\_LIST}}
+	\drule{BODY}{\nter{STAT\_LIST}}
+
+	\subsection{Sekvence příkazů}
+	\grule{STAT\_LIST}{\nter{VAR\_DECL} \nter{STAT\_LIST}}
+	\grule{STAT\_LIST}{\nter{IF\_ELSE} \nter{STAT\_LIST}}
+	\grule{STAT\_LIST}{\nter{WHILE} \nter{STAT\_LIST}}
+	\drule{STAT\_LIST}{\ter{return} \nter{ARG\_LIST}}
 
 	\subsubsection{Deklarace proměnných}
 	\grule{VAR\_DECL}{\ter{local} \ter{id} \ter{:} \nter{TYPE} \ter{=} \nter{INIT\_VAL}}

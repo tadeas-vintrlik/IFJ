@@ -76,10 +76,7 @@ T_token *get_next_token()
 
     T_token *token = malloc(sizeof(T_token));
     ALLOC_CHECK(token);
-    token->value = malloc(sizeof(dynamic_string_s));
-    ALLOC_CHECK(token->value);
-
-    ds_init(token->value);
+    token_init(token);
 
     token->line = curr_line;
     dynamic_string_s *str = token->value;

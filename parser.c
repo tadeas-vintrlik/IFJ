@@ -10,6 +10,8 @@
     if (token->type != TYPE || strcmp(VALUE, token->value->content) != 0)                          \
         return false;
 
+symtable_s symtable;
+
 static bool rule_PROG();
 static bool rule_CODE();
 static bool rule_TOP_ELEM();
@@ -36,13 +38,16 @@ static bool rule_STATEMENT_LIST();
 
 static bool rule_IF_ELSE();
 static bool rule_WHILE();
-static bool rule_EXPR(); // TODO Use the expression analyzer
+static bool rule_EXPR();
 static bool rule_VAR_DECL();
 
 static bool magic_function();
 static bool right_side_function(sll_s *left_side_ids);
 
-bool start_parsing() { return rule_PROG(); }
+bool start_parsing() {
+    symtable_init(&symtable);
+    return rule_PROG();
+}
 
 static bool rule_PROG()
 {
@@ -56,7 +61,6 @@ static bool rule_PROG()
             return rule_CODE();
         }
     }
-
     return false;
 }
 
@@ -64,6 +68,7 @@ static bool rule_CODE()
 {
     T_token *token = get_next_token();
 
+    /* TODO: code-gen gen_prog_start */
     if (token->type == TOKEN_EOF) {
         free(token);
         return true;
@@ -78,7 +83,10 @@ static bool rule_TOP_ELEM()
     T_token *first_token = get_next_token();
 
     if (first_token->type == TOKEN_ID) {
-        // TODO Semantic
+        if (!symtable_search_global(&symtable, first_token->value->content, NULL)) {
+            /* TODO: Error undeclared id */
+            return false;
+        }
         unget_token(first_token);
         return rule_CALL();
     } else if (first_token->type == TOKEN_KEYWORD) {
@@ -96,7 +104,11 @@ static bool rule_TOP_ELEM()
 static bool rule_CALL()
 {
     T_token *token;
-    GET_CHECK(TOKEN_ID); // TODO Semantic
+    GET_CHECK(TOKEN_ID);
+    if (!symtable_search_global(&symtable, token->value->content, NULL)) {
+        /* TODO: Error undeclared id */
+        return false;
+    }
     free(token);
 
     GET_CHECK(TOKEN_LEFT_BRACKET);
@@ -106,6 +118,7 @@ static bool rule_CALL()
         return false;
     }
 
+    /* TODO: code-gen gen_func_call */
     GET_CHECK(TOKEN_RIGHT_BRACKET);
     free(token);
 
@@ -119,7 +132,8 @@ static bool rule_DECL()
     GET_CHECK_CMP(TOKEN_KEYWORD, "global");
     free(token);
 
-    GET_CHECK(TOKEN_ID); // TODO Semantic
+    GET_CHECK(TOKEN_ID);
+    symtable_insert_token_global(&symtable, token);
     free(token);
 
     GET_CHECK(TOKEN_COLON);
@@ -146,6 +160,7 @@ static bool rule_DEF()
     free(token);
 
     GET_CHECK(TOKEN_ID);
+    /* TODO: code-gen gen_func_start */
     free(token);
 
     GET_CHECK(TOKEN_LEFT_BRACKET);
@@ -163,6 +178,7 @@ static bool rule_DEF()
     }
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "end");
+    /* TODO: code-gen gen_func_end */
     free(token);
 
     return true;
@@ -199,6 +215,8 @@ static bool rule_PARAM()
         return false;
     }
 
+    /* TODO: Add param type to function in global frame */
+    /* TODO: code-gen gen_param_caller_in */
     GET_CHECK(TOKEN_COLON);
     free(token);
 
@@ -242,7 +260,10 @@ static bool rule_NEXT_TYPE()
 
 static bool rule_TYPE()
 {
-    // TODO Semantic
+    /*
+     * TODO: Add parameter to rule_TYPE to determine if it was called as return type, param type, argument type or type type
+     * TODO: semantics Push as return parameter or input parameter
+     */
     T_token *token = get_next_token();
 
     bool is_type = token->type == TOKEN_KEYWORD
@@ -273,7 +294,11 @@ static bool rule_ARG()
     T_token *token = get_next_token();
 
     switch (token->type) {
-    case TOKEN_ID: // TODO Semantic
+    case TOKEN_ID:
+        if (!symtable_search_global(&symtable, token->value->content, NULL)) {
+            /* TODO: undeclared id error */
+            return false;
+        }
     case TOKEN_NUMBER:
     case TOKEN_INT:
     case TOKEN_STRING:
@@ -405,7 +430,7 @@ static bool rule_VAR_DECL()
     GET_CHECK_CMP(TOKEN_KEYWORD, "local");
     free(token);
 
-    // TODO Semantika
+    // TODO:Semantika
     GET_CHECK(TOKEN_ID);
     sll_insert_head(&id, token);
 
@@ -416,16 +441,16 @@ static bool rule_VAR_DECL()
         return false;
     }
 
-    // TODO Insert symbol into symtable
+    // TODO:Insert symbol into symtable
 
     GET_CHECK(TOKEN_DECLAR);
     free(token);
 
-    // TODO Error on multiple expressions on right side
+    // TODO:Error on multiple expressions on right side
     return right_side_function(&id);
 }
 
-static bool rule_EXPR() { return exp_parse(NULL); } // TODO Use the expression analyzer
+static bool rule_EXPR() { return exp_parse(NULL); } // TODO:Use the expression analyzer
 
 static bool magic_function()
 {
@@ -453,7 +478,7 @@ static bool magic_function()
             return false;
         }
 
-        // TODO Change to sll_insert_last, right_side_function reads from left to right
+        // TODO:Change to sll_insert_last, right_side_function reads from left to right
         sll_insert_head(&left_side_ids, token);
 
         token = get_next_token();
@@ -493,7 +518,7 @@ static bool right_side_function(sll_s *left_side_ids)
             return false;
         }
 
-        // TODO Assignment!
+        // TODO:Assignment!
 
         sll_delete_head(left_side_ids, false);
 

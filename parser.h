@@ -9,6 +9,7 @@
 #include "exp_parser.h"
 #include "scanner.h"
 #include "sll.h"
+#include "symtable.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>

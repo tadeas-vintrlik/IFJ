@@ -54,6 +54,13 @@ typedef struct Token {
 } T_token;
 
 /**
+ * @brief Initializes a token structure.
+ *
+ * @param token The token to initialize.
+ */
+void token_init(T_token *token);
+
+/**
  * @brief A desctructor for the token type. Frees all allocated memory.
  *
  * @param token The token to free.

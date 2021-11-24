@@ -357,6 +357,7 @@ T_token *get_next_token()
         case STATE_CONCAT:
             if (c == '.') {
                 token->type = TOKEN_STRING_CONCAT;
+                return token;
             } else {
                 exit(RC_LEX_ERR);
             }

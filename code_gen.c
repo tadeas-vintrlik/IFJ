@@ -13,8 +13,8 @@ void gen_prog_start(void)
 {
     puts(".IFJcode21");
     puts("JUMP $-main");
-    puts("DEFVAR GF@%%tmp1");
-    puts("DEFVAR GF@%%tmp2");
+    puts("DEFVAR GF@%tmp1");
+    puts("DEFVAR GF@%tmp2");
 }
 
 /**
@@ -213,32 +213,32 @@ void gen_expr_operator(T_token *token)
         puts("LTS");
         break;
     case TOKEN_LESS_EQUAL_THAN:
-        puts("POPS GF@%%tmp2");
-        puts("POPS GF@%%tmp1");
-        puts("PUSHS GF@%%tmp1");
-        puts("PUSHS GF@%%tmp2");
-        puts("PUSHS GF@%%tmp1");
-        puts("PUSHS GF@%%tmp2");
+        puts("POPS GF@%tmp2");
+        puts("POPS GF@%tmp1");
+        puts("PUSHS GF@%tmp1");
+        puts("PUSHS GF@%tmp2");
+        puts("PUSHS GF@%tmp1");
+        puts("PUSHS GF@%tmp2");
         puts("LTS");
-        puts("POPS GF@%%tmp1");
+        puts("POPS GF@%tmp1");
         puts("EQS");
-        puts("PUSHS GF@%%tmp1");
+        puts("PUSHS GF@%tmp1");
         puts("ORS");
         break;
     case TOKEN_GREATER_THAN:
         puts("GTS");
         break;
     case TOKEN_GREATER_EQUAL_THAN:
-        puts("POPS GF@%%tmp2");
-        puts("POPS GF@%%tmp1");
-        puts("PUSHS GF@%%tmp1");
-        puts("PUSHS GF@%%tmp2");
-        puts("PUSHS GF@%%tmp1");
-        puts("PUSHS GF@%%tmp2");
+        puts("POPS GF@%tmp2");
+        puts("POPS GF@%tmp1");
+        puts("PUSHS GF@%tmp1");
+        puts("PUSHS GF@%tmp2");
+        puts("PUSHS GF@%tmp1");
+        puts("PUSHS GF@%tmp2");
         puts("GTS");
-        puts("POPS GF@%%tmp1");
+        puts("POPS GF@%tmp1");
         puts("EQS");
-        puts("PUSHS GF@%%tmp1");
+        puts("PUSHS GF@%tmp1");
         puts("ORS");
         break;
     case TOKEN_DIVISION:
@@ -258,18 +258,18 @@ void gen_expr_operator(T_token *token)
         puts("NOTS");
         break;
     case TOKEN_STRING_CONCAT:
-        puts("POPS GF@%%tmp2");
-        puts("POPS GF@%%tmp1");
-        puts("CONCAT GF@%%tmp1 GF@%%tmp1 GF@%%tmp2");
-        puts("PUSHS GF@%%tmp1");
+        puts("POPS GF@%tmp2");
+        puts("POPS GF@%tmp1");
+        puts("CONCAT GF@%tmp1 GF@%tmp1 GF@%tmp2");
+        puts("PUSHS GF@%tmp1");
         break;
     case TOKEN_ADD:
         puts("ADDS");
         break;
     case TOKEN_STRING_LENGTH:
-        puts("POPS GF@%%tmp1");
-        puts("STRLEN GF@%%tmp1 GF@%%tmp1");
-        puts("PUSHS GF@%%tmp1");
+        puts("POPS GF@%tmp1");
+        puts("STRLEN GF@%tmp1 GF@%tmp1");
+        puts("PUSHS GF@%tmp1");
         break;
     default:
         /* Should not happen */
@@ -279,7 +279,7 @@ void gen_expr_operator(T_token *token)
     }
 }
 
-void gen_expr_cond(void) { puts("POPS GF@%%tmp1"); }
+void gen_expr_cond(void) { puts("POPS GF@%tmp1"); }
 
 static void escape_string(dynamic_string_s **ds)
 {
@@ -311,6 +311,102 @@ static void gen_reads(void)
 
     gen_func_start("reads", &in_params, 1);
     printf("READ LF@%%retval1 string");
+    puts("POPFRAME");
+    puts("RETURN");
+}
+
+static void gen_readi(void)
+{
+    tstack_s in_params;
+    tstack_init(&in_params);
+
+    gen_func_start("readi", &in_params, 1);
+    printf("READ LF@%%retval1 int");
+    puts("POPFRAME");
+    puts("RETURN");
+}
+static void gen_readn(void)
+{
+    tstack_s in_params;
+    tstack_init(&in_params);
+
+    gen_func_start("readn", &in_params, 1);
+    printf("READ LF@%%retval1 float");
+    puts("POPFRAME");
+    puts("RETURN");
+}
+static void gen_tointeger(void)
+{
+    tstack_s in_params;
+    tstack_init(&in_params);
+
+    gen_func_start("tointeger", &in_params, 1);
+    printf("FLOAT2INT LF@%%retval1 LF@%%p0");
+    puts("POPFRAME");
+    puts("RETURN");
+}
+static void gen_substr(void)
+{
+    tstack_s in_params;
+    tstack_init(&in_params);
+
+    gen_func_start("substr", &in_params, 3);
+    /*
+    MOVE LF@%%retval1 string@
+DEFVAR LF@%%iter
+DEFVAR LF@%%c
+DEFVAR LF@%%end_index
+MOVE LF@%%end_index LF@%%p2
+MOVE LF@%%iter LF@%%p1
+SUB LF@%%iter LF@%%iter int@1
+DEFVAR LF@%%cond
+DEFVAR LF@%%strlen
+STRLEN LF@%%strlen LF@%%p0
+GT LF@%%cond LF@%%p1 LF@%%p2
+
+JUMPIFEQ $-substr_end LF@%%cond bool@true
+GT LF@%%cond LF@%%p1 int@0
+
+JUMPIFEQ $-substr_end LF@%%cond bool@false
+GT LF@%%cond LF@%%p2 int@0
+
+JUMPIFEQ $-substr_end LF@%%cond bool@false
+GT LF@%%cond LF@%%p2 LF@%%strlen
+
+JUMPIFEQ $-substr_end LF@%%cond bool@true
+LABEL $-strloop
+LT LF@%%cond LF@%%iter LF@%%end_index
+JUMPIFEQ $-end_loop LF@%%cond bool@false
+GETCHAR LF@%%c LF@%%p0 LF@%%iter
+CONCAT LF@%%retval1 LF@%%retval1 LF@%%c
+ADD LF@%%iter LF@%%iter int@1
+JUMP $-strloop
+
+LABEL $-end_loop
+
+
+LABEL $-substr_end
+
+POPFRAME
+RETURN*/
+}
+static void gen_ord(void)
+{
+    tstack_s in_params;
+    tstack_init(&in_params);
+
+    gen_func_start("ord", &in_params, 2);
+    printf("FLOAT2INT LF@%%retval1 LF@%%p0");
+    puts("POPFRAME");
+    puts("RETURN");
+}
+static void gen_chr(void)
+{
+    tstack_s in_params;
+    tstack_init(&in_params);
+
+    gen_func_start("chr", &in_params, 1);
+    printf("FLOAT2INT LF@%%retval1 LF@%%p0");
     puts("POPFRAME");
     puts("RETURN");
 }

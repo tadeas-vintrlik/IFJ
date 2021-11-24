@@ -18,16 +18,16 @@ void gen_prog_start(void);
 /**
  * @brief Generates start of the function. Creates return values. Local variables for parameters.
  *
- * @param func_name Name of the function used for label.
- * @param in_param Stack of all the parameters of the function.
- * @param no_returns Number of return parameters of the function.
+ * @param[in] func_name Name of the function used for label.
+ * @param[in] in_param Stack of all the parameters of the function.
+ * @param[in] no_returns Number of return parameters of the function.
  */
 void gen_func_start(const char *func_name, tstack_s *in_param, unsigned no_returns);
 
 /**
  * @brief Generates end of the function. Pushes return values into TF. Returns.
  *
- * @param return_vals Stack of all the return values to push onto TF.
+ * @param[in] return_vals Stack of all the return values to push onto TF.
  */
 void gen_func_end(tstack_s *return_vals);
 
@@ -42,7 +42,7 @@ unsigned gen_jump_else(void);
  * @brief Generate label for the else branch of an if-else statement. Also generates unconditional
  * jump to end of the if-else for the end of the if branch.
  *
- * @param label_number The label_number returned by gen_jump_else call in the same if-else
+ * @param[in] label_number The label_number returned by gen_jump_else call in the same if-else
  * statement.
  */
 void gen_else_label(unsigned label_number);
@@ -67,7 +67,7 @@ unsigned gen_while_label(void);
 /**
  * @brief Generates a conditional jump to the end of the while statement.
  *
- * @param label_number The label_number returned by gen_while_label call in the same while
+ * @param[in] label_number The label_number returned by gen_while_label call in the same while
  * statement.
  */
 void gen_while_jump_end(unsigned label_number);
@@ -75,7 +75,7 @@ void gen_while_jump_end(unsigned label_number);
 /**
  * @brief Generates label to jump after the end of the while statement.
  *
- * @param label_number The label_number returned by gen_while_label call in the same while
+ * @param[in] label_number The label_number returned by gen_while_label call in the same while
  * statement.
  */
 void gen_while_end_label(unsigned label_number);
@@ -83,22 +83,22 @@ void gen_while_end_label(unsigned label_number);
 /**
  * @brief Generates call to a function passes the parameters using TF.
  *
- * @param func_name The name of the function to call.
- * @param in_params The stack of the parameters to call function with.
+ * @param[in] func_name The name of the function to call.
+ * @param[in] in_params The stack of the parameters to call function with.
  */
 void gen_func_call(const char *func_name, tstack_s *in_params);
 
 /**
  * @brief Generate code for a single operand in expression.
  *
- * @param token The operand to generate.
+ * @param[in] token The operand to generate.
  */
 void gen_expr_operand(T_token *token);
 
 /**
  * @brief Generate code for a single operator application in expression.
  *
- * @param token The operator to generate.
+ * @param[in] token The operator to generate.
  */
 void gen_expr_operator(T_token *token);
 
@@ -106,3 +106,10 @@ void gen_expr_operator(T_token *token);
  * @brief Generates code to prepare expression result in GF@%tmp1.
  */
 void gen_expr_cond(void);
+
+/**
+ * @brief Generates variadic write macro.
+ *
+ * @param[in] in_params Stack of paramters to print.
+ */
+void gen_write(tstack_s *in_params);

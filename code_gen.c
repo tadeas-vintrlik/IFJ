@@ -6,8 +6,11 @@
  */
 
 #include "code_gen.h"
+#include "common.h"
 
 static unsigned counter = 0;
+
+static void generate_built_ins(void);
 
 void gen_prog_start(void)
 {
@@ -15,6 +18,7 @@ void gen_prog_start(void)
     puts("JUMP $-main");
     puts("DEFVAR GF@%tmp1");
     puts("DEFVAR GF@%tmp2");
+    generate_built_ins();
 }
 
 /**
@@ -27,7 +31,6 @@ static void gen_pop_arg(tstack_s *in_params)
     T_token *token;
     unsigned i;
 
-    /* */
     i = 0;
     while (!tstack_empty(in_params)) {
         token = tstack_top(in_params);
@@ -287,7 +290,7 @@ static void escape_string(dynamic_string_s **ds)
     (void)ds;
 }
 
-static void gen_write(tstack_s *in_params)
+void gen_write(tstack_s *in_params)
 {
     T_token *token;
 
@@ -313,6 +316,8 @@ static void gen_reads(void)
     printf("READ LF@%%retval1 string");
     puts("POPFRAME");
     puts("RETURN");
+
+    tstack_destroy(&in_params);
 }
 
 static void gen_readi(void)
@@ -324,6 +329,8 @@ static void gen_readi(void)
     printf("READ LF@%%retval1 int");
     puts("POPFRAME");
     puts("RETURN");
+
+    tstack_destroy(&in_params);
 }
 static void gen_readn(void)
 {
@@ -334,23 +341,41 @@ static void gen_readn(void)
     printf("READ LF@%%retval1 float");
     puts("POPFRAME");
     puts("RETURN");
+
+    tstack_destroy(&in_params);
 }
 static void gen_tointeger(void)
 {
     tstack_s in_params;
+    T_token *p0;
     tstack_init(&in_params);
+    p0 = malloc(sizeof *p0);
+    ALLOC_CHECK(p0);
+    tstack_push(&in_params, p0);
 
     gen_func_start("tointeger", &in_params, 1);
     printf("FLOAT2INT LF@%%retval1 LF@%%p0");
     puts("POPFRAME");
     puts("RETURN");
+
+    tstack_destroy(&in_params);
 }
 static void gen_substr(void)
 {
+    T_token *p0, *p1, *p2;
     tstack_s in_params;
     tstack_init(&in_params);
+    p0 = malloc(sizeof *p0);
+    ALLOC_CHECK(p0);
+    tstack_push(&in_params, p0);
+    p1 = malloc(sizeof *p1);
+    ALLOC_CHECK(p1);
+    tstack_push(&in_params, p1);
+    p2 = malloc(sizeof *p2);
+    ALLOC_CHECK(p2);
+    tstack_push(&in_params, p2);
 
-    gen_func_start("substr", &in_params, 3);
+    gen_func_start("substr", &in_params, 1);
     puts("MOVE LF@%retval1 string@");
     puts("DEFVAR LF@%iter");
     puts("DEFVAR LF@%c");
@@ -380,12 +405,21 @@ static void gen_substr(void)
     puts("LABEL $-substr_end");
     puts("POPFRAME");
     puts("RETURN");
+
+    tstack_destroy(&in_params);
 }
 
 static void gen_ord(void)
 {
+    T_token *p0, *p1;
     tstack_s in_params;
     tstack_init(&in_params);
+    p0 = malloc(sizeof *p0);
+    ALLOC_CHECK(p0);
+    tstack_push(&in_params, p0);
+    p1 = malloc(sizeof *p1);
+    ALLOC_CHECK(p1);
+    tstack_push(&in_params, p1);
 
     gen_func_start("ord", &in_params, 1);
     puts("DEFVAR LF@%index");
@@ -405,12 +439,18 @@ static void gen_ord(void)
     puts("STRI2INT LF@%retval1 LF@%p0 LF@%index");
     puts("POPFRAME");
     puts("RETURN");
+
+    tstack_destroy(&in_params);
 }
 
 static void gen_chr(void)
 {
+    T_token *p0;
     tstack_s in_params;
     tstack_init(&in_params);
+    p0 = malloc(sizeof *p0);
+    ALLOC_CHECK(p0);
+    tstack_push(&in_params, p0);
 
     gen_func_start("chr", &in_params, 1);
     puts("DEFVAR LF@%cond");
@@ -426,6 +466,17 @@ static void gen_chr(void)
     puts("$-chr-end");
     puts("POPFRAME");
     puts("RETURN");
+
+    tstack_destroy(&in_params);
 }
 
-/* TODO: in_params wont work */
+static void generate_built_ins(void)
+{
+    gen_reads();
+    gen_readi();
+    gen_readn();
+    gen_tointeger();
+    gen_substr();
+    gen_ord();
+    gen_chr();
+}

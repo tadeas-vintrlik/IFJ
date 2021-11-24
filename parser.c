@@ -47,8 +47,11 @@ static bool right_side_function(sll_s *left_side_ids);
 
 bool start_parsing()
 {
+    bool ret;
     symtable_init(&symtable);
-    return rule_PROG();
+    ret = rule_PROG();
+    symtable_destroy(&symtable);
+    return ret;
 }
 
 static bool rule_PROG()
@@ -134,7 +137,6 @@ static bool rule_DECL()
 
     GET_CHECK(TOKEN_ID);
     symtable_insert_token_global(&symtable, token);
-    free(token);
 
     GET_CHECK(TOKEN_COLON);
     free(token);
@@ -172,7 +174,6 @@ static bool rule_DEF()
     }
     symtable_insert_token_global(&symtable, token);
     /* TODO: code-gen gen_func_start and gen_pop_arg */
-    free(token);
 
     GET_CHECK(TOKEN_LEFT_BRACKET);
     free(token);

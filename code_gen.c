@@ -115,55 +115,21 @@ void gen_if_end(unsigned label_number)
     printf("LABEL $-end%d\n", label_number);
 }
 
-/*
-void generate_reads(){
-    generate_func_start("reads");
-    printf("DEFVAR LF@retStr\n"
-    "READ LF@retStr string\n");
-    generate_func_end();
-}
-void generate_readi(){
-    generate_func_start("readi");
-    printf("DEFVAR LF@retInt\n"
-    "READ LF@retInt int\n"
-    "POPFRAME\n"
-    "RETURN\n");
-}
-void generate_readn(){
-    generate_func_start("readn");
-    printf("DEFVAR LF@retInt\n"
-    "READ LF@retInt float\n"
-    "POPFRAME\n"
-    "RETURN\n");
-}
-*/
-
-/*
-void gen_param_in(int no_of_param, char* param_val, char* type){
-    printf("DEFVAR TF@p%d\n"
-            "MOVE TF@p%d %s@%s\n", no_of_param, no_of_param, type, param_val);
-
+unsigned gen_while_label(void)
+{
+    unsigned ret;
+    printf("LABEL $-while%d\n", counter);
+    ret = counter;
+    counter++;
+    return ret;
 }
 
-
-
-void gen_write(int num_of_params){
-    gen_func_start("write");
-    for(int i = 1; i <= num_of_params; i++){
-        printf("WRITE LF@p%d\n", i);
-    }
-   gen_func_end();
+void gen_while_jump_end(unsigned label_number)
+{
+    printf("JUMPIFNEQ $-end%d GF@%%expr bool@true\n", label_number);
 }
 
-void gen_toInt(){
-    gen_func_start("tointeger");
-    printf("DEFVAR LF@retval1\n"
-    "MOVE LF@retval1 nil@nil\n"
-    "DEFVAR LF@p1$type\n"
-    "TYPE LF@p1$type LF@p1\n"
-    "JUMPIFEQ $end LF@p1$type string@nil\n"
-    "FLOAT2INT LF@retval1 LF@p1\n"
-    "LABEL $end\n");
-    gen_func_end();
+void gen_while_end_label(unsigned label_number)
+{
+    printf("LABEL $-end%d\n", label_number);
 }
-*/

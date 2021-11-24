@@ -280,3 +280,37 @@ void gen_expr_operator(T_token *token)
 }
 
 void gen_expr_cond(void) { puts("POPS GF@%%tmp1"); }
+
+static void escape_string(dynamic_string_s **ds)
+{
+    /* TODO: implement */
+    (void)ds;
+}
+
+static void gen_write(tstack_s *in_params)
+{
+    T_token *token;
+
+    while (!tstack_empty(in_params)) {
+        token = tstack_top(in_params);
+        tstack_pop(in_params, false);
+        escape_string(&token->value);
+        if (token->type == TOKEN_ID) {
+            printf("WRITE LF@%s", token->value->content);
+        } else {
+            printf("WRITE string@%s", token->value->content);
+        }
+        puts("WRITE \010"); /* TODO: remove when escape_string is implemented */
+    }
+}
+
+static void gen_reads(void)
+{
+    tstack_s in_params;
+    tstack_init(&in_params);
+
+    gen_func_start("reads", &in_params, 1);
+    printf("READ LF@%%retval1 string");
+    puts("POPFRAME");
+    puts("RETURN");
+}

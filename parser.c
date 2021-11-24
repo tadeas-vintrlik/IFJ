@@ -52,11 +52,11 @@ static bool rule_VAR_DECL();
 static bool magic_function();
 static bool right_side_function(sll_s *left_side_ids);
 
-bool start_parsing()
+rc_e start_parsing()
 {
-    bool ret;
+    rc_e ret;
     symtable_init(&symtable);
-    ret = rule_PROG();
+    ret = rule_PROG() ? RC_OK : RC_SYN_ERR;
     symtable_destroy(&symtable);
     return ret;
 }
@@ -127,10 +127,10 @@ static void print_unexpected_token(
         ? token_type_to_string(bad_token->type)
         : bad_token->value->content;
     if (*expected_content == '\0') {
-        fprintf(stderr, "Error on line %d: Got unexpected token \"%s\", expected token %s.",
+        fprintf(stderr, "Error on line %d: Got unexpected token \"%s\", expected token %s. \n",
             bad_token->line, unexpected_string, token_type_to_string(expected_type));
     } else {
-        fprintf(stderr, "Error on line %d: Got unexpected token \"%s\", expected %s %s.",
+        fprintf(stderr, "Error on line %d: Got unexpected token \"%s\", expected %s %s. \n",
             bad_token->line, unexpected_string, token_type_to_string(expected_type),
             expected_content);
     }
@@ -403,6 +403,7 @@ static bool rule_ARG()
             fprintf(stderr, "'%s'\n", token->value->content);
             return false;
         }
+        return true;
     case TOKEN_NUMBER:
     case TOKEN_INT:
     case TOKEN_STRING:

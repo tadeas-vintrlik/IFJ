@@ -362,7 +362,9 @@ bool exp_parse(symtable_s *symtable)
         if (action != ERR && token->type == TOKEN_ID) {
             /* If an identifier and part of the expression */
             if (!symtable_search_top(symtable, token->value->content, NULL)) {
-                /* TODO: Error message for undeclared identifier */
+                /* TODO: Same as error in parser rule_ARG make into a single function? */
+                ERR_MSG("Use of undeclared variable: ", token->line);
+                fprintf(stderr, "'%s'\n", token->value->content);
                 return false;
             }
         }

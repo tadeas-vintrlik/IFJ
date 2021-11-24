@@ -13,6 +13,8 @@ void gen_prog_start(void)
 {
     puts(".IFJcode21");
     puts("JUMP $-main");
+    puts("DEFVAR GF@%%tmp1");
+    puts("DEFVAR GF@%%tmp2");
 }
 
 void gen_func_start(const char *func_name, tstack_s *in_params, unsigned no_returns)
@@ -98,7 +100,7 @@ static void gen_pop_ret();
 unsigned gen_jump_else(void)
 {
     unsigned ret;
-    printf("JUMPIFNEQ $-else%d GF@%%expr bool@true\n", counter);
+    printf("JUMPIFNEQ $-else%d GF@%%tmp1 bool@true\n", counter);
     ret = counter;
     counter++;
     return ret;
@@ -126,7 +128,7 @@ unsigned gen_while_label(void)
 
 void gen_while_jump_end(unsigned label_number)
 {
-    printf("JUMPIFNEQ $-end%d GF@%%expr bool@true\n", label_number);
+    printf("JUMPIFNEQ $-end%d GF@%%tmp1 bool@true\n", label_number);
 }
 
 void gen_while_end_label(unsigned label_number)

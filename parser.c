@@ -587,7 +587,7 @@ static bool rule_VAR_DECL()
     return right_side_function(&id);
 }
 
-static bool rule_EXPR() { return exp_parse(NULL); } // TODO Use the expression analyzer
+static bool rule_EXPR() { return exp_parse(&symtable); } // TODO Use the expression analyzer
 
 static bool magic_function()
 {

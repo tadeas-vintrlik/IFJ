@@ -105,6 +105,8 @@ static op_e token2op(const T_token *token)
         return ID;
     case TOKEN_STRING:
         return ID;
+    case TOKEN_KEYWORD:
+        return ID; /* for nil */
 
     default:
         return DOLLAR;
@@ -307,8 +309,8 @@ static bool apply_rule(tstack_s *tstack)
         tstack_push(tstack, expr);
         break;
     case TOKEN_KEYWORD:
+        /* Nil is the only valid keyword in expression */
         if (strcmp(tmp->value->content, "nil")) {
-            /* FIXME: Is this not a semantic issue? */
             return false;
         }
         if (!term2expr(tstack, &help)) {

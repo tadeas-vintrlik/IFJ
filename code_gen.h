@@ -86,3 +86,22 @@ void gen_while_end_label(unsigned label_number);
  * @param in_params The stack of the parameters to call function with.
  */
 void gen_func_call(const char *func_name, tstack_s *in_params);
+
+/**
+ * @brief Generate code for a single operand in expression.
+ *
+ * @param token The operand to generate.
+ */
+void gen_expr_operand(T_token *token);
+
+/**
+ * @brief Generate code for a single operator application in expression.
+ *
+ * @param token The operator to generate.
+ */
+void gen_expr_operator(T_token *token);
+
+/**
+ * @brief Generates code to prepare expression result in GF@%tmp1.
+ */
+void gen_expr_cond(void);

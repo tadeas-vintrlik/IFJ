@@ -179,3 +179,104 @@ void gen_func_call(const char *func_name, tstack_s *in_params)
     gen_push_arg(in_params);
     printf("CALL $-%s", func_name);
 }
+
+void gen_expr_operand(T_token *token)
+{
+    switch (token->type) {
+    case TOKEN_ID:
+        printf("PUSHS %s\n", token->value->content);
+        break;
+    case TOKEN_INT:
+        printf("PUSHS int@%s\n", token->value->content);
+        break;
+    case TOKEN_NUMBER:
+        printf("PUSHS float@%s\n", token->value->content);
+        break;
+    case TOKEN_STRING:
+        printf("PUSHS string@%s\n", token->value->content);
+        break;
+    default:
+        /* Should not happen */
+        ERR_MSG("Unexpected type of operand value: ", token->line);
+        fprintf(stderr, "%d\n", token->type);
+        break;
+    }
+}
+
+void gen_expr_operator(T_token *token)
+{
+    switch (token->type) {
+    case TOKEN_EQUAL:
+        puts("EQS");
+        break;
+    case TOKEN_LESS_THAN:
+        puts("LTS");
+        break;
+    case TOKEN_LESS_EQUAL_THAN:
+        puts("POPS GF@%%tmp2");
+        puts("POPS GF@%%tmp1");
+        puts("PUSHS GF@%%tmp1");
+        puts("PUSHS GF@%%tmp2");
+        puts("PUSHS GF@%%tmp1");
+        puts("PUSHS GF@%%tmp2");
+        puts("LTS");
+        puts("POPS GF@%%tmp1");
+        puts("EQS");
+        puts("PUSHS GF@%%tmp1");
+        puts("ORS");
+        break;
+    case TOKEN_GREATER_THAN:
+        puts("GTS");
+        break;
+    case TOKEN_GREATER_EQUAL_THAN:
+        puts("POPS GF@%%tmp2");
+        puts("POPS GF@%%tmp1");
+        puts("PUSHS GF@%%tmp1");
+        puts("PUSHS GF@%%tmp2");
+        puts("PUSHS GF@%%tmp1");
+        puts("PUSHS GF@%%tmp2");
+        puts("GTS");
+        puts("POPS GF@%%tmp1");
+        puts("EQS");
+        puts("PUSHS GF@%%tmp1");
+        puts("ORS");
+        break;
+    case TOKEN_DIVISION:
+        puts("DIVS");
+        break;
+    case TOKEN_FLOOR_DIVISION:
+        puts("IDIVS");
+        break;
+    case TOKEN_MUL:
+        puts("MULS");
+        break;
+    case TOKEN_SUB:
+        puts("SUBS");
+        break;
+    case TOKEN_NOT_EQUAL_TO:
+        puts("EQS");
+        puts("NOTS");
+        break;
+    case TOKEN_STRING_CONCAT:
+        puts("POPS GF@%%tmp2");
+        puts("POPS GF@%%tmp1");
+        puts("CONCAT GF@%%tmp1 GF@%%tmp1 GF@%%tmp2");
+        puts("PUSHS GF@%%tmp1");
+        break;
+    case TOKEN_ADD:
+        puts("ADDS");
+        break;
+    case TOKEN_STRING_LENGTH:
+        puts("POPS GF@%%tmp1");
+        puts("STRLEN GF@%%tmp1 GF@%%tmp1");
+        puts("PUSHS GF@%%tmp1");
+        break;
+    default:
+        /* Should not happen */
+        ERR_MSG("Unexpected type of operator value: ", token->line);
+        fprintf(stderr, "%d\n", token->type);
+        break;
+    }
+}
+
+void gen_expr_cond(void) { puts("POPS GF@%%tmp1"); }

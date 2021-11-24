@@ -41,14 +41,17 @@ unsigned gen_jump_else(void);
  * @brief Generate label for the else branch of an if-else statement. Also generates unconditional
  * jump to end of the if-else for the end of the if branch.
  *
- * @param label_number The label_number returned by gen_jump_else call in the same if-else statement.
+ * @param label_number The label_number returned by gen_jump_else call in the same if-else
+ * statement.
  */
 void gen_else_label(unsigned label_number);
 
 /**
- * @brief Generates the label for the end of the if-else-statement for the if branch to jump after finishing.
+ * @brief Generates the label for the end of the if-else-statement for the if branch to jump after
+ * finishing.
  *
- * @param label_number The label_number returned by gen_jump_else call in the same if-else statement.
+ * @param label_number The label_number returned by gen_jump_else call in the same if-else
+ * statement.
  */
 void gen_if_end(unsigned label_number);
 
@@ -63,13 +66,23 @@ unsigned gen_while_label(void);
 /**
  * @brief Generates a conditional jump to the end of the while statement.
  *
- * @param label_number The label_number returned by gen_while_label call in the same while statement.
+ * @param label_number The label_number returned by gen_while_label call in the same while
+ * statement.
  */
 void gen_while_jump_end(unsigned label_number);
 
 /**
  * @brief Generates label to jump after the end of the while statement.
  *
- * @param label_number The label_number returned by gen_while_label call in the same while statement.
+ * @param label_number The label_number returned by gen_while_label call in the same while
+ * statement.
  */
 void gen_while_end_label(unsigned label_number);
+
+/**
+ * @brief Generates call to a function passes the parameters using TF.
+ *
+ * @param func_name The name of the function to call.
+ * @param in_params The stack of the parameters to call function with.
+ */
+void gen_func_call(const char *func_name, tstack_s *in_params);

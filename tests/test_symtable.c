@@ -78,8 +78,8 @@ static void test_insert(void **state)
     assert_int_equal(out->type, TOKEN_ID);
     assert_string_equal(out->value->content, "func1");
 
-    /* Should find it in all frames as well */
-    assert_true(symtable_search_all(st->symtable, "func1", &out));
+    /* Should not find it in all frames since it is just for variables */
+    assert_false(symtable_search_all(st->symtable, "func1", &out));
     assert_int_equal(out->type, TOKEN_ID);
     assert_string_equal(out->value->content, "func1");
 
@@ -89,9 +89,10 @@ static void test_insert(void **state)
     token = create_token("main", TOKEN_ID);
     symtable_insert_token_global(st->symtable, token);
 
-    assert_true(symtable_search_all(st->symtable, "func1", NULL));
-    assert_true(symtable_search_all(st->symtable, "func2", NULL));
-    assert_true(symtable_search_all(st->symtable, "main", NULL));
+    /* None of the functions should be in variable frames */
+    assert_false(symtable_search_all(st->symtable, "func1", NULL));
+    assert_false(symtable_search_all(st->symtable, "func2", NULL));
+    assert_false(symtable_search_all(st->symtable, "main", NULL));
 }
 
 static void test_new_frame(void **state)
@@ -114,8 +115,8 @@ static void test_new_frame(void **state)
     /* Searching tokens that are in global frame should not succeed on top */
     assert_false(symtable_search_top(st->symtable, "main", NULL));
 
-    /* But it should still work on all frames */
-    assert_true(symtable_search_all(st->symtable, "main", NULL));
+    /* And neither in all since it is just for variables */
+    assert_false(symtable_search_all(st->symtable, "main", NULL));
 
     /* Create and insert a new token into top frame */
     token = create_token("x", TOKEN_ID);
@@ -160,8 +161,8 @@ static void test_pop_frame(void **state)
     assert_true(symtable_frames_empty(st->symtable));
     assert_false(symtable_search_top(st->symtable, "x", NULL));
 
-    /* Global tokens should still be accessible */
-    assert_true(symtable_search_all(st->symtable, "main", NULL));
+    /* Global tokens (functions) should not be accessible in all since it is just for variables */
+    assert_false(symtable_search_all(st->symtable, "main", NULL));
 }
 
 static void test_frame_priority(void **state)

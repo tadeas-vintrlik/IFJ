@@ -32,7 +32,8 @@ typedef struct symtable {
 void symtable_init(symtable_s *symtable);
 
 /**
- * @brief Search for a token among all the frames.
+ * @brief Search for a token among all the frames. Excluding global which is meant for functions.
+ * only.
  *
  * @param[in] symtable The table of symbols to initialize.
  * @param[in] key The key of the token to find.
@@ -56,7 +57,7 @@ bool symtable_search_all(const symtable_s *symtable, const char *key, T_token **
 bool symtable_search_top(const symtable_s *symtable, const char *key, T_token **token);
 
 /**
- * @brief Search for a token in the global frame.
+ * @brief Search for a token in the global frame. Global frame is meant for functions only.
  *
  * @param[in] symtable The table of symbols to initialize.
  * @param[in] key The key of the token to find.
@@ -101,7 +102,7 @@ bool symtable_frames_empty(const symtable_s *symtable);
 
 /**
  * @brief Insert a new token in the top local frame. If there is no top frame it does nothing.
- * Always check if local frames are not empty.
+ * Always check if local frames are not empty. Meant for variables only.
  *
  * @param[in,out] symtable The table of symbols where to insert a new token.
  * @param[out] token The token to insert.
@@ -109,7 +110,7 @@ bool symtable_frames_empty(const symtable_s *symtable);
 void symtable_insert_token_top(symtable_s *symtable, T_token *token);
 
 /**
- * @brief Insert a new token in the global frame.
+ * @brief Insert a new token in the global frame. Meant for functions only.
  *
  * @param[in,out] symtable The table of symbols where to insert a new token.
  * @param[out] token The token to insert.

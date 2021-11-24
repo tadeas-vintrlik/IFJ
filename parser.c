@@ -18,7 +18,7 @@ static char *token_type_to_string(token_type token_type);
         return false;                                                                              \
     }
 
-symtable_s symtable;
+static symtable_s symtable;
 
 static bool rule_PROG();
 static bool rule_CODE();
@@ -456,10 +456,39 @@ static bool rule_STATEMENT_LIST()
         unget_token(token);
 
         if (!strcmp("return", token->value->content)) {
-            token = get_next_token();
+            token = get_next_token(); // Skip the token we returned to the scanner
             token_destroy(token);
 
-            return rule_ARG_LIST();
+            token = get_next_token();
+            // TODO: Fix this shit
+            switch (token->type) {
+            case TOKEN_ID:
+            case TOKEN_NUMBER:
+            case TOKEN_INT:
+            case TOKEN_STRING:
+                unget_token(token);
+
+                sll_s ids;
+                sll_init(&ids);
+
+                return right_side_function(&ids);
+                break;
+            case TOKEN_KEYWORD:
+                if (!strcmp("nil", token->value->content)) {
+                    sll_s ids;
+                    sll_init(&ids);
+
+                    unget_token(token);
+                    return right_side_function(&ids);
+                }
+
+                unget_token(token);
+                return true;
+            default:
+                unget_token(token);
+                return true;
+            }
+            // TODO: Fix this shit
         } else if (!strcmp("if", token->value->content)) {
             return rule_IF_ELSE() && rule_STATEMENT_LIST();
         } else if (!strcmp("while", token->value->content)) {
@@ -593,7 +622,7 @@ static bool rule_VAR_DECL()
     }
 }
 
-static bool rule_EXPR() { return exp_parse(&symtable); } // TODO Use the expression analyzer
+static bool rule_EXPR() { return exp_parse(&symtable); }
 
 static bool magic_function()
 {
@@ -638,6 +667,7 @@ static bool magic_function()
     return right_side_function(&left_side_ids);
 }
 
+// TODO: Make this function flexible enough to handle returns, calls and assignments properly
 static bool right_side_function(sll_s *left_side_ids)
 {
     T_token *token = get_next_token();

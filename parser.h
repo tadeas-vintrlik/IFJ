@@ -6,6 +6,7 @@
 #ifndef _PARSER_H_
 #define _PARSER_H_
 
+#include "code_gen.h"
 #include "exp_parser.h"
 #include "scanner.h"
 #include "sll.h"

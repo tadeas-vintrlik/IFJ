@@ -1,11 +1,50 @@
-void gen_prog_start();
-void gen_func_start();
-void gen_func_end();
-void gen_push_arg();
-void gen_pop_arg();
-void gen_push_ret();
-void gen_pop_ret();
-void gen_jump_else();
-void gen_if_end();
-void gen_else_label();
+/**
+ * @file code_gen.h
+ * @author Jakub Kozubek <xkozub07@stud.fit.vutbr.cz>
+ * @author Tadeas Vintrlik <xvintr04@stud.fit.vutbr.cz>
+ * @brief Header for code generator.
+ */
+
+#include <stdio.h>
+
+#include "token_stack.h"
+
+/**
+ * @brief Generates code for the beginning of the program.
+ */
+void gen_prog_start(void);
+
+/**
+ * @brief Generates start of the function. Creates return values. Local variables for parameters.
+ *
+ * @param func_name Name of the function used for label.
+ * @param in_param Stack of all the parameters of the function.
+ * @param no_returns Number of return parameters of the function.
+ */
+void gen_func_start(const char *func_name, tstack_s *in_param, unsigned no_returns);
+
+/**
+ * @brief Generates end of the function. Pushes return values into TF. Returns.
+ *
+ * @param return_vals Stack of all the return values to push onto TF.
+ */
+void gen_func_end(tstack_s *return_vals);
+
+/**
+ * @brief Generates a conditional jump to else label if the content of GF@%expr is a boolean@false.
+ *
+ * @return The label_number to be used for other generate calls.
+ */
+unsigned gen_jump_else(void);
+
+/**
+ * @brief Generate label for the else branch of an if-else statement. Also generates unconditional
+ * jump to end of the if-else for the end of the if branch.
+ *
+ * @param label_number The label_number returned by gen_jump_else call in the same if-else statement.
+ */
+void gen_else_label(unsigned label_number);
+
+void gen_if_end(unsigned label_number);
+
 void gen_while_label();

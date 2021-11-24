@@ -31,7 +31,7 @@ void gen_func_start(const char *func_name, tstack_s *in_param, unsigned no_retur
 void gen_func_end(tstack_s *return_vals);
 
 /**
- * @brief Generates a conditional jump to else label if the content of GF@%expr is a boolean@false.
+ * @brief Generates a conditional jump to else label if the content of GF@%tmp1 is a boolean@false.
  *
  * @return The label_number to be used for other generate calls.
  */

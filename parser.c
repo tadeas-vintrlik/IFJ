@@ -1,5 +1,7 @@
 #include "parser.h"
+#include "common.h"
 #include "symtable.h"
+#include "token_stack.h"
 static void print_unexpected_token(
     T_token *bad_token, token_type expected_type, char *expected_content);
 static char *token_type_to_string(token_type token_type);
@@ -153,7 +155,7 @@ static bool rule_CODE()
 {
     T_token *token = get_next_token();
 
-    /* TODO: code-gen gen_prog_start */
+    gen_prog_start();
     if (token->type == TOKEN_EOF) {
         token_destroy(token);
         return true;
@@ -186,9 +188,14 @@ static bool rule_TOP_ELEM()
 
 static bool rule_CALL()
 {
-    T_token *token;
+    T_token *token, *function;
+    /* TODO: in_params has to be freed */
+    tstack_s *in_params = malloc(sizeof *in_params);
+    ALLOC_CHECK(in_params);
+    tstack_init(in_params);
+
     GET_CHECK(TOKEN_ID);
-    if (!symtable_search_global(&symtable, token->value->content, NULL)) {
+    if (!symtable_search_global(&symtable, token->value->content, &function)) {
         ERR_MSG("Use of undefined function: ", token->line);
         fprintf(stderr, "'%s'\n", token->value->content);
         return false;
@@ -198,11 +205,12 @@ static bool rule_CALL()
     GET_CHECK(TOKEN_LEFT_BRACKET);
     token_destroy(token);
 
-    if (!rule_ARG_LIST()) {
+    if (!rule_ARG_LIST(&in_params)) {
         return false;
     }
 
     /* TODO: code-gen gen_func_call */
+    gen_func_call(function->value->content, in_params);
     GET_CHECK(TOKEN_RIGHT_BRACKET);
     token_destroy(token);
 
@@ -379,16 +387,16 @@ static bool rule_TYPE()
     return is_type;
 }
 
-static bool rule_ARG_LIST()
+static bool rule_ARG_LIST(tstack_s **in_params)
 {
-    if (!rule_ARG()) {
+    if (!rule_ARG(in_params)) {
         return true;
     }
 
-    return rule_NEXT_ARG();
+    return rule_NEXT_ARG(in_params);
 }
 
-static bool rule_ARG()
+static bool rule_ARG(tstack_s **in_params)
 {
     T_token *token = get_next_token();
 
@@ -403,15 +411,14 @@ static bool rule_ARG()
             fprintf(stderr, "'%s'\n", token->value->content);
             return false;
         }
-        return true;
+        break;
     case TOKEN_NUMBER:
     case TOKEN_INT:
     case TOKEN_STRING:
-        return true;
         break;
     case TOKEN_KEYWORD:
         if (!strcmp("nil", token->value->content)) {
-            return true;
+            break;
         }
 
         unget_token(token);
@@ -420,9 +427,12 @@ static bool rule_ARG()
         unget_token(token);
         return false;
     }
+
+    tstack_push(*in_params, token);
+    return true;
 }
 
-static bool rule_NEXT_ARG()
+static bool rule_NEXT_ARG(tstack_s **in_params)
 {
     T_token *token = get_next_token();
 
@@ -430,7 +440,7 @@ static bool rule_NEXT_ARG()
         token_destroy(token);
 
         // TODO Print unexpected token errors
-        return rule_ARG() && rule_NEXT_ARG();
+        return rule_ARG(in_params) && rule_NEXT_ARG(in_params);
     } else {
         unget_token(token);
         return true;
@@ -450,6 +460,10 @@ static bool rule_BODY()
 static bool rule_STATEMENT_LIST()
 {
     T_token *token = get_next_token();
+    /* TODO: ret_list has to be freed */
+    tstack_s *ret_list = malloc(sizeof *ret_list);
+    ALLOC_CHECK(ret_list);
+    tstack_init(ret_list);
 
     switch (token->type) {
     case TOKEN_KEYWORD:

@@ -473,7 +473,7 @@ static bool rule_VAR_DECL()
     free(token);
 
     GET_CHECK(TOKEN_ID);
-    if (symtable_search_all(&symtable, token->value->content, NULL)) {
+    if (symtable_search_top(&symtable, token->value->content, NULL)) {
         ERR_MSG("Redeclaring variable error: ", token->line)
         fprintf(stderr, "'%s'\n", token->value->content);
         return false;

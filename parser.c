@@ -580,11 +580,17 @@ static bool rule_VAR_DECL()
         return false;
     }
 
-    GET_CHECK(TOKEN_DECLAR);
-    token_destroy(token);
+    token = get_next_token();
 
-    // TODO:Error on multiple expressions on right side
-    return right_side_function(&id);
+    if (token->type == TOKEN_DECLAR) {
+        token_destroy(token);
+        // TODO:Error on multiple expressions on right side
+        return right_side_function(&id);
+    } else {
+        // TODO:Codegen assign nil to this new variable
+        unget_token(token);
+        return true;
+    }
 }
 
 static bool rule_EXPR() { return exp_parse(&symtable); } // TODO Use the expression analyzer

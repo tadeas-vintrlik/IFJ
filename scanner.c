@@ -28,6 +28,8 @@ typedef enum {
     STATE_STRING_ESCAPE_SECOND_ZERO_TO_FOUR,
     STATE_STRING_ESCAPE_SECOND_ZERO_TO_NINE,
     STATE_STRING_ESCAPE_SECOND_FIVE,
+    STATE_STRING_ESCAPE_HEX_FIRST,
+    STATE_STRING_ESCAPE_HEX_SECOND,
     STATE_EQUAL_OR_DECLAR,
     STATE_LESS_THAN_OR_LESS_EQUAL,
     STATE_GREATER_THAN_OR_GREATER_EQUAL,
@@ -255,6 +257,9 @@ T_token *get_next_token()
             } else if (c == 'n' || c == 't' || c == '"' || c == '\\') {
                 state = STATE_STRING_START;
                 ds_add_char(str, c);
+            } else if (c == 'x') {
+                state = STATE_STRING_ESCAPE_HEX_FIRST;
+                ds_add_char(str, c);
             } else {
                 exit(RC_LEX_ERR);
             }
@@ -308,6 +313,22 @@ T_token *get_next_token()
                 exit(RC_LEX_ERR);
             }
 
+            break;
+        case STATE_STRING_ESCAPE_HEX_FIRST:
+            if (isdigit(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f')) {
+                state = STATE_STRING_ESCAPE_HEX_SECOND;
+                ds_add_char(str, c);
+            } else {
+                exit(RC_LEX_ERR);
+            }
+            break;
+        case STATE_STRING_ESCAPE_HEX_SECOND:
+            if (isdigit(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f')) {
+                state = STATE_STRING_START;
+                ds_add_char(str, c);
+            } else {
+                exit(RC_LEX_ERR);
+            }
             break;
         case STATE_EQUAL_OR_DECLAR:
             if (c == '=') {

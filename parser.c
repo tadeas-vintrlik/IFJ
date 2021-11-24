@@ -178,6 +178,7 @@ static bool rule_DEF()
     GET_CHECK(TOKEN_LEFT_BRACKET);
     free(token);
 
+    symtable_new_frame(&symtable);
     if (!rule_PARAM_LIST()) {
         return false;
     }
@@ -190,6 +191,7 @@ static bool rule_DEF()
     }
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "end");
+    symtable_pop_frame(&symtable);
     /* TODO: code-gen gen_func_end */
     free(token);
 
@@ -227,6 +229,7 @@ static bool rule_PARAM()
         return false;
     }
 
+    symtable_insert_token_top(&symtable, token);
     /* TODO: Add param type to function in global frame */
     /* <TODO: code-gen gen_param_caller>_in */
     GET_CHECK(TOKEN_COLON);
@@ -352,11 +355,9 @@ static bool rule_NEXT_ARG()
 
 static bool rule_BODY()
 {
-    symtable_new_frame(&symtable);
     if (!rule_STATEMENT_LIST()) {
         return false;
     }
-    symtable_pop_frame(&symtable);
     return true;
 }
 
@@ -406,9 +407,11 @@ static bool rule_IF_ELSE()
     /* TODO: code-gen gen_jump_else */
     free(token);
 
+    symtable_new_frame(&symtable);
     if (!rule_BODY()) {
         return false;
     }
+    symtable_pop_frame(&symtable);
 
     /* TODO: code-gen gen_jump_if_end */
 
@@ -416,9 +419,11 @@ static bool rule_IF_ELSE()
     /* TODO: code-gen gen_else_label */
     free(token);
 
+    symtable_new_frame(&symtable);
     if (!rule_BODY()) {
         return false;
     }
+    symtable_pop_frame(&symtable);
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "end");
     /* TODO: code-gen gen_if_end */
@@ -443,9 +448,11 @@ static bool rule_WHILE()
     /* TODO: code-gen gen_jump_while_end */
     free(token);
 
+    symtable_new_frame(&symtable);
     if (!rule_BODY()) {
         return false;
     }
+    symtable_pop_frame(&symtable);
 
     /* TODO: code-gen gen_jump_while */
 

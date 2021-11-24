@@ -1,0 +1,11 @@
+void gen_prog_start();
+void gen_func_start();
+void gen_func_end();
+void gen_push_arg();
+void gen_pop_arg();
+void gen_push_ret();
+void gen_pop_ret();
+void gen_jump_else();
+void gen_if_end();
+void gen_else_label();
+void gen_while_label();

@@ -71,10 +71,6 @@ bool symtable_search_all(const symtable_s *symtable, const char *key, T_token **
         sll_next(symtable->frames);
     }
 
-    if (!found) {
-        /* Lastly search in the global frame */
-        found = avl_search(symtable->global, key, (void **)token);
-    }
     return found;
 }
 

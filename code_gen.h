@@ -45,6 +45,31 @@ unsigned gen_jump_else(void);
  */
 void gen_else_label(unsigned label_number);
 
+/**
+ * @brief Generates the label for the end of the if-else-statement for the if branch to jump after finishing.
+ *
+ * @param label_number The label_number returned by gen_jump_else call in the same if-else statement.
+ */
 void gen_if_end(unsigned label_number);
 
-void gen_while_label();
+/**
+ * @brief Generates the label for beginning for a while loop to jump after each iteration.
+ * Condition follows this label.
+ *
+ * @return The label_number to be used for other generate calls.
+ */
+unsigned gen_while_label(void);
+
+/**
+ * @brief Generates a conditional jump to the end of the while statement.
+ *
+ * @param label_number The label_number returned by gen_while_label call in the same while statement.
+ */
+void gen_while_jump_end(unsigned label_number);
+
+/**
+ * @brief Generates label to jump after the end of the while statement.
+ *
+ * @param label_number The label_number returned by gen_while_label call in the same while statement.
+ */
+void gen_while_end_label(unsigned label_number);

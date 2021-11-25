@@ -347,14 +347,10 @@ static void gen_readn(void)
 static void gen_tointeger(void)
 {
     tstack_s in_params;
-    T_token *p0;
     tstack_init(&in_params);
-    p0 = malloc(sizeof *p0);
-    ALLOC_CHECK(p0);
-    tstack_push(&in_params, p0);
 
     gen_func_start("tointeger", &in_params, 1);
-    printf("FLOAT2INT LF@%%retval1 LF@%%p0");
+    puts("FLOAT2INT LF@%%retval1 LF@%%p0");
     puts("POPFRAME");
     puts("RETURN");
 
@@ -362,18 +358,8 @@ static void gen_tointeger(void)
 }
 static void gen_substr(void)
 {
-    T_token *p0, *p1, *p2;
     tstack_s in_params;
     tstack_init(&in_params);
-    p0 = malloc(sizeof *p0);
-    ALLOC_CHECK(p0);
-    tstack_push(&in_params, p0);
-    p1 = malloc(sizeof *p1);
-    ALLOC_CHECK(p1);
-    tstack_push(&in_params, p1);
-    p2 = malloc(sizeof *p2);
-    ALLOC_CHECK(p2);
-    tstack_push(&in_params, p2);
 
     gen_func_start("substr", &in_params, 1);
     puts("MOVE LF@%retval1 string@");
@@ -411,15 +397,8 @@ static void gen_substr(void)
 
 static void gen_ord(void)
 {
-    T_token *p0, *p1;
     tstack_s in_params;
     tstack_init(&in_params);
-    p0 = malloc(sizeof *p0);
-    ALLOC_CHECK(p0);
-    tstack_push(&in_params, p0);
-    p1 = malloc(sizeof *p1);
-    ALLOC_CHECK(p1);
-    tstack_push(&in_params, p1);
 
     gen_func_start("ord", &in_params, 1);
     puts("DEFVAR LF@%index");
@@ -445,12 +424,7 @@ static void gen_ord(void)
 
 static void gen_chr(void)
 {
-    T_token *p0;
     tstack_s in_params;
-    tstack_init(&in_params);
-    p0 = malloc(sizeof *p0);
-    ALLOC_CHECK(p0);
-    tstack_push(&in_params, p0);
 
     gen_func_start("chr", &in_params, 1);
     puts("DEFVAR LF@%cond");

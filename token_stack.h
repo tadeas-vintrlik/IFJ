@@ -52,6 +52,7 @@ typedef enum {
 } token_type;
 
 typedef enum {
+    SYM_TYPE_NONE,
     SYM_TYPE_STRING,
     SYM_TYPE_NUMBER,
     SYM_TYPE_INT,
@@ -75,7 +76,6 @@ typedef struct Token {
 
     symbol_type_e symbol_type;
     function_info_s *fun_info;
-    bool declared; // TODO: Replace this with fun_info->defined
 } T_token;
 
 /**
@@ -84,6 +84,13 @@ typedef struct Token {
  * @param token The token to initialize.
  */
 void token_init(T_token *token);
+
+/**
+ * @brief Initializes a function info structure.
+ *
+ * @param fun_info The structure to initialize.
+ */
+void function_info_init(function_info_s *fun_info);
 
 /**
  * @brief A desctructor for the token type. Frees all allocated memory.

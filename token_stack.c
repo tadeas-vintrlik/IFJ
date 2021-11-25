@@ -140,8 +140,10 @@ static T_token *create_handle(void)
 {
     T_token *handle = malloc(sizeof *handle);
     ALLOC_CHECK(handle);
+
+    token_init(handle);
+
     handle->type = TOKEN_HANDLE;
-    handle->value = NULL;
     handle->line = -1;
     return handle;
 }

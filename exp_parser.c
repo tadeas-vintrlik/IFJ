@@ -123,8 +123,10 @@ static T_token *create_non_terminal(unsigned line)
 {
     T_token *expr = malloc(sizeof *expr);
     ALLOC_CHECK(expr);
+
+    token_init(expr);
+
     expr->type = TOKEN_NON_TERMINAL;
-    expr->value = NULL;
     expr->line = line;
     return expr;
 }

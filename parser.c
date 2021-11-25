@@ -79,6 +79,14 @@ rc_e start_parsing()
     return ret;
 }
 
+////////////////////////
+////////////////////////
+////////////////////////
+// SEMANTIC FUNCTIONS //
+////////////////////////
+////////////////////////
+////////////////////////
+
 static char *token_type_to_string(token_type type)
 {
     switch (type) {
@@ -184,6 +192,14 @@ static bool token_list_types_identical(tstack_s *first, tstack_s *second)
     return sll_is_active(first) == sll_is_active(second);
 }
 
+///////////////////////////////
+///////////////////////////////
+///////////////////////////////
+// END OF SEMANTIC FUNCTIONS //
+///////////////////////////////
+///////////////////////////////
+///////////////////////////////
+
 static bool rule_PROG()
 {
     T_token *token;
@@ -242,6 +258,7 @@ static bool rule_CALL()
     tstack_init(in_params);
 
     GET_CHECK(TOKEN_ID);
+    int line = token->line;
     if (!symtable_search_global(&symtable, token->value->content, &function)) {
         ERR_MSG("Use of undefined function: ", token->line);
         fprintf(stderr, "'%s'\n", token->value->content);
@@ -254,6 +271,12 @@ static bool rule_CALL()
     token_destroy(token);
 
     if (!rule_ARG_LIST(&in_params)) {
+        return false;
+    }
+
+    if (!token_list_types_identical(in_params, function->fun_info->in_params)) {
+        ERR_MSG("Function call has invalid parameters.", line);
+        rc = RC_SEM_CALL_ERR;
         return false;
     }
 
@@ -536,7 +559,7 @@ static bool rule_TYPE(tstack_s *collected_types)
     return false;
 }
 
-static bool rule_ARG_LIST(tstack_s **in_params)
+static bool rule_ARG_LIST(tstack_s *in_params)
 {
     if (!rule_ARG(in_params)) {
         return true;
@@ -545,7 +568,7 @@ static bool rule_ARG_LIST(tstack_s **in_params)
     return rule_NEXT_ARG(in_params);
 }
 
-static bool rule_ARG(tstack_s **in_params)
+static bool rule_ARG(tstack_s *in_params)
 {
     T_token *token = get_next_token();
 
@@ -553,21 +576,32 @@ static bool rule_ARG(tstack_s **in_params)
      * TODO: code-gen gen_push_ret
      * TODO: Add param to decide if called as return ARG_LIST or CALL(ARG_LIST)
      */
+    T_token *symbol;
+
     switch (token->type) {
     case TOKEN_ID:
-        if (!symtable_search_all(&symtable, token->value->content, NULL)) {
+        if (!symtable_search_all(&symtable, token->value->content, &symbol)) {
             ERR_MSG("Use of undeclared variable: ", token->line);
             fprintf(stderr, "'%s'\n", token->value->content);
             rc = RC_SEM_UNDEF_ERR;
             return false;
         }
+
+        token->symbol_type = symbol->symbol_type;
+
         break;
     case TOKEN_NUMBER:
+        token->symbol_type = SYM_TYPE_NUMBER;
+        break;
     case TOKEN_INT:
+        token->symbol_type = SYM_TYPE_INT;
+        break;
     case TOKEN_STRING:
+        token->symbol_type = SYM_TYPE_STRING;
         break;
     case TOKEN_KEYWORD:
         if (!strcmp("nil", token->value->content)) {
+            token->symbol_type = SYM_TYPE_NIL;
             break;
         }
 
@@ -578,11 +612,11 @@ static bool rule_ARG(tstack_s **in_params)
         return false;
     }
 
-    sll_insert_last(*in_params, token);
+    sll_insert_last(in_params, token);
     return true;
 }
 
-static bool rule_NEXT_ARG(tstack_s **in_params)
+static bool rule_NEXT_ARG(tstack_s *in_params)
 {
     T_token *token = get_next_token();
 
@@ -751,6 +785,8 @@ static bool rule_VAR_DECL()
     GET_CHECK_CMP(TOKEN_KEYWORD, "local");
     token_destroy(token);
 
+    T_token *symbol = token;
+
     GET_CHECK(TOKEN_ID);
     if (symtable_search_top(&symtable, token->value->content, NULL)) {
         ERR_MSG("Redeclaring variable error: ", token->line)
@@ -770,10 +806,15 @@ static bool rule_VAR_DECL()
     GET_CHECK(TOKEN_COLON);
     token_destroy(token);
 
-    // TODO: Collect the variable's type
-    if (!rule_TYPE(NULL)) {
+    tstack_s collected_type;
+    tstack_init(&collected_type);
+
+    if (!rule_TYPE(&collected_type)) {
         return false;
     }
+
+    symbol->symbol_type = tstack_top(&collected_type)->symbol_type;
+    tstack_destroy(&collected_type);
 
     token = get_next_token();
 

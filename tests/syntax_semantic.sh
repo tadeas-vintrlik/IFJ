@@ -4,7 +4,8 @@ RC_OK="0"
 RC_LEX_ERR="1"
 RC_SYN_ERR="2"
 RC_SEM_UNDEF_ERR="3"
-TESTS="17"
+RC_SEM_CALL_ERR="5"
+TESTS="21"
 SUCCESSFULL="0"
 
 function success() {
@@ -48,13 +49,24 @@ function check_lexical_err() {
     fi
 }
 
-function check_semantic_undefind_err() {
+function check_semantic_undefined_err() {
     if [ "$1" == "$RC_SEM_UNDEF_ERR" ]
     then
         SUCCESSFULL=$((SUCCESSFULL + 1))
         success
     else
         echo "RC was $RC expected $RC_SEM_UNDEF_ERR"
+        fail
+    fi
+}
+
+function check_semantic_call_err() {
+    if [ "$1" == "$RC_SEM_CALL_ERR" ]
+    then
+        SUCCESSFULL=$((SUCCESSFULL + 1))
+        success
+    else
+        echo "RC was $RC expected $RC_SEM_CALL_ERR"
         fail
     fi
 }
@@ -74,7 +86,10 @@ function test_run() {
         check_lexical_err "$RC"
     elif [ "$2" == "SEM_UNDEF_ERR" ]
     then
-        check_semantic_undefind_err "$RC"
+        check_semantic_undefined_err "$RC"
+    elif [ "$2" == "SEM_CALL_ERR" ]
+    then
+	  check_semantic_call_err "$RC"
     fi
 }
 
@@ -95,6 +110,10 @@ test_run ./source_codes/lex_err1.tl LEX_ERR
 test_run ./source_codes/sem_err_undef1.tl SEM_UNDEF_ERR
 test_run ./source_codes/sem_err_undef2.tl SEM_UNDEF_ERR
 test_run ./source_codes/sem_err_undef3.tl SEM_UNDEF_ERR
+test_run ./source_codes/sem_err_call1.tl SEM_CALL_ERR
+test_run ./source_codes/sem_err_call2.tl SEM_CALL_ERR
+test_run ./source_codes/sem_err_call3.tl SEM_CALL_ERR
+test_run ./source_codes/sem_err_call4.tl SEM_CALL_ERR
 
 if [ "$SUCCESSFULL" == "$TESTS" ]
 then

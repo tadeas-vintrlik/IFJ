@@ -82,14 +82,6 @@ void gen_while_jump_end(unsigned label_number);
 void gen_while_end_label(unsigned label_number);
 
 /**
- * @brief Generates call to a function passes the parameters using TF.
- *
- * @param[in] func_name The name of the function to call.
- * @param[in] in_params The stack of the parameters to call function with.
- */
-void gen_func_call(const char *func_name, tstack_s *in_params);
-
-/**
  * @brief Generate code for a single operand in expression.
  *
  * @param[in] token The operand to generate.
@@ -114,3 +106,16 @@ void gen_expr_cond(void);
  * @param[in] in_params Stack of paramters to print.
  */
 void gen_write(tstack_s *in_params);
+
+/**
+ * @brief Add a function call to generate.
+ *
+ * @param function Pointer to the function token in global frame.
+ * @param params_in The input parameters of the function. Will be freed.
+ */
+void call_insert(T_token *function, tstack_s *params_in);
+
+/**
+ * @brief Generate all collected functions calls throughout the program.
+ */
+void gen_function_call_list(void);

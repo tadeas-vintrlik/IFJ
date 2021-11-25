@@ -10,6 +10,7 @@
 #define _EXP_PARSER_H
 
 #include "avl.h"
+#include "code_gen.h"
 #include "common.h"
 #include "scanner.h"
 #include "symtable.h"

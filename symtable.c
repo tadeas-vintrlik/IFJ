@@ -147,7 +147,6 @@ bool symtable_frames_empty(const symtable_s *symtable)
 void symtable_insert_token_top(symtable_s *symtable, T_token *token)
 {
     avl_node_s *node;
-    bool first = false;
 
     if (!symtable) {
         return;
@@ -158,15 +157,9 @@ void symtable_insert_token_top(symtable_s *symtable, T_token *token)
     }
 
     node = sll_get_head(symtable->frames);
-    if (!node) {
-        /* Adding first token into current frame */
-        first = true;
-    }
     avl_insert(&node, token->value->content, token);
-    if (first) {
-        sll_delete_head(symtable->frames, false);
-        sll_insert_head(symtable->frames, node);
-    }
+    sll_delete_head(symtable->frames, false);
+    sll_insert_head(symtable->frames, node);
 }
 
 void symtable_insert_token_global(symtable_s *symtable, T_token *token)

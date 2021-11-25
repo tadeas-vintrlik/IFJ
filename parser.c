@@ -387,7 +387,8 @@ static bool rule_DEF()
         FREE(declared_types_out);
     }
 
-    function_symbol->fun_info->in_params = defined_params_in;
+    // Must copy in params as they are also on the local frame (so they don't get destroyed)
+    function_symbol->fun_info->in_params = tstack_copy(defined_params_in);
     function_symbol->fun_info->out_params = defined_types_out;
 
     if (!rule_BODY()) {

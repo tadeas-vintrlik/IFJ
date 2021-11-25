@@ -13,6 +13,11 @@
 #include "sll.h"
 
 /**
+ * @brief Token stack structure.
+ */
+typedef sll_s tstack_s;
+
+/**
  * @brief Enum for different types of tokens.
  */
 typedef enum {
@@ -44,6 +49,20 @@ typedef enum {
     TOKEN_NON_TERMINAL, /* Special token used for expression analysis */
 } token_type;
 
+typedef enum {
+    SYM_TYPE_STRING,
+    SYM_TYPE_NUMBER,
+    SYM_TYPE_INT,
+    SYM_TYPE_NIL,
+    SYM_TYPE_FUNCTION
+} symbol_type_e;
+
+typedef struct function_info {
+    tstack_s *in_params;
+    tstack_s *out_params;
+    bool defined;
+} function_info_s;
+
 /**
  * @brief Structure for storing a token
  */
@@ -51,7 +70,10 @@ typedef struct Token {
     token_type type;
     dynamic_string_s *value;
     int line;
-    bool declared;
+
+    symbol_type_e symbol_type;
+    function_info_s *fun_info;
+    bool declared; // TODO: Replace this with fun_info->defined
 } T_token;
 
 /**
@@ -67,11 +89,6 @@ void token_init(T_token *token);
  * @param token The token to free.
  */
 void token_destroy(T_token *token);
-
-/**
- * @brief Token stack structure.
- */
-typedef sll_s tstack_s;
 
 /**
  * @brief Initialize the token stack structure.

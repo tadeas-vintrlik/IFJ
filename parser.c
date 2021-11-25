@@ -142,12 +142,13 @@ static bool rule_PROG()
 {
     T_token *token;
 
-    gen_prog_start();
     GET_CHECK_CMP(TOKEN_KEYWORD, "require");
     token_destroy(token);
 
     GET_CHECK_CMP(TOKEN_STRING, "ifj21");
     token_destroy(token);
+
+    gen_prog_start();
 
     return rule_CODE();
 }
@@ -271,6 +272,7 @@ static bool rule_DEF()
     } else {
         symtable_insert_token_global(&symtable, token);
     }
+
     /* TODO: code-gen gen_func_start and gen_pop_arg */
 
     GET_CHECK(TOKEN_LEFT_BRACKET);

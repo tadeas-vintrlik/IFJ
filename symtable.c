@@ -12,22 +12,73 @@ static void data_destroy(void *data) { token_destroy((T_token *)data); }
 
 void symtable_insert_token_global(symtable_s *symtable, T_token *token);
 
+static void populate_type_list(tstack_s *type_list, symbol_type_e types[], unsigned count)
+{
+    for (unsigned i = 0; i < count; i++) {
+        T_token *token = malloc(sizeof(T_token));
+        ALLOC_CHECK(token);
+        token_init(token);
+
+        token->symbol_type = types[i];
+
+        sll_insert_last(type_list, token);
+    }
+}
+
 static T_token *create_token(const char *key)
 {
     T_token *new;
-    dynamic_string_s *ds;
-
     new = malloc(sizeof *new);
     ALLOC_CHECK(new);
-    ds = malloc(sizeof *ds);
-    ALLOC_CHECK(ds);
 
-    ds_init(ds);
+    token_init(new);
+
     for (unsigned i = 0; key[i]; i++) {
-        ds_add_char(ds, key[i]);
+        ds_add_char(new->value, key[i]);
     }
-    ds_add_char(ds, '\0');
-    new->value = ds;
+
+    new->fun_info = malloc(sizeof(function_info_s));
+    ALLOC_CHECK(new->fun_info);
+    function_info_init(new->fun_info);
+
+    if (!strcmp("reads", key)) {
+        symbol_type_e out_types[] = { SYM_TYPE_STRING };
+        populate_type_list(new->fun_info->out_params, out_types, 1);
+
+    } else if (!strcmp("readn", key)) {
+        symbol_type_e out_types[] = { SYM_TYPE_NUMBER };
+        populate_type_list(new->fun_info->out_params, out_types, 1);
+
+    } else if (!strcmp("readi", key)) {
+        symbol_type_e out_types[] = { SYM_TYPE_INT };
+        populate_type_list(new->fun_info->out_params, out_types, 1);
+
+    } else if (!strcmp("tointeger", key)) {
+        symbol_type_e in_types[] = { SYM_TYPE_NUMBER };
+        symbol_type_e out_types[] = { SYM_TYPE_INT };
+        populate_type_list(new->fun_info->in_params, in_types, 1);
+        populate_type_list(new->fun_info->out_params, out_types, 1);
+
+    } else if (!strcmp("substr", key)) {
+        // TODO: INT should be NUMBER, but implicit conversion is not implemented yet
+        symbol_type_e in_types[] = { SYM_TYPE_STRING, SYM_TYPE_INT, SYM_TYPE_INT };
+        symbol_type_e out_types[] = { SYM_TYPE_STRING };
+        populate_type_list(new->fun_info->in_params, in_types, 3);
+        populate_type_list(new->fun_info->out_params, out_types, 1);
+
+    } else if (!strcmp("ord", key)) {
+        symbol_type_e in_types[] = { SYM_TYPE_STRING, SYM_TYPE_INT };
+        symbol_type_e out_types[] = { SYM_TYPE_INT };
+        populate_type_list(new->fun_info->in_params, in_types, 2);
+        populate_type_list(new->fun_info->out_params, out_types, 1);
+
+    } else if (!strcmp("chr", key)) {
+        symbol_type_e in_types[] = { SYM_TYPE_INT };
+        symbol_type_e out_types[] = { SYM_TYPE_STRING };
+        populate_type_list(new->fun_info->in_params, in_types, 1);
+        populate_type_list(new->fun_info->out_params, out_types, 1);
+    }
+
     new->type = TOKEN_ID;
     new->line = -1;
 

@@ -1,5 +1,6 @@
 /**
  * @file tests.h
+ * Projekt: Implementace prekladace imperativniho jazyka IFJ21.
  * @author Tadeas Vintrlik <xvintr04@stud.fit.vutbr.cz>
  * @brief Header for common test functions.
  */

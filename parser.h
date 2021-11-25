@@ -1,5 +1,10 @@
 /**
  * @file parser.h
+ * Projekt: Implementace prekladace imperativniho jazyka IFJ21.
+ * @author Krystof Albrecht <xalbre05@stud.fit.vutbr.cz>
+ * @author Josef Skorpik <xskorp07@stud.fit.vutbr.cz>
+ * @author Jakub Kozubek <xkozub07@stud.fit.vutbr.cz>
+ * @author Tadeas Vintrlik <xvintr04@stud.fit.vutbr.cz>
  * @brief Header file for the parser module.
  */
 

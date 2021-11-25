@@ -1,9 +1,10 @@
 #!/bin/sh
 EXECUTABLE="../main"
 RC_OK="0"
+RC_LEX_ERR="1"
 RC_SYN_ERR="2"
 RC_SEM_UNDEF_ERR="3"
-TESTS="13"
+TESTS="17"
 SUCCESSFULL="0"
 
 function success() {
@@ -36,6 +37,28 @@ function check_syntax_err() {
     fi
 }
 
+function check_lexical_err() {
+    if [ "$1" == "$RC_LEX_ERR" ]
+    then
+        SUCCESSFULL=$((SUCCESSFULL + 1))
+        success
+    else
+        echo "RC was $RC expected $RC_LEX_ERR"
+        fail
+    fi
+}
+
+function check_semantic_undefind_err() {
+    if [ "$1" == "$RC_SEM_UNDEF_ERR" ]
+    then
+        SUCCESSFULL=$((SUCCESSFULL + 1))
+        success
+    else
+        echo "RC was $RC expected $RC_SEM_UNDEF_ERR"
+        fail
+    fi
+}
+
 function test_run() {
     echo "=== Running test $1 ==="
     "$EXECUTABLE" < "$1" >/dev/null
@@ -46,6 +69,12 @@ function test_run() {
     elif [ "$2" == "SYN_ERR" ]
     then
         check_syntax_err "$RC"
+    elif [ "$2" == "LEX_ERR" ]
+    then
+        check_lexical_err "$RC"
+    elif [ "$2" == "SEM_UNDEF_ERR" ]
+    then
+        check_semantic_undefind_err "$RC"
     fi
 }
 
@@ -62,6 +91,10 @@ test_run ./source_codes/visibility.tl OK
 test_run ./source_codes/whitespaces.tl OK
 test_run ./source_codes/syn_err1.tl SYN_ERR
 test_run ./source_codes/syn_err2.tl SYN_ERR
+test_run ./source_codes/lex_err1.tl LEX_ERR
+test_run ./source_codes/sem_err_undef1.tl SEM_UNDEF_ERR
+test_run ./source_codes/sem_err_undef2.tl SEM_UNDEF_ERR
+test_run ./source_codes/sem_err_undef3.tl SEM_UNDEF_ERR
 
 if [ "$SUCCESSFULL" == "$TESTS" ]
 then

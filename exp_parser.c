@@ -353,7 +353,7 @@ static bool apply_rule(tstack_s *tstack)
     return true;
 }
 
-bool exp_parse(symtable_s *symtable)
+bool exp_parse(symtable_s *symtable, rc_e *rc)
 {
     T_token *token, *out;
     op_e op, action;
@@ -371,6 +371,7 @@ bool exp_parse(symtable_s *symtable)
                 /* TODO: Same as error in parser rule_ARG make into a single function? */
                 ERR_MSG("Use of undeclared variable: ", token->line);
                 fprintf(stderr, "'%s'\n", token->value->content);
+                *rc = RC_SEM_UNDEF_ERR;
                 return false;
             }
         }

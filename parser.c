@@ -142,6 +142,7 @@ static bool rule_PROG()
 {
     T_token *token;
 
+    gen_prog_start();
     GET_CHECK_CMP(TOKEN_KEYWORD, "require");
     token_destroy(token);
 
@@ -155,7 +156,6 @@ static bool rule_CODE()
 {
     T_token *token = get_next_token();
 
-    gen_prog_start();
     if (token->type == TOKEN_EOF) {
         token_destroy(token);
         return true;
@@ -210,7 +210,6 @@ static bool rule_CALL()
     }
 
     /* TODO: code-gen gen_func_call */
-    gen_func_call(function->value->content, in_params);
     GET_CHECK(TOKEN_RIGHT_BRACKET);
     token_destroy(token);
 

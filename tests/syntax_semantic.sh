@@ -1,9 +1,9 @@
 #!/bin/sh
 EXECUTABLE="../main"
 RC_OK="0"
-RC_SYN_ERR="1"
-RC_SEM_UNDEF_ERR="1"
-TESTS="11"
+RC_SYN_ERR="2"
+RC_SEM_UNDEF_ERR="3"
+TESTS="13"
 SUCCESSFULL="0"
 
 function success() {
@@ -25,6 +25,17 @@ function check_ok() {
     fi
 }
 
+function check_syntax_err() {
+    if [ "$1" == "$RC_SYN_ERR" ]
+    then
+        SUCCESSFULL=$((SUCCESSFULL + 1))
+        success
+    else
+        echo "RC was $RC expected $RC_SYN_ERR"
+        fail
+    fi
+}
+
 function test_run() {
     echo "=== Running test $1 ==="
     "$EXECUTABLE" < "$1" >/dev/null
@@ -32,6 +43,9 @@ function test_run() {
     if [ "$2" == "OK" ]
     then
         check_ok "$RC"
+    elif [ "$2" == "SYN_ERR" ]
+    then
+        check_syntax_err "$RC"
     fi
 }
 
@@ -46,6 +60,8 @@ test_run ./source_codes/sc_1 OK
 test_run ./source_codes/substr.tl OK
 test_run ./source_codes/visibility.tl OK
 test_run ./source_codes/whitespaces.tl OK
+test_run ./source_codes/syn_err1.tl SYN_ERR
+test_run ./source_codes/syn_err2.tl SYN_ERR
 
 if [ "$SUCCESSFULL" == "$TESTS" ]
 then

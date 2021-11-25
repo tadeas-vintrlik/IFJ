@@ -37,7 +37,7 @@ typedef enum op {
  */
 op_e table[TABLE_ELEM][TABLE_ELEM] = {
     { NONE, LEN, MULT_DIV, ADD_SUB, CONCAT, REL, LPAR, RPAR, ID, DOLLAR },
-    { LEN, RULE, RULE, RULE, RULE, RULE, PUSH, ERR, PUSH, RULE },
+    { LEN, RULE, RULE, RULE, RULE, RULE, PUSH, RULE, PUSH, RULE },
     { MULT_DIV, PUSH, RULE, RULE, RULE, RULE, PUSH, RULE, PUSH, RULE },
     { ADD_SUB, PUSH, PUSH, RULE, RULE, RULE, PUSH, RULE, PUSH, RULE },
     { CONCAT, PUSH, PUSH, PUSH, PUSH, RULE, PUSH, RULE, PUSH, RULE },
@@ -181,8 +181,8 @@ static bool term2expr(tstack_s *tstack, tstack_s *help)
     }
     non_terminal = create_non_terminal(terminal->line);
     tstack_push(tstack, non_terminal);
-    // TODO: CODE_GEN call
-    (void)terminal; /* TODO: Remove once the code gen call is added */
+    gen_expr_operand(terminal);
+    token_destroy(terminal);
     return true;
 }
 
@@ -200,6 +200,7 @@ static bool nonterm2expr(tstack_s *tstack, tstack_s *help)
     /* Pop all three expected tokens */
     first = tstack_top(help);
     tstack_pop(help, false);
+    token_destroy(first);
     second = tstack_top(help);
     tstack_pop(help, false);
     third = tstack_top(help);
@@ -230,6 +231,8 @@ static bool nonterm2expr(tstack_s *tstack, tstack_s *help)
     case TOKEN_GREATER_EQUAL_THAN:
     case TOKEN_EQUAL:
     case TOKEN_NOT_EQUAL_TO:
+        gen_expr_operator(second);
+        token_destroy(second);
         break;
 
     default:
@@ -237,9 +240,6 @@ static bool nonterm2expr(tstack_s *tstack, tstack_s *help)
         return false;
     }
 
-    /* When we get here, the expression is valid */
-    /* TODO: Code gen call */
-    /* TODO: Check of type */
     tstack_push(tstack, third); /* Push back one reduced expression */
 
     return true;
@@ -253,7 +253,7 @@ static bool nonterm2expr(tstack_s *tstack, tstack_s *help)
 static bool apply_rule(tstack_s *tstack)
 {
     tstack_s help;
-    T_token *tmp, *expr;
+    T_token *tmp, *expr, *returnable;
 
     tstack_init(&help);
 
@@ -295,6 +295,7 @@ static bool apply_rule(tstack_s *tstack)
         // TODO: code gen call
         break;
     case TOKEN_LEFT_BRACKET:
+        returnable = tmp;
         tstack_pop(&help, false);
         tmp = tstack_top(&help);
         if (tmp->type != TOKEN_NON_TERMINAL) {
@@ -303,7 +304,9 @@ static bool apply_rule(tstack_s *tstack)
         expr = tmp; /* Store the inside expression to put as result */
         tstack_pop(&help, false);
         tmp = tstack_top(&help);
-        if (tmp->type != TOKEN_RIGHT_BRACKET) {
+        if (!tmp || tmp->type != TOKEN_RIGHT_BRACKET) {
+            tstack_push(tstack, returnable);
+            tstack_push(tstack, expr);
             return false;
         }
         tstack_pop(&help, false);
@@ -401,7 +404,7 @@ bool exp_parse(symtable_s *symtable)
     /* There should by only one non-terminal on stack */
     out = tstack_top(&tstack);
     if (!out) {
-        ERR_MSG("Expected a non-empty expression.", token->line);
+        ERR_MSG("Expected a non-empty expression.\n", token->line);
         /* Very first token was invalid */
         return false;
     }

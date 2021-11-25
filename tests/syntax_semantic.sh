@@ -5,15 +5,17 @@ RC_LEX_ERR="1"
 RC_SYN_ERR="2"
 RC_SEM_UNDEF_ERR="3"
 RC_SEM_CALL_ERR="5"
-TESTS="21"
+TESTS="22"
 SUCCESSFULL="0"
 
 function success() {
     echo "=== Test Succeeded ==="
+    echo ""
 }
 
 function fail() {
     echo "!!! Test FAILED !!!"
+    echo ""
 }
 
 function check_ok() {
@@ -110,6 +112,7 @@ test_run ./source_codes/lex_err1.tl LEX_ERR
 test_run ./source_codes/sem_err_undef1.tl SEM_UNDEF_ERR
 test_run ./source_codes/sem_err_undef2.tl SEM_UNDEF_ERR
 test_run ./source_codes/sem_err_undef3.tl SEM_UNDEF_ERR
+test_run ./source_codes/sem_err_undef4.tl SEM_UNDEF_ERR
 test_run ./source_codes/sem_err_call1.tl SEM_CALL_ERR
 test_run ./source_codes/sem_err_call2.tl SEM_CALL_ERR
 test_run ./source_codes/sem_err_call3.tl SEM_CALL_ERR

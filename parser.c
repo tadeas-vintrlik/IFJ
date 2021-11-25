@@ -293,13 +293,30 @@ static bool rule_CALL()
 
 static bool rule_DECL()
 {
-    T_token *token;
+    T_token *token, *original = NULL;
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "global");
     token_destroy(token);
 
-    // TODO: Check for redeclaration (semantic)
     GET_CHECK(TOKEN_ID);
+
+    if (symtable_search_global(&symtable, token->value->content, &original)) {
+        if (original->fun_info->defined) {
+            ERR_MSG("Function declaration follows function definition: ", token->line);
+        } else {
+            ERR_MSG("Redeclaring already declared function: ", token->line);
+        }
+
+        if (original->line == -1) {
+            fprintf(stderr, "'%s' is a built-in function.\n", token->value->content);
+        } else {
+            fprintf(stderr, "'%s' original on line: %d\n", token->value->content, original->line);
+        }
+
+        rc = RC_SEM_UNDEF_ERR;
+        return false;
+    }
+
     token->fun_info = malloc(sizeof(function_info_s));
     ALLOC_CHECK(token->fun_info);
     function_info_init(token->fun_info);

@@ -47,7 +47,7 @@ void gen_func_start(const char *func_name, tstack_s *in_params, unsigned no_retu
     unsigned i = 0;
 
     /* Create label for calls to jump to and PUSH TF to LF */
-    printf("LABEL $-%s\n", func_name);
+    printf("\nLABEL $-%s\n", func_name);
     puts("PUSHFRAME");
 
     /* Create variables for return values */
@@ -180,7 +180,7 @@ void gen_func_call(const char *func_name, tstack_s *in_params)
 {
     puts("CREATEFRAME");
     gen_push_arg(in_params);
-    printf("CALL $-%s", func_name);
+    printf("CALL $-%s\n", func_name);
 }
 
 void gen_expr_operand(T_token *token)
@@ -313,7 +313,7 @@ static void gen_reads(void)
     tstack_init(&in_params);
 
     gen_func_start("reads", &in_params, 1);
-    printf("READ LF@%%retval1 string");
+    puts("READ LF@%retval1 string");
     puts("POPFRAME");
     puts("RETURN");
 
@@ -326,7 +326,7 @@ static void gen_readi(void)
     tstack_init(&in_params);
 
     gen_func_start("readi", &in_params, 1);
-    printf("READ LF@%%retval1 int");
+    puts("READ LF@%retval1 int");
     puts("POPFRAME");
     puts("RETURN");
 
@@ -338,7 +338,7 @@ static void gen_readn(void)
     tstack_init(&in_params);
 
     gen_func_start("readn", &in_params, 1);
-    printf("READ LF@%%retval1 float");
+    puts("READ LF@%retval1 float");
     puts("POPFRAME");
     puts("RETURN");
 
@@ -350,7 +350,7 @@ static void gen_tointeger(void)
     tstack_init(&in_params);
 
     gen_func_start("tointeger", &in_params, 1);
-    puts("FLOAT2INT LF@%%retval1 LF@%%p0");
+    puts("FLOAT2INT LF@%retval1 LF@%p0");
     puts("POPFRAME");
     puts("RETURN");
 

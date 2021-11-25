@@ -10,8 +10,34 @@
 #include "common.h"
 
 static unsigned counter = 0;
+static sll_s call_list;
+
+typedef struct call {
+    T_token *function;
+    tstack_s *params_in;
+} call_s;
 
 static void generate_built_ins(void);
+
+static call_s *call_constructor(T_token *function, tstack_s *params_in)
+{
+    call_s *result = malloc(sizeof *result);
+    ALLOC_CHECK(result);
+    result->function = function;
+    result->params_in = params_in;
+    return result;
+}
+
+static void call_destructor(call_s *call)
+{
+    /* call->function is stored on global frame and need not be freed here */
+    tstack_destroy(call->params_in);
+}
+
+void call_insert(T_token *function, tstack_s *params_in)
+{
+    sll_insert_last(&call_list, call_constructor(function, params_in));
+}
 
 void gen_prog_start(void)
 {
@@ -20,6 +46,7 @@ void gen_prog_start(void)
     puts("DEFVAR GF@%tmp1");
     puts("DEFVAR GF@%tmp2");
     generate_built_ins();
+    sll_init(&call_list);
 }
 
 /**
@@ -177,11 +204,27 @@ static void gen_push_arg(tstack_s *in_params)
     }
 }
 
-void gen_func_call(const char *func_name, tstack_s *in_params)
+static void gen_func_call(const char *func_name, tstack_s *in_params)
 {
     puts("CREATEFRAME");
     gen_push_arg(in_params);
     printf("CALL $-%s\n", func_name);
+}
+
+void gen_function_call_list(void)
+{
+    call_s *current_call;
+
+    puts("LABEL $-main");
+    sll_activate(&call_list);
+    while (sll_is_active(&call_list)) {
+        current_call = (call_s *)sll_get_active(&call_list);
+        gen_func_call(current_call->function->value->content, current_call->params_in);
+        call_destructor(current_call);
+        sll_next(&call_list);
+    }
+
+    sll_destroy(&call_list, true);
 }
 
 void gen_expr_operand(T_token *token)

@@ -297,7 +297,7 @@ static bool rule_DECL()
 
 static bool rule_DEF()
 {
-    T_token *token, *original = NULL;
+    T_token *token, *original = NULL, *function_symbol = NULL;
     GET_CHECK_CMP(TOKEN_KEYWORD, "function");
     token_destroy(token);
 
@@ -324,6 +324,7 @@ static bool rule_DEF()
 
             declared_types_in = original->fun_info->in_params;
             declared_types_out = original->fun_info->out_params;
+            function_symbol = original;
         }
     } else {
         token->fun_info = malloc(sizeof(function_info_s));
@@ -332,9 +333,8 @@ static bool rule_DEF()
         token->fun_info->defined = true;
 
         symtable_insert_token_global(&symtable, token);
+        function_symbol = token;
     }
-
-    T_token *function_symbol = token;
 
     /* TODO: code-gen gen_func_start and gen_pop_arg */
 
@@ -388,7 +388,8 @@ static bool rule_DEF()
     }
 
     // Must copy in params as they are also on the local frame (so they don't get destroyed)
-    function_symbol->fun_info->in_params = tstack_copy(defined_params_in);
+    tstack_s *copy = tstack_copy(defined_params_in);
+    function_symbol->fun_info->in_params = copy;
     function_symbol->fun_info->out_params = defined_types_out;
 
     if (!rule_BODY()) {
@@ -570,7 +571,7 @@ static bool rule_ARG(tstack_s **in_params)
         return false;
     }
 
-    tstack_push(*in_params, token);
+    sll_insert_last(*in_params, token);
     return true;
 }
 

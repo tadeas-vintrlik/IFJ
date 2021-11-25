@@ -382,12 +382,11 @@ static void gen_substr(void)
     puts("JUMPIFEQ $-substr_end LF@%cond bool@true");
     puts("LABEL $-strloop");
     puts("LT LF@%cond LF@%iter LF@%end_index");
-    puts("JUMPIFEQ $-end_loop LF@%cond bool@false");
+    puts("JUMPIFEQ $-substr_end LF@%cond bool@false");
     puts("GETCHAR LF@%c LF@%p0 LF@%iter");
     puts("CONCAT LF@%retval1 LF@%retval1 LF@%c");
     puts("ADD LF@%iter LF@%iter int@1");
     puts("JUMP $-strloop");
-    puts("LABEL $-end_loop");
     puts("LABEL $-substr_end");
     puts("POPFRAME");
     puts("RETURN");
@@ -437,7 +436,7 @@ static void gen_chr(void)
     puts("GT LF@%cond LF@%p0 int@255");
     puts("JUMPIFEQ $-chr-end LF@%cond bool@true");
     puts("INT2CHAR LF@%retval1 LF@%p0");
-    puts("$-chr-end");
+    puts("LABEL $-chr-end");
     puts("POPFRAME");
     puts("RETURN");
 

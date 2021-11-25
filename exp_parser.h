@@ -19,9 +19,10 @@
  * @brief Parses expression. Calls code generator.
  *
  * @param[in] symtable Table of symbols to search for identifiers.
+ * @param[in,out] rc Return code to set if any other error then RC_SYN_ERR occurred.
  *
  * @return If expression parsing succeeded.
  */
-bool exp_parse(symtable_s *symtable);
+bool exp_parse(symtable_s *symtable, rc_e *rc);
 
 #endif /* _EXP_PARSER_H */

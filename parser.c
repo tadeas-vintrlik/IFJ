@@ -14,6 +14,8 @@
 #include "token_stack.h"
 #include <stdbool.h>
 
+static rc_e rc = RC_SYN_ERR;
+
 static void print_unexpected_token(
     T_token *bad_token, token_type expected_type, char *expected_content);
 static char *token_type_to_string(token_type token_type);
@@ -72,7 +74,7 @@ rc_e start_parsing()
 {
     rc_e ret;
     symtable_init(&symtable);
-    ret = rule_PROG() ? RC_OK : RC_SYN_ERR;
+    ret = rule_PROG() ? RC_OK : rc;
     symtable_destroy(&symtable);
     return ret;
 }
@@ -243,6 +245,7 @@ static bool rule_CALL()
     if (!symtable_search_global(&symtable, token->value->content, &function)) {
         ERR_MSG("Use of undefined function: ", token->line);
         fprintf(stderr, "'%s'\n", token->value->content);
+        rc = RC_SEM_UNDEF_ERR;
         return false;
     }
     token_destroy(token);
@@ -316,6 +319,7 @@ static bool rule_DEF()
                 fprintf(stderr, "'%s' original declaration on line: %d\n", token->value->content,
                     original->line);
             }
+            rc = RC_SEM_UNDEF_ERR;
             return false;
         } else {
             /* If the function was NOT already defined, but WAS declared */
@@ -370,6 +374,7 @@ static bool rule_DEF()
                 "Mismatch in definition and declaration parameter types.", function_symbol->line);
             tstack_destroy(declared_types_in);
             FREE(declared_types_in);
+            rc = RC_SEM_UNDEF_ERR;
             return false;
         }
         tstack_destroy(declared_types_in);
@@ -381,6 +386,7 @@ static bool rule_DEF()
             ERR_MSG("Mismatch in definition and declaration return types.", function_symbol->line);
             tstack_destroy(declared_types_out);
             FREE(declared_types_out);
+            rc = RC_SEM_UNDEF_ERR;
             return false;
         }
         tstack_destroy(declared_types_out);
@@ -552,6 +558,7 @@ static bool rule_ARG(tstack_s **in_params)
         if (!symtable_search_all(&symtable, token->value->content, NULL)) {
             ERR_MSG("Use of undeclared variable: ", token->line);
             fprintf(stderr, "'%s'\n", token->value->content);
+            rc = RC_SEM_UNDEF_ERR;
             return false;
         }
         break;
@@ -748,11 +755,13 @@ static bool rule_VAR_DECL()
     if (symtable_search_top(&symtable, token->value->content, NULL)) {
         ERR_MSG("Redeclaring variable error: ", token->line)
         fprintf(stderr, "'%s'\n", token->value->content);
+        rc = RC_SEM_UNDEF_ERR;
         return false;
     }
     if (symtable_search_global(&symtable, token->value->content, NULL)) {
         ERR_MSG("Redeclaring function name as variable error: ", token->line)
         fprintf(stderr, "'%s'\n", token->value->content);
+        rc = RC_SEM_UNDEF_ERR;
         return false;
     }
     symtable_insert_token_top(&symtable, token);
@@ -779,7 +788,7 @@ static bool rule_VAR_DECL()
     }
 }
 
-static bool rule_EXPR() { return exp_parse(&symtable); }
+static bool rule_EXPR() { return exp_parse(&symtable, &rc); }
 
 static bool left_side_function()
 {

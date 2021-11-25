@@ -51,6 +51,7 @@ typedef struct Token {
     token_type type;
     dynamic_string_s *value;
     int line;
+    bool declared;
 } T_token;
 
 /**

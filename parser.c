@@ -236,7 +236,11 @@ static bool rule_DECL()
     token_destroy(token);
 
     GET_CHECK(TOKEN_ID);
-    token->declared = true;
+    token->fun_info = malloc(sizeof(function_info_s));
+    ALLOC_CHECK(token->fun_info);
+    function_info_init(token->fun_info);
+    token->fun_info->defined = false;
+
     symtable_insert_token_global(&symtable, token);
 
     GET_CHECK(TOKEN_COLON);
@@ -264,7 +268,7 @@ static bool rule_DEF()
 
     GET_CHECK(TOKEN_ID);
     if (symtable_search_global(&symtable, token->value->content, &original)) {
-        if (!original->declared) {
+        if (original->fun_info->defined) {
             /* If the function was not just declared (already has a definition) */
             ERR_MSG("Redefining function: ", token->line);
             if (original->line == -1) {
@@ -274,13 +278,16 @@ static bool rule_DEF()
                     original->line);
             }
             return false;
+        } else {
+            /* TODO: Check if types of decalaration and definition match */
+            original->fun_info->defined = true;
         }
-    }
-    if (original && original->declared) {
-        /* If providing definition to a declared prototype */
-        /* TODO: Check if types of decalaration and definition match */
-        original->declared = false;
     } else {
+        token->fun_info = malloc(sizeof(function_info_s));
+        ALLOC_CHECK(token->fun_info);
+        function_info_init(token->fun_info);
+        token->fun_info->defined = false;
+
         symtable_insert_token_global(&symtable, token);
     }
 

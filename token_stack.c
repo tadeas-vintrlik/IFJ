@@ -16,7 +16,31 @@ void token_init(T_token *token)
 
     token->type = TOKEN_ID;
     token->line = 0;
-    token->declared = false;
+    token->symbol_type = SYM_TYPE_NONE;
+    token->fun_info = NULL;
+}
+
+void function_info_init(function_info_s *fun_info)
+{
+    fun_info->defined = false;
+
+    fun_info->in_params = malloc(sizeof(sll_s));
+    ALLOC_CHECK(fun_info->in_params);
+    sll_init(fun_info->in_params);
+
+    fun_info->out_params = malloc(sizeof(sll_s));
+    ALLOC_CHECK(fun_info->out_params);
+    sll_init(fun_info->out_params);
+}
+
+static void function_info_destroy(function_info_s *fun_info)
+{
+    if (!fun_info) {
+        return;
+    }
+
+    tstack_destroy(fun_info->in_params);
+    tstack_destroy(fun_info->out_params);
 }
 
 void token_destroy(T_token *token)
@@ -25,7 +49,10 @@ void token_destroy(T_token *token)
         return;
     }
     ds_destroy(token->value);
+    function_info_destroy(token->fun_info);
+
     FREE(token->value);
+    FREE(token->fun_info);
     FREE(token);
 }
 

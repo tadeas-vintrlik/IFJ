@@ -81,6 +81,7 @@ static T_token *create_token(const char *key)
 
     new->type = TOKEN_ID;
     new->line = -1;
+    new->fun_info->defined = true;
 
     return new;
 }

@@ -270,12 +270,16 @@ static bool rule_CALL()
     GET_CHECK(TOKEN_LEFT_BRACKET);
     token_destroy(token);
 
-    if (!rule_ARG_LIST(&in_params)) {
+    if (!rule_ARG_LIST(in_params)) {
         return false;
     }
 
-    if (!token_list_types_identical(in_params, function->fun_info->in_params)) {
-        ERR_MSG("Function call has invalid parameters.", line);
+    // NOTE: The write(...) function can never have a semantic error
+    if (strcmp("write", function->value->content)
+        && !token_list_types_identical(in_params, function->fun_info->in_params)) {
+
+        ERR_MSG("Function call has invalid parameters: ", line);
+        fprintf(stderr, "%s\n", function->value->content);
         rc = RC_SEM_CALL_ERR;
         return false;
     }
@@ -785,9 +789,9 @@ static bool rule_VAR_DECL()
     GET_CHECK_CMP(TOKEN_KEYWORD, "local");
     token_destroy(token);
 
+    GET_CHECK(TOKEN_ID);
     T_token *symbol = token;
 
-    GET_CHECK(TOKEN_ID);
     if (symtable_search_top(&symtable, token->value->content, NULL)) {
         ERR_MSG("Redeclaring variable error: ", token->line)
         fprintf(stderr, "'%s'\n", token->value->content);

@@ -225,6 +225,7 @@ static bool rule_DECL()
     token_destroy(token);
 
     GET_CHECK(TOKEN_ID);
+    token->declared = true;
     symtable_insert_token_global(&symtable, token);
 
     GET_CHECK(TOKEN_COLON);
@@ -246,22 +247,31 @@ static bool rule_DECL()
 
 static bool rule_DEF()
 {
-    T_token *token, *original;
+    T_token *token, *original = NULL;
     GET_CHECK_CMP(TOKEN_KEYWORD, "function");
     token_destroy(token);
 
     GET_CHECK(TOKEN_ID);
     if (symtable_search_global(&symtable, token->value->content, &original)) {
-        ERR_MSG("Redefining function: ", token->line);
-        if (original->line == -1) {
-            fprintf(stderr, "'%s' is a built-in function.\n", token->value->content);
-        } else {
-            fprintf(stderr, "'%s' original declaration on line: %d\n", token->value->content,
-                original->line);
+        if (!original->declared) {
+            /* If the function was not just declared (already has a definition) */
+            ERR_MSG("Redefining function: ", token->line);
+            if (original->line == -1) {
+                fprintf(stderr, "'%s' is a built-in function.\n", token->value->content);
+            } else {
+                fprintf(stderr, "'%s' original declaration on line: %d\n", token->value->content,
+                    original->line);
+            }
+            return false;
         }
-        return false;
     }
-    symtable_insert_token_global(&symtable, token);
+    if (original && original->declared) {
+        /* If providing definition to a declared prototype */
+        /* TODO: Check if types of decalaration and definition match */
+        original->declared = false;
+    } else {
+        symtable_insert_token_global(&symtable, token);
+    }
     /* TODO: code-gen gen_func_start and gen_pop_arg */
 
     GET_CHECK(TOKEN_LEFT_BRACKET);

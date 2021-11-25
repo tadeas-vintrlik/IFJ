@@ -15,6 +15,7 @@ void token_init(T_token *token)
 
     token->type = TOKEN_ID;
     token->line = 0;
+    token->declared = false;
 }
 
 void token_destroy(T_token *token)

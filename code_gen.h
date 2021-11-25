@@ -1,5 +1,6 @@
 /**
  * @file code_gen.h
+ * Projekt: Implementace prekladace imperativniho jazyka IFJ21.
  * @author Jakub Kozubek <xkozub07@stud.fit.vutbr.cz>
  * @author Tadeas Vintrlik <xvintr04@stud.fit.vutbr.cz>
  * @brief Header for code generator.

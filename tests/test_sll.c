@@ -1,5 +1,6 @@
 /**
  * @file test_sll.c
+ * Projekt: Implementace prekladace imperativniho jazyka IFJ21.
  * @author Tadeas Vintrlik <xvintr04@stud.fit.vutbr.cz>
  * @brief Test for the functionality of Single Linked List structure.
  */

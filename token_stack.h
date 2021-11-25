@@ -1,8 +1,10 @@
 /**
  * @file token_stack.h
+ * Projekt: Implementace prekladace imperativniho jazyka IFJ21.
  * @author Tadeas Vintrlik <xvintr04@stud.fit.vutbr.cz>
- * @author Josef Škorpík <xskorp07@stud.fit.vutbr.cz>
+ * @author Josef Skorpik <xskorp07@stud.fit.vutbr.cz>
  * @author Jakub Kozubek <xkozub07@stud.fit.vutbr.cz>
+ * @author Krystof Albrecht <xalbre05@stud.fit.vutbr.cz>
  * @brief Header for stack of tokens.
  */
 

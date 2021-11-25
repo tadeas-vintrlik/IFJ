@@ -1,5 +1,6 @@
 /**
  * @file scanner.c
+ * Projekt: Implementace prekladace imperativniho jazyka IFJ21.
  * @author Josef Škorpík <xskorp07@stud.fit.vutbr.cz>
  * @author Kryštof Albrecht <xalbre05@stud.fit.vutbr.cz>
  * @brief Scanner implementation.

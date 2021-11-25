@@ -1,7 +1,18 @@
+/**
+ * @file parser.c
+ * Projekt: Implementace prekladace imperativniho jazyka IFJ21.
+ * @author Krystof Albrecht <xalbre05@stud.fit.vutbr.cz>
+ * @author Josef Skorpik <xskorp07@stud.fit.vutbr.cz>
+ * @author Jakub Kozubek <xkozub07@stud.fit.vutbr.cz>
+ * @author Tadeas Vintrlik <xvintr04@stud.fit.vutbr.cz>
+ * @brief Top-down parser using recursive descent.
+ */
+
 #include "parser.h"
 #include "common.h"
 #include "symtable.h"
 #include "token_stack.h"
+
 static void print_unexpected_token(
     T_token *bad_token, token_type expected_type, char *expected_content);
 static char *token_type_to_string(token_type token_type);

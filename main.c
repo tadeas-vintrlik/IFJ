@@ -1,6 +1,7 @@
 /**
  * @file main.c
- * @author Tadeas Vintrlik <xvintr04@stud.fit.vutbr.cz>
+ * Projekt: Implementace prekladace imperativniho jazyka IFJ21.
+ * @author Krystof Albrecht <xalbre05@stud.fit.vutbr.cz>
  * @brief Main file used for creating the executable.
  */
 

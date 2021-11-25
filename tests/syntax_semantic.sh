@@ -27,7 +27,7 @@ function check_ok() {
 
 function test_run() {
     echo "=== Running test $1 ==="
-    "$EXECUTABLE" < "$1"
+    "$EXECUTABLE" < "$1" >/dev/null
     RC="$?"
     if [ "$2" == "OK" ]
     then

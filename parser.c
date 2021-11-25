@@ -242,6 +242,7 @@ static bool rule_DECL()
     token->fun_info->defined = false;
 
     symtable_insert_token_global(&symtable, token);
+    T_token *function_symbol = token;
 
     GET_CHECK(TOKEN_COLON);
     token_destroy(token);
@@ -250,14 +251,14 @@ static bool rule_DECL()
     GET_CHECK(TOKEN_LEFT_BRACKET);
     token_destroy(token);
 
-    if (!rule_TYPE_LIST()) {
+    if (!rule_TYPE_LIST(function_symbol->fun_info->in_params)) {
         return false;
     }
 
     GET_CHECK(TOKEN_RIGHT_BRACKET);
     token_destroy(token);
 
-    return rule_RET_LIST();
+    return rule_RET_LIST(function_symbol->fun_info->out_params);
 }
 
 static bool rule_DEF()
@@ -304,7 +305,7 @@ static bool rule_DEF()
     GET_CHECK(TOKEN_RIGHT_BRACKET);
     token_destroy(token);
 
-    if (!rule_RET_LIST() || !rule_BODY()) {
+    if (!rule_RET_LIST(NULL) || !rule_BODY()) {
         return false;
     }
 
@@ -354,66 +355,75 @@ static bool rule_PARAM()
     GET_CHECK(TOKEN_COLON);
     token_destroy(token);
 
-    return rule_TYPE();
+    // TODO: Collect type properly
+    return rule_TYPE(NULL);
 }
 
-static bool rule_RET_LIST()
+static bool rule_RET_LIST(tstack_s *collected_types)
 {
     T_token *token = get_next_token();
 
     if (token->type == TOKEN_COLON) {
         token_destroy(token);
-        return rule_TYPE() && rule_NEXT_TYPE();
+        return rule_TYPE(collected_types) && rule_NEXT_TYPE(collected_types);
     } else {
         unget_token(token);
         return true;
     }
 }
 
-static bool rule_TYPE_LIST()
+static bool rule_TYPE_LIST(tstack_s *collected_types)
 {
-    if (!rule_TYPE()) {
+    if (!rule_TYPE(collected_types)) {
         return true;
     }
 
-    return rule_NEXT_TYPE();
+    return rule_NEXT_TYPE(collected_types);
 }
 
-static bool rule_NEXT_TYPE()
+static bool rule_NEXT_TYPE(tstack_s *collected_types)
 {
     T_token *token = get_next_token();
 
     if (token->type == TOKEN_COMMA) {
         token_destroy(token);
         // TODO Print unexpected token errors
-        return rule_TYPE() && rule_NEXT_TYPE();
+        return rule_TYPE(collected_types) && rule_NEXT_TYPE(collected_types);
     } else {
         unget_token(token);
         return true;
     }
 }
 
-static bool rule_TYPE()
+static bool rule_TYPE(tstack_s *collected_types)
 {
-    /*
-     * TODO: Add parameter to rule_TYPE to determine if it was called as return type, param type,
-     * argument type or type type
-     * TODO: semantics Push as return parameter or input parameter
-     */
     T_token *token = get_next_token();
 
-    bool is_type = token->type == TOKEN_KEYWORD
-        && (!strcmp("nil", token->value->content) || !strcmp("integer", token->value->content)
-            || !strcmp("number", token->value->content)
-            || !strcmp("string", token->value->content));
+    if (token->type == TOKEN_KEYWORD) {
+        if (!strcmp("nil", token->value->content)) {
+            token->symbol_type = SYM_TYPE_NIL;
+        } else if (!strcmp("integer", token->value->content)) {
+            token->symbol_type = SYM_TYPE_INT;
+        } else if (!strcmp("number", token->value->content)) {
+            token->symbol_type = SYM_TYPE_NUMBER;
+        } else if (!strcmp("string", token->value->content)) {
+            token->symbol_type = SYM_TYPE_STRING;
+        } else {
+            unget_token(token);
+            return false;
+        }
 
-    if (!is_type) {
-        unget_token(token);
-    } else {
-        token_destroy(token);
+        if (collected_types) {
+            // Using sll_s method on tstack_s
+            sll_insert_last(collected_types, token);
+        } else {
+            token_destroy(token);
+        }
+        return true;
     }
 
-    return is_type;
+    unget_token(token);
+    return false;
 }
 
 static bool rule_ARG_LIST(tstack_s **in_params)
@@ -647,7 +657,8 @@ static bool rule_VAR_DECL()
     GET_CHECK(TOKEN_COLON);
     token_destroy(token);
 
-    if (!rule_TYPE()) {
+    // TODO: Collect the variable's type
+    if (!rule_TYPE(NULL)) {
         return false;
     }
 

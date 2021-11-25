@@ -12,10 +12,13 @@
 #include "common.h"
 #include "symtable.h"
 #include "token_stack.h"
+#include <stdbool.h>
 
 static void print_unexpected_token(
     T_token *bad_token, token_type expected_type, char *expected_content);
 static char *token_type_to_string(token_type token_type);
+
+static bool token_list_types_identical(tstack_s *, tstack_s *);
 
 #define GET_CHECK(TYPE)                                                                            \
     token = get_next_token();                                                                      \
@@ -41,14 +44,14 @@ static bool rule_DECL();
 static bool rule_DEF();
 static bool rule_CALL();
 
-static bool rule_PARAM_LIST();
-static bool rule_NEXT_PARAM();
-static bool rule_PARAM();
+static bool rule_PARAM_LIST(tstack_s *);
+static bool rule_NEXT_PARAM(tstack_s *);
+static bool rule_PARAM(tstack_s *);
 
-static bool rule_RET_LIST();
-static bool rule_TYPE_LIST();
-static bool rule_NEXT_TYPE();
-static bool rule_TYPE();
+static bool rule_RET_LIST(tstack_s *);
+static bool rule_TYPE_LIST(tstack_s *);
+static bool rule_NEXT_TYPE(tstack_s *);
+static bool rule_TYPE(tstack_s *);
 
 static bool rule_ARG_LIST();
 static bool rule_ARG();
@@ -149,6 +152,36 @@ static void print_unexpected_token(
     }
 }
 
+/**
+ * @brief Checks if all tokens in two stacks of tokens have the same type. Will change the activity
+ * of both lists.
+ *
+ * @param[in] first First stack.
+ * @param[in] second Second stack.
+ *
+ * @return true All tokens have the same type.
+ * @return false Some tokens don't have the same type.
+ */
+static bool token_list_types_identical(tstack_s *first, tstack_s *second)
+{
+    sll_activate(first);
+    sll_activate(second);
+
+    while (sll_is_active(first) && sll_is_active(second)) {
+        T_token *t1 = sll_get_active(first);
+        T_token *t2 = sll_get_active(second);
+
+        if (t1->symbol_type != t2->symbol_type) {
+            return false;
+        }
+
+        sll_next(first);
+        sll_next(second);
+    }
+
+    return sll_is_active(first) == sll_is_active(second);
+}
+
 static bool rule_PROG()
 {
     T_token *token;
@@ -235,6 +268,7 @@ static bool rule_DECL()
     GET_CHECK_CMP(TOKEN_KEYWORD, "global");
     token_destroy(token);
 
+    // TODO: Check for redeclaration (semantic)
     GET_CHECK(TOKEN_ID);
     token->fun_info = malloc(sizeof(function_info_s));
     ALLOC_CHECK(token->fun_info);
@@ -268,9 +302,13 @@ static bool rule_DEF()
     token_destroy(token);
 
     GET_CHECK(TOKEN_ID);
+
+    tstack_s *declared_types_in = NULL;
+    tstack_s *declared_types_out = NULL;
+
     if (symtable_search_global(&symtable, token->value->content, &original)) {
         if (original->fun_info->defined) {
-            /* If the function was not just declared (already has a definition) */
+            /* If the function was already defined */
             ERR_MSG("Redefining function: ", token->line);
             if (original->line == -1) {
                 fprintf(stderr, "'%s' is a built-in function.\n", token->value->content);
@@ -280,17 +318,23 @@ static bool rule_DEF()
             }
             return false;
         } else {
+            /* If the function was NOT already defined, but WAS declared */
             /* TODO: Check if types of decalaration and definition match */
             original->fun_info->defined = true;
+
+            declared_types_in = original->fun_info->in_params;
+            declared_types_out = original->fun_info->out_params;
         }
     } else {
         token->fun_info = malloc(sizeof(function_info_s));
         ALLOC_CHECK(token->fun_info);
         function_info_init(token->fun_info);
-        token->fun_info->defined = false;
+        token->fun_info->defined = true;
 
         symtable_insert_token_global(&symtable, token);
     }
+
+    T_token *function_symbol = token;
 
     /* TODO: code-gen gen_func_start and gen_pop_arg */
 
@@ -298,14 +342,55 @@ static bool rule_DEF()
     token_destroy(token);
 
     symtable_new_frame(&symtable);
-    if (!rule_PARAM_LIST()) {
+
+    tstack_s *defined_params_in = malloc(sizeof(tstack_s));
+    ALLOC_CHECK(defined_params_in);
+    tstack_init(defined_params_in);
+
+    tstack_s *defined_types_out = malloc(sizeof(tstack_s));
+    ALLOC_CHECK(defined_types_out);
+    tstack_init(defined_types_out);
+
+    if (!rule_PARAM_LIST(defined_params_in)) {
         return false;
     }
 
     GET_CHECK(TOKEN_RIGHT_BRACKET);
     token_destroy(token);
 
-    if (!rule_RET_LIST(NULL) || !rule_BODY()) {
+    if (!rule_RET_LIST(defined_types_out)) {
+        return false;
+    }
+
+    // HERE COMES THE FUN!
+
+    if (declared_types_in) {
+        if (!token_list_types_identical(declared_types_in, defined_params_in)) {
+            ERR_MSG(
+                "Mismatch in definition and declaration parameter types.", function_symbol->line);
+            tstack_destroy(declared_types_in);
+            FREE(declared_types_in);
+            return false;
+        }
+        tstack_destroy(declared_types_in);
+        FREE(declared_types_in);
+    }
+
+    if (declared_types_out) {
+        if (!token_list_types_identical(declared_types_out, defined_types_out)) {
+            ERR_MSG("Mismatch in definition and declaration return types.", function_symbol->line);
+            tstack_destroy(declared_types_out);
+            FREE(declared_types_out);
+            return false;
+        }
+        tstack_destroy(declared_types_out);
+        FREE(declared_types_out);
+    }
+
+    function_symbol->fun_info->in_params = defined_params_in;
+    function_symbol->fun_info->out_params = defined_types_out;
+
+    if (!rule_BODY()) {
         return false;
     }
 
@@ -317,30 +402,30 @@ static bool rule_DEF()
     return true;
 }
 
-static bool rule_PARAM_LIST()
+static bool rule_PARAM_LIST(tstack_s *collected_params)
 {
-    if (!rule_PARAM()) {
+    if (!rule_PARAM(collected_params)) {
         return true;
     }
 
-    return rule_NEXT_PARAM();
+    return rule_NEXT_PARAM(collected_params);
 }
 
-static bool rule_NEXT_PARAM()
+static bool rule_NEXT_PARAM(tstack_s *collected_params)
 {
     T_token *token = get_next_token();
 
     if (token->type == TOKEN_COMMA) {
         token_destroy(token);
         // TODO Print unexpected token errors
-        return rule_PARAM() && rule_NEXT_PARAM();
+        return rule_PARAM(collected_params) && rule_NEXT_PARAM(collected_params);
     } else {
         unget_token(token);
         return true;
     }
 }
 
-static bool rule_PARAM()
+static bool rule_PARAM(tstack_s *collected_params)
 {
     T_token *token = get_next_token();
 
@@ -350,13 +435,30 @@ static bool rule_PARAM()
     }
 
     symtable_insert_token_top(&symtable, token);
+    sll_insert_last(collected_params, token);
+    T_token *param_token = token;
+
     /* TODO: Add param type to function in global frame */
     /* <TODO: code-gen gen_param_caller>_in */
+
     GET_CHECK(TOKEN_COLON);
     token_destroy(token);
 
-    // TODO: Collect type properly
-    return rule_TYPE(NULL);
+    if (!rule_TYPE(collected_params)) {
+        return false;
+    }
+
+    if (collected_params) {
+        T_token *type_token = sll_get_last(collected_params);
+        sll_delete_last(collected_params, false);
+
+        param_token->symbol_type = type_token->symbol_type;
+        token_destroy(type_token);
+    } else {
+        token_destroy(param_token);
+    }
+
+    return true;
 }
 
 static bool rule_RET_LIST(tstack_s *collected_types)

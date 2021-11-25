@@ -20,6 +20,27 @@ void token_init(T_token *token)
     token->fun_info = NULL;
 }
 
+T_token *token_copy(T_token *original)
+{
+    T_token *result = malloc(sizeof(T_token));
+    ALLOC_CHECK(result);
+
+    token_init(result);
+
+    result->line = original->line;
+    result->symbol_type = original->symbol_type;
+    result->type = original->type;
+
+    for (unsigned i = 0; i < original->value->size; i++) {
+        ds_add_char(result->value, original->value->content[i]);
+    }
+
+    // NOTE: Assuming this won't ever be used for function symbols/tokens
+    assert(original->fun_info == NULL);
+
+    return result;
+}
+
 void function_info_init(function_info_s *fun_info)
 {
     fun_info->defined = false;
@@ -57,6 +78,22 @@ void token_destroy(T_token *token)
 }
 
 void tstack_init(tstack_s *tstack) { sll_init((sll_s *)tstack); }
+
+tstack_s *tstack_copy(tstack_s *original)
+{
+    tstack_s *result = malloc(sizeof(tstack_s));
+    ALLOC_CHECK(result);
+    tstack_init(result);
+
+    sll_activate(original);
+
+    while (sll_is_active(original)) {
+        sll_insert_last(result, token_copy(sll_get_active(original)));
+        sll_next(original);
+    }
+
+    return result;
+}
 
 void tstack_push(tstack_s *tstack, T_token *token) { sll_insert_head((sll_s *)tstack, token); }
 

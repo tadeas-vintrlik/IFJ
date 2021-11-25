@@ -13,6 +13,8 @@
 
 #include "common.h"
 #include "sll.h"
+#include "string.h"
+#include <assert.h>
 
 /**
  * @brief Token stack structure.
@@ -86,6 +88,15 @@ typedef struct Token {
 void token_init(T_token *token);
 
 /**
+ * @brief Creates a new token and copies the contents of the provided token into it.
+ * WARNING: Assumes original->fun_info is NULL (should never be used).
+ *
+ * @param original The original token to copy.
+ * @return A copy of the original token.
+ */
+T_token *token_copy(T_token *original);
+
+/**
  * @brief Initializes a function info structure.
  *
  * @param fun_info The structure to initialize.
@@ -105,6 +116,14 @@ void token_destroy(T_token *token);
  * @param[in] tstack Token Stack to initialize.
  */
 void tstack_init(tstack_s *tstack);
+
+/**
+ * @brief Copies a stack of tokens.
+ *
+ * @param original The original stack to copy.
+ * @return A copy of the original stack.
+ */
+tstack_s *tstack_copy(tstack_s *original);
 
 /**
  * @brief Insert a token into the Token Stack.

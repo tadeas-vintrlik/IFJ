@@ -51,7 +51,7 @@ static bool rule_WHILE();
 static bool rule_EXPR();
 static bool rule_VAR_DECL();
 
-static bool magic_function();
+static bool left_side_function();
 static bool right_side_function(sll_s *left_side_ids);
 
 rc_e start_parsing()
@@ -495,7 +495,6 @@ static bool rule_STATEMENT_LIST()
                 sll_init(&ids);
 
                 return right_side_function(&ids);
-                break;
             case TOKEN_KEYWORD:
                 if (!strcmp("nil", token->value->content)) {
                     sll_s ids;
@@ -524,7 +523,7 @@ static bool rule_STATEMENT_LIST()
     case TOKEN_ID:
         unget_token(token);
 
-        return magic_function() && rule_STATEMENT_LIST();
+        return left_side_function() && rule_STATEMENT_LIST();
     default:
         unget_token(token);
         return true;
@@ -647,41 +646,39 @@ static bool rule_VAR_DECL()
 
 static bool rule_EXPR() { return exp_parse(&symtable); }
 
-static bool magic_function()
+static bool left_side_function()
 {
-    T_token *token = get_next_token();
+    T_token *token;
     sll_s left_side_ids;
     sll_init(&left_side_ids);
 
-    if (token->type != TOKEN_ID) {
-        return false;
-    }
+    GET_CHECK(TOKEN_ID);
 
+    // We need two tokens to decide if this is a function call
     T_token *token2 = get_next_token();
 
     unget_token(token2);
     unget_token(token);
 
+    // Assuming function call (no assignment, left_side_ids is empty)
     if (token2->type == TOKEN_LEFT_BRACKET) {
         return right_side_function(&left_side_ids);
     }
 
     while (true) {
-        token = get_next_token();
-
-        if (token->type != TOKEN_ID) {
-            return false;
-        }
+        GET_CHECK(TOKEN_ID);
 
         // TODO:Change to sll_insert_last, right_side_function reads from left to right
         sll_insert_head(&left_side_ids, token);
 
         token = get_next_token();
 
+        // We have collected all of the left side IDs
         if (token->type == TOKEN_DECLAR) {
             break;
         }
 
+        // IDs must be separated by commas
         if (token->type != TOKEN_COMMA) {
             return false;
         }

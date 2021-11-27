@@ -163,6 +163,84 @@ static void print_unexpected_token(
 }
 
 /**
+ * @brief Checks if it is semantically correct to assign from @p second to @p first. That means the following:
+ * 1) @p first is the same length or shorter than @p second
+ * 2) the types for each token are compatible number in @p first and integer in @p second
+ * are compatible as integer is a subset of number but the other way around is not legal.
+ *
+ * @note This can be used for assignment checks but NOT for call or definition checks.
+ * See token_list_type_identical below for that.
+ *
+ * @param[in] first First stack.
+ * @param[in] second Second stack.
+ *
+ * @return true All tokens have the same type.
+ * @return false Some tokens don't have the same type.
+ */
+/* TODO: Uncomment once used
+static bool token_list_type_assignable(tstack_s *first, tstack_s *second)
+{
+    sll_activate(first);
+    sll_activate(second);
+
+    while (sll_is_active(first) && sll_is_active(second)) {
+        T_token *t1 = sll_get_active(first);
+        T_token *t2 = sll_get_active(second);
+
+        sll_next(first);
+        sll_next(second);
+
+        if (t1->symbol_type == SYM_TYPE_NUMBER && t2->symbol_type == SYM_TYPE_INT) {
+            continue;
+        }
+
+        if (t1->symbol_type != t2->symbol_type) {
+            return false;
+        }
+    }
+
+    // Either their length was the same or first was shorter therefore is no longer active
+    return (sll_is_active(first) == sll_is_active(second)) || !sll_is_active(first);
+}
+*/
+
+
+/**
+ * @brief Checks if two stacks are type compatible. This include the fact that integer is a subset of number.
+ *
+ * @note This function is usefull for checking of call parameters.
+ *
+ * @param[in] first First stack.
+ * @param[in] second Second stack.
+ *
+ * @return true All tokens have compatible types.
+ * @return false Some tokens don't have compatible type.
+ */
+static bool token_list_types_compatible(tstack_s *first, tstack_s *second)
+{
+    sll_activate(first);
+    sll_activate(second);
+
+    while (sll_is_active(first) && sll_is_active(second)) {
+        T_token *t1 = sll_get_active(first);
+        T_token *t2 = sll_get_active(second);
+
+        sll_next(first);
+        sll_next(second);
+
+        if (t1->symbol_type == SYM_TYPE_NUMBER && t2->symbol_type == SYM_TYPE_INT) {
+            continue;
+        }
+
+        if (t1->symbol_type != t2->symbol_type) {
+            return false;
+        }
+    }
+
+    return sll_is_active(first) == sll_is_active(second);
+}
+
+/**
  * @brief Checks if all tokens in two stacks of tokens have the same type. Will change the activity
  * of both lists.
  *
@@ -276,7 +354,7 @@ static bool rule_CALL()
 
     // NOTE: The write(...) function can never have a semantic error
     if (strcmp("write", function->value->content)
-        && !token_list_types_identical(in_params, function->fun_info->in_params)) {
+        && !token_list_types_compatible(function->fun_info->in_params, in_params)) {
 
         ERR_MSG("Function call has invalid parameters: ", line);
         fprintf(stderr, "%s\n", function->value->content);

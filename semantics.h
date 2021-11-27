@@ -59,6 +59,17 @@ bool sem_call_types_compatible(T_token *function, tstack_s *call_params, rc_e *r
 bool sem_check_call_function(T_token *token, symtable_s *symtable, T_token **function, rc_e *rc);
 
 /**
+ * @brief Check if function was not redeclared.
+ *
+ * @param[in] token The token with the function name.
+ * @param[in] symtable The symtable where to check for redeclaration.
+ * @param[out] rc Return code to set.
+ * @return true Function was not redeclared.
+ * @return false Function was redeclared.
+ */
+bool sem_check_redecl(T_token *token, symtable_s *symtable, rc_e *rc);
+
+/**
  * @brief Checks if all tokens in two stacks of tokens have the same type. Will change the activity
  * of both lists.
  *

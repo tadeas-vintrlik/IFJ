@@ -163,6 +163,28 @@ bool sem_check_call_function(T_token *token, symtable_s *symtable, T_token **fun
     }
     return true;
 }
+bool sem_check_redecl(T_token *token, symtable_s *symtable, rc_e *rc)
+{
+    T_token *original;
+    if (symtable_search_global(symtable, token->value->content, &original)) {
+        if (original->fun_info->defined) {
+            ERR_MSG("Function declaration follows function definition: ", token->line);
+        } else {
+            ERR_MSG("Redeclaring already declared function: ", token->line);
+        }
+
+        if (original->line == -1) {
+            fprintf(stderr, "'%s' is a built-in function.\n", token->value->content);
+        } else {
+            fprintf(stderr, "'%s' original on line: %d\n", token->value->content, original->line);
+        }
+
+        *rc = RC_SEM_UNDEF_ERR;
+        return false;
+    }
+
+    return true;
+}
 
 bool token_list_types_identical(tstack_s *first, tstack_s *second)
 {

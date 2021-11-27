@@ -16,23 +16,6 @@
 void print_unexpected_token(T_token *bad_token, token_type expected_type, char *expected_content);
 
 /**
- * @brief Checks if it is semantically correct to assign from @p second to @p first. That means the
- *following: 1) @p first is the same length or shorter than @p second 2) the types for each token
- *are compatible number in @p first and integer in @p second are compatible as integer is a subset
- *of number but the other way around is not legal.
- *
- * @note This can be used for assignment checks but NOT for call or definition checks.
- * See token_list_type_identical below for that.
- *
- * @param[in] first First stack.
- * @param[in] second Second stack.
- *
- * @return true All tokens have the same type.
- * @return false Some tokens don't have the same type.
- */
-bool token_list_type_assignable(tstack_s *first, tstack_s *second);
-
-/**
  * @brief Checks if function call has compatible paramaters.
  *
  * @note This function is usefull for checking of call parameters.
@@ -103,5 +86,28 @@ bool sem_check_decl_def_params(T_token *token, tstack_s *in_params, rc_e *rc);
  * @return false The definition did not match the declaration.
  */
 bool sem_check_decl_def_returns(T_token *token, tstack_s *out_params, rc_e *rc);
+
+/**
+ * @brief Check if identifier was declared.
+ *
+ * @param[in] token The identifier to check.
+ * @param[in] symtable The symtable where to find the identifier.
+ * @param[out] identifier The token found with this identifier.
+ * @param[out] rc Return code to set.
+ * @return true Identifier was declared
+ * @return false Identifier was not declared.
+ */
+bool sem_check_id_decl(T_token *token, symtable_s *symtable, T_token **identifier, rc_e *rc);
+
+/**
+ * @brief Check if identifier is not being redeclared
+ *
+ * @param[in] token The identifier to check.
+ * @param[in] symtable The symtable where to find the identifier.
+ * @param[out] rc Return code to set.
+ * @return true The identifier was NOT being redecalred. OK.
+ * @return false The identifier was redeclared. ERROR.
+ */
+bool sem_check_id_redecl(T_token *token, symtable_s *symtable, rc_e *rc);
 
 #endif /* _SEMANTICS_H_ */

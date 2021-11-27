@@ -9,7 +9,7 @@
 #ifndef _SEMANTICS_H_
 #define _SEMANTICS_H_
 
-#include "sll.h"
+#include "symtable.h"
 #include "token_stack.h"
 #include <stdio.h>
 
@@ -46,6 +46,17 @@ bool token_list_type_assignable(tstack_s *first, tstack_s *second);
  */
 bool sem_call_types_compatible(T_token *function, tstack_s *call_params, rc_e *rc);
 
+/**
+ * @brief Check if called function was properly defined or declared.
+ *
+ * @param[in] token The input token to check if it was a defined or declared function.
+ * @param[in] symtable The symtable where to find the declaration or definition.
+ * @param[out] function The definition or declaration found in symtable.
+ * @param[out] rc Return code to set.
+ * @return true Function call was proper and the function name was decalred.
+ * @return false The function name was not declared.
+ */
+bool sem_check_call_function(T_token *token, symtable_s *symtable, T_token **function, rc_e *rc);
 
 /**
  * @brief Checks if all tokens in two stacks of tokens have the same type. Will change the activity

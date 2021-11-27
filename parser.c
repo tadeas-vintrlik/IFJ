@@ -411,21 +411,14 @@ static bool rule_ARG(tstack_s *in_params)
 
     /*
      * TODO: code-gen gen_push_ret
-     * TODO: Add param to decide if called as return ARG_LIST or CALL(ARG_LIST)
      */
     T_token *symbol;
-
     switch (token->type) {
     case TOKEN_ID:
-        if (!symtable_search_all(&symtable, token->value->content, &symbol)) {
-            ERR_MSG("Use of undeclared variable: ", token->line);
-            fprintf(stderr, "'%s'\n", token->value->content);
-            rc = RC_SEM_UNDEF_ERR;
+        if (!sem_check_id_decl(token, &symtable, &symbol, &rc)) {
             return false;
         }
-
         token->symbol_type = symbol->symbol_type;
-
         break;
     case TOKEN_NUMBER:
         token->symbol_type = SYM_TYPE_NUMBER;
@@ -495,7 +488,7 @@ static bool rule_STATEMENT_LIST()
             token_destroy(token);
 
             token = get_next_token();
-            // TODO: Fix this shit
+            // TODO: Refactor
             switch (token->type) {
             case TOKEN_ID:
             case TOKEN_NUMBER:
@@ -522,7 +515,7 @@ static bool rule_STATEMENT_LIST()
                 unget_token(token);
                 return true;
             }
-            // TODO: Fix this shit
+            // TODO: Refactor
         } else if (!strcmp("if", token->value->content)) {
             return rule_IF_ELSE() && rule_STATEMENT_LIST();
         } else if (!strcmp("while", token->value->content)) {
@@ -624,19 +617,10 @@ static bool rule_VAR_DECL()
 
     GET_CHECK(TOKEN_ID);
     T_token *symbol = token;
+    if (!sem_check_id_redecl(token, &symtable, &rc)) {
+        return false;
+    }
 
-    if (symtable_search_top(&symtable, token->value->content, NULL)) {
-        ERR_MSG("Redeclaring variable error: ", token->line)
-        fprintf(stderr, "'%s'\n", token->value->content);
-        rc = RC_SEM_UNDEF_ERR;
-        return false;
-    }
-    if (symtable_search_global(&symtable, token->value->content, NULL)) {
-        ERR_MSG("Redeclaring function name as variable error: ", token->line)
-        fprintf(stderr, "'%s'\n", token->value->content);
-        rc = RC_SEM_UNDEF_ERR;
-        return false;
-    }
     symtable_insert_token_top(&symtable, token);
     sll_insert_head(&id, token);
 

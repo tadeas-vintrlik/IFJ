@@ -82,7 +82,23 @@ void print_unexpected_token(T_token *bad_token, token_type expected_type, char *
     }
 }
 
-bool token_list_type_assignable(tstack_s *first, tstack_s *second)
+/** TODO: Use when adding semantic checks of assignments
+ * @brief Checks if it is semantically correct to assign from @p second to @p first. That means the
+ *following: 1) @p first is the same length or shorter than @p second 2) the types for each token
+ *are compatible number in @p first and integer in @p second are compatible as integer is a subset
+ *of number but the other way around is not legal.
+ *
+ * @note This can be used for assignment checks but NOT for call or definition checks.
+ * See token_list_type_identical below for that.
+ *
+ * @param[in] first First stack.
+ * @param[in] second Second stack.
+ *
+ * @return true All tokens have the same type.
+ * @return false Some tokens don't have the same type.
+ */
+ /*
+static bool token_list_type_assignable(tstack_s *first, tstack_s *second)
 {
     sll_activate(first);
     sll_activate(second);
@@ -103,9 +119,10 @@ bool token_list_type_assignable(tstack_s *first, tstack_s *second)
         }
     }
 
-    /* Either their length was the same or first was shorter therefore is no longer active */
+    // Either their length was the same or first was shorter therefore is no longer active
     return (sll_is_active(first) == sll_is_active(second)) || !sll_is_active(first);
 }
+*/
 
 /**
  * @brief Checks if two stacks are type compatible. This include the fact that integer is a subset
@@ -251,5 +268,33 @@ bool sem_check_decl_def_returns(T_token *token, tstack_s *out_params, rc_e *rc)
     }
     tstack_destroy(token->fun_info->out_params);
     FREE(token->fun_info->out_params);
+    return true;
+}
+
+bool sem_check_id_decl(T_token *token, symtable_s *symtable, T_token **identifier, rc_e *rc)
+{
+    if (!symtable_search_all(symtable, token->value->content, identifier)) {
+        ERR_MSG("Use of undeclared variable: ", token->line);
+        fprintf(stderr, "'%s'\n", token->value->content);
+        *rc = RC_SEM_UNDEF_ERR;
+        return false;
+    }
+    return true;
+}
+
+bool sem_check_id_redecl(T_token *token, symtable_s *symtable, rc_e *rc)
+{
+    if (symtable_search_top(symtable, token->value->content, NULL)) {
+        ERR_MSG("Redeclaring variable error: ", token->line)
+        fprintf(stderr, "'%s'\n", token->value->content);
+        *rc = RC_SEM_UNDEF_ERR;
+        return false;
+    }
+    if (symtable_search_global(symtable, token->value->content, NULL)) {
+        ERR_MSG("Redeclaring function name as variable error: ", token->line)
+        fprintf(stderr, "'%s'\n", token->value->content);
+        *rc = RC_SEM_UNDEF_ERR;
+        return false;
+    }
     return true;
 }

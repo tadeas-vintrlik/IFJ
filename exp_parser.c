@@ -324,20 +324,8 @@ static bool apply_rule(tstack_s *tstack)
         }
         break;
     case TOKEN_ID:
-        if (!term2expr(tstack, &help)) {
-            return false;
-        }
-        break;
     case TOKEN_NUMBER:
-        if (!term2expr(tstack, &help)) {
-            return false;
-        }
-        break;
     case TOKEN_INT:
-        if (!term2expr(tstack, &help)) {
-            return false;
-        }
-        break;
     case TOKEN_STRING:
         if (!term2expr(tstack, &help)) {
             return false;
@@ -369,11 +357,7 @@ bool exp_parse(symtable_s *symtable, rc_e *rc)
         action = table_get_action(op, &tstack);
         if (action != ERR && token->type == TOKEN_ID) {
             /* If an identifier and part of the expression */
-            if (!symtable_search_all(symtable, token->value->content, NULL)) {
-                /* TODO: Same as error in parser rule_ARG make into a single function? */
-                ERR_MSG("Use of undeclared variable: ", token->line);
-                fprintf(stderr, "'%s'\n", token->value->content);
-                *rc = RC_SEM_UNDEF_ERR;
+            if (!sem_check_id_decl(token, symtable, NULL, rc)) {
                 return false;
             }
         }

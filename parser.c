@@ -196,37 +196,18 @@ static bool rule_DECL()
 
 static bool rule_DEF()
 {
-    T_token *token, *original = NULL, *function_symbol = NULL;
+    T_token *token, *function_symbol = NULL;
+
     GET_CHECK_CMP(TOKEN_KEYWORD, "function");
     token_destroy(token);
 
     GET_CHECK(TOKEN_ID);
-
-    tstack_s *declared_types_in = NULL;
-    tstack_s *declared_types_out = NULL;
-
-    if (symtable_search_global(&symtable, token->value->content, &original)) {
-        if (original->fun_info->defined) {
-            /* If the function was already defined */
-            ERR_MSG("Redefining function: ", token->line);
-            if (original->line == -1) {
-                fprintf(stderr, "'%s' is a built-in function.\n", token->value->content);
-            } else {
-                fprintf(stderr, "'%s' original declaration on line: %d\n", token->value->content,
-                    original->line);
-            }
-            rc = RC_SEM_UNDEF_ERR;
+    if (!sem_check_redef(token, &symtable, &function_symbol, &rc)) {
+        if (function_symbol->fun_info->defined) {
             return false;
-        } else {
-            /* If the function was NOT already defined, but WAS declared */
-            /* TODO: Check if types of decalaration and definition match */
-            original->fun_info->defined = true;
-
-            declared_types_in = original->fun_info->in_params;
-            declared_types_out = original->fun_info->out_params;
-            function_symbol = original;
         }
     } else {
+        /* First time definition */
         token->fun_info = malloc(sizeof(function_info_s));
         ALLOC_CHECK(token->fun_info);
         function_info_init(token->fun_info);
@@ -240,17 +221,11 @@ static bool rule_DEF()
 
     GET_CHECK(TOKEN_LEFT_BRACKET);
     token_destroy(token);
-
     symtable_new_frame(&symtable);
 
     tstack_s *defined_params_in = malloc(sizeof(tstack_s));
     ALLOC_CHECK(defined_params_in);
     tstack_init(defined_params_in);
-
-    tstack_s *defined_types_out = malloc(sizeof(tstack_s));
-    ALLOC_CHECK(defined_types_out);
-    tstack_init(defined_types_out);
-
     if (!rule_PARAM_LIST(defined_params_in)) {
         return false;
     }
@@ -258,39 +233,28 @@ static bool rule_DEF()
     GET_CHECK(TOKEN_RIGHT_BRACKET);
     token_destroy(token);
 
+    tstack_s *defined_types_out = malloc(sizeof(tstack_s));
+    ALLOC_CHECK(defined_types_out);
+    tstack_init(defined_types_out);
     if (!rule_RET_LIST(defined_types_out)) {
         return false;
     }
 
-    // HERE COMES THE FUN!
-
-    if (declared_types_in) {
-        if (!token_list_types_identical(declared_types_in, defined_params_in)) {
-            ERR_MSG(
-                "Mismatch in definition and declaration parameter types.", function_symbol->line);
-            tstack_destroy(declared_types_in);
-            FREE(declared_types_in);
-            rc = RC_SEM_UNDEF_ERR;
+    /* If defining a pre-declared function check the types */
+    if (!function_symbol->fun_info->defined) {
+        if (!sem_check_decl_def_params(function_symbol, defined_params_in, &rc)) {
             return false;
         }
-        tstack_destroy(declared_types_in);
-        FREE(declared_types_in);
-    }
 
-    if (declared_types_out) {
-        if (!token_list_types_identical(declared_types_out, defined_types_out)) {
-            ERR_MSG("Mismatch in definition and declaration return types.", function_symbol->line);
-            tstack_destroy(declared_types_out);
-            FREE(declared_types_out);
-            rc = RC_SEM_UNDEF_ERR;
+        if (!sem_check_decl_def_returns(function_symbol, defined_params_in, &rc)) {
             return false;
         }
-        tstack_destroy(declared_types_out);
-        FREE(declared_types_out);
+        function_symbol->fun_info->defined = true;
     }
 
     // Must copy in params as they are also on the local frame (so they don't get destroyed)
     tstack_s *copy = tstack_copy(defined_params_in);
+    FREE(defined_params_in);
     function_symbol->fun_info->in_params = copy;
     function_symbol->fun_info->out_params = defined_types_out;
 

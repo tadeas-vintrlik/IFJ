@@ -70,15 +70,38 @@ bool sem_check_call_function(T_token *token, symtable_s *symtable, T_token **fun
 bool sem_check_redecl(T_token *token, symtable_s *symtable, rc_e *rc);
 
 /**
- * @brief Checks if all tokens in two stacks of tokens have the same type. Will change the activity
- * of both lists.
+ * @brief Check if function was not redefined.
  *
- * @param[in] first First stack.
- * @param[in] second Second stack.
- *
- * @return true All tokens have the same type.
- * @return false Some tokens don't have the same type.
+ * @param[in] token The token with the function name.
+ * @param[in] symtable The symtable where to check for redefinition.
+ * @param[out] function The function token found in symtable will contain declaration.
+ * @param[out] rc Return code to set.
+ * @return true The function was not redefined.
+ * @return false The function was redefined or defined after declaration (function->defined will be
+ * false, this return is not an error)
  */
-bool token_list_types_identical(tstack_s *first, tstack_s *second);
+bool sem_check_redef(T_token *token, symtable_s *symtable, T_token **function, rc_e *rc);
+
+/**
+ * @brief Check if function declaration and definition parameter types match.
+ *
+ * @param[in] token The token with the fun_info from symtable.
+ * @param[in] in_params The stack of collected in parameters. WILL BE FREED IF MATCHING.
+ * @param[out] rc Return code to set.
+ * @return true The definition was ok.
+ * @return false The definition did not match the declaration.
+ */
+bool sem_check_decl_def_params(T_token *token, tstack_s *in_params, rc_e *rc);
+
+/**
+ * @brief Check if function declaration and definition return types match.
+ *
+ * @param[in] token The token with the fun_info from symtable.
+ * @param[in] out_params The stack of collected return types. WILL BE FREED IF MATCHING.
+ * @param[out] rc Return code to set.
+ * @return true The definition was ok.
+ * @return false The definition did not match the declaration.
+ */
+bool sem_check_decl_def_returns(T_token *token, tstack_s *out_params, rc_e *rc);
 
 #endif /* _SEMANTICS_H_ */

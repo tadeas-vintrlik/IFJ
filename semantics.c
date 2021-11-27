@@ -153,6 +153,17 @@ bool sem_call_types_compatible(T_token *function, tstack_s *call_params, rc_e *r
     return true;
 }
 
+bool sem_check_call_function(T_token *token, symtable_s *symtable, T_token **function, rc_e *rc)
+{
+    if (!symtable_search_global(symtable, token->value->content, function)) {
+        ERR_MSG("Use of undefined function: ", token->line);
+        fprintf(stderr, "'%s'\n", token->value->content);
+        *rc = RC_SEM_UNDEF_ERR;
+        return false;
+    }
+    return true;
+}
+
 bool token_list_types_identical(tstack_s *first, tstack_s *second)
 {
     sll_activate(first);

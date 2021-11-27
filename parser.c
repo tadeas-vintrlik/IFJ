@@ -131,10 +131,7 @@ static bool rule_CALL()
     tstack_init(in_params);
 
     GET_CHECK(TOKEN_ID);
-    if (!symtable_search_global(&symtable, token->value->content, &function)) {
-        ERR_MSG("Use of undefined function: ", token->line);
-        fprintf(stderr, "'%s'\n", token->value->content);
-        rc = RC_SEM_UNDEF_ERR;
+    if (!sem_check_call_function(token, &symtable, &function, &rc)) {
         return false;
     }
     token_destroy(token);

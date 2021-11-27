@@ -3,7 +3,7 @@ CFLAGS=-std=c99 -Wall -Werror -Wextra -pedantic
 LFLAGS=
 MAIN=main
 PACK_NAME=xvintr04.tgz
-OBJ=$(MAIN).o common.o sll.o scanner.o parser.o avl.o symtable.o token_stack.o exp_parser.o code_gen.o
+OBJ=$(MAIN).o common.o sll.o scanner.o parser.o avl.o symtable.o token_stack.o exp_parser.o code_gen.o semantics.o
 
 .PHONY: all debug debug_cflags clean test test_clean test_run format pack
 

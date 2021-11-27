@@ -97,30 +97,30 @@ void print_unexpected_token(T_token *bad_token, token_type expected_type, char *
  * @return true All tokens have the same type.
  * @return false Some tokens don't have the same type.
  */
- /*
+/*
 static bool token_list_type_assignable(tstack_s *first, tstack_s *second)
 {
-    sll_activate(first);
-    sll_activate(second);
+   sll_activate(first);
+   sll_activate(second);
 
-    while (sll_is_active(first) && sll_is_active(second)) {
-        T_token *t1 = sll_get_active(first);
-        T_token *t2 = sll_get_active(second);
+   while (sll_is_active(first) && sll_is_active(second)) {
+       T_token *t1 = sll_get_active(first);
+       T_token *t2 = sll_get_active(second);
 
-        sll_next(first);
-        sll_next(second);
+       sll_next(first);
+       sll_next(second);
 
-        if (t1->symbol_type == SYM_TYPE_NUMBER && t2->symbol_type == SYM_TYPE_INT) {
-            continue;
-        }
+       if (t1->symbol_type == SYM_TYPE_NUMBER && t2->symbol_type == SYM_TYPE_INT) {
+           continue;
+       }
 
-        if (t1->symbol_type != t2->symbol_type) {
-            return false;
-        }
-    }
+       if (t1->symbol_type != t2->symbol_type) {
+           return false;
+       }
+   }
 
-    // Either their length was the same or first was shorter therefore is no longer active
-    return (sll_is_active(first) == sll_is_active(second)) || !sll_is_active(first);
+   // Either their length was the same or first was shorter therefore is no longer active
+   return (sll_is_active(first) == sll_is_active(second)) || !sll_is_active(first);
 }
 */
 

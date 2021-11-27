@@ -13,6 +13,7 @@
 #include "code_gen.h"
 #include "common.h"
 #include "scanner.h"
+#include "semantics.h"
 #include "symtable.h"
 
 /**

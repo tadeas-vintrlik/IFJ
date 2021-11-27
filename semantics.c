@@ -186,7 +186,27 @@ bool sem_check_redecl(T_token *token, symtable_s *symtable, rc_e *rc)
     return true;
 }
 
-bool token_list_types_identical(tstack_s *first, tstack_s *second)
+bool sem_check_redef(T_token *token, symtable_s *symtable, T_token **function, rc_e *rc)
+{
+    if (symtable_search_global(symtable, token->value->content, function)) {
+        if ((*function)->fun_info->defined) {
+            /* If the function was already defined */
+            ERR_MSG("Redefining function: ", token->line);
+            if ((*function)->line == -1) {
+                fprintf(stderr, "'%s' is a built-in function.\n", token->value->content);
+            } else {
+                fprintf(stderr, "'%s' original declaration on line: %d\n", token->value->content,
+                    (*function)->line);
+            }
+            *rc = RC_SEM_UNDEF_ERR;
+            return false;
+        }
+        return false;
+    }
+    return true;
+}
+
+static bool token_list_types_identical(tstack_s *first, tstack_s *second)
 {
     sll_activate(first);
     sll_activate(second);
@@ -204,4 +224,32 @@ bool token_list_types_identical(tstack_s *first, tstack_s *second)
     }
 
     return sll_is_active(first) == sll_is_active(second);
+}
+
+bool sem_check_decl_def_params(T_token *token, tstack_s *in_params, rc_e *rc)
+{
+    if (!token_list_types_identical(token->fun_info->in_params, in_params)) {
+        ERR_MSG("Mismatch in definition and declaration parameter types.", token->line);
+        *rc = RC_SEM_UNDEF_ERR;
+        tstack_destroy(in_params);
+        FREE(in_params);
+        return false;
+    }
+    tstack_destroy(token->fun_info->in_params);
+    FREE(token->fun_info->in_params);
+    return true;
+}
+
+bool sem_check_decl_def_returns(T_token *token, tstack_s *out_params, rc_e *rc)
+{
+    if (!token_list_types_identical(token->fun_info->out_params, out_params)) {
+        ERR_MSG("Mismatch in definition and declaration return types.", token->line);
+        *rc = RC_SEM_UNDEF_ERR;
+        tstack_destroy(out_params);
+        FREE(out_params);
+        return false;
+    }
+    tstack_destroy(token->fun_info->out_params);
+    FREE(token->fun_info->out_params);
+    return true;
 }

@@ -6,7 +6,7 @@ RC_SYN_ERR="2"
 RC_SEM_UNDEF_ERR="3"
 RC_SEM_CALL_ERR="5"
 RC_SEM_EXPR_ERR="6"
-TESTS="23"
+TESTS="28"
 SUCCESSFULL="0"
 
 function success() {
@@ -114,6 +114,7 @@ test_run ./source_codes/example1.tl OK
 test_run ./source_codes/example2.tl OK
 test_run ./source_codes/example3.tl OK
 test_run ./source_codes/expr.tl OK
+test_run ./source_codes/expr2.tl OK
 test_run ./source_codes/fun.tl OK
 test_run ./source_codes/hello.tl OK
 test_run ./source_codes/multiassign.tl OK
@@ -133,6 +134,10 @@ test_run ./source_codes/sem_err_call2.tl SEM_CALL_ERR
 test_run ./source_codes/sem_err_call3.tl SEM_CALL_ERR
 test_run ./source_codes/sem_err_call4.tl SEM_CALL_ERR
 test_run ./source_codes/sem_err_expr1.tl SEM_EXPR_ERR
+test_run ./source_codes/sem_err_expr2.tl SEM_EXPR_ERR
+test_run ./source_codes/sem_err_expr3.tl SEM_EXPR_ERR
+test_run ./source_codes/sem_err_expr4.tl SEM_EXPR_ERR
+test_run ./source_codes/sem_err_expr5.tl SEM_EXPR_ERR
 
 if [ "$SUCCESSFULL" == "$TESTS" ]
 then

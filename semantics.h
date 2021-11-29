@@ -113,11 +113,24 @@ bool sem_check_id_redecl(T_token *token, symtable_s *symtable, rc_e *rc);
 /**
  * @brief Check if the expression passed to string length has correct type.
  *
- * @param token The expression passed to string length.
- * @param rc Return code to set.
+ * @param[in] token The expression passed to string length.
+ * @param[out] rc Return code to set.
  * @return true Called with correct expression.
  * @return false Called with incorrect expression.
  */
 bool sem_check_string_length(T_token *token, rc_e *rc);
+
+/**
+ * @brief Check if two operand, one operator expression is semantically correct.
+ *
+ * @param[in] first First operand. Non-terminal.
+ * @param[in] second The operator.
+ * @param[in] third Second operand. Non-terminal. Type of this operand will be set to the type of
+ * the result.
+ * @param[out] rc Return code to set.
+ * @return true The expression was correct.
+ * @return false The expression was incorrect.
+ */
+bool sem_check_expr_type(T_token *first, T_token *second, T_token *third, rc_e *rc);
 
 #endif /* _SEMANTICS_H_ */

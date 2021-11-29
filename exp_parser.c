@@ -7,6 +7,7 @@
  */
 
 #include "exp_parser.h"
+#include "token_stack.h"
 
 #define TABLE_ELEM 10
 
@@ -187,6 +188,9 @@ static bool term2expr(tstack_s *tstack, tstack_s *help)
     }
     gen_expr_operand(terminal);
     non_terminal = create_non_terminal(terminal->symbol_type, terminal->line);
+    if (!strcmp(terminal->value->content, "nil")) {
+        non_terminal->symbol_type = SYM_TYPE_NIL;
+    }
     tstack_push(tstack, non_terminal);
     token_destroy(terminal);
     return true;
@@ -197,8 +201,9 @@ static bool term2expr(tstack_s *tstack, tstack_s *help)
  *
  * @param[out] tstack Stack into which to insert the new expression.
  * @param[in] help Temporary stack to reduce using rules.
+ * @param[out] rc Return code to set.
  */
-static bool nonterm2expr(tstack_s *tstack, tstack_s *help)
+static bool nonterm2expr(tstack_s *tstack, tstack_s *help, rc_e *rc)
 {
     T_token *first, *second, *third;
     (void)first;
@@ -206,7 +211,6 @@ static bool nonterm2expr(tstack_s *tstack, tstack_s *help)
     /* Pop all three expected tokens */
     first = tstack_top(help);
     tstack_pop(help, false);
-    token_destroy(first);
     second = tstack_top(help);
     tstack_pop(help, false);
     third = tstack_top(help);
@@ -237,6 +241,10 @@ static bool nonterm2expr(tstack_s *tstack, tstack_s *help)
     case TOKEN_GREATER_EQUAL_THAN:
     case TOKEN_EQUAL:
     case TOKEN_NOT_EQUAL_TO:
+        if (!sem_check_expr_type(first, second, third, rc)) {
+            /* TODO: Free memory */
+            return false;
+        }
         gen_expr_operator(second);
         token_destroy(second);
         break;
@@ -246,6 +254,7 @@ static bool nonterm2expr(tstack_s *tstack, tstack_s *help)
         return false;
     }
 
+    token_destroy(first);
     tstack_push(tstack, third); /* Push back one reduced expression */
 
     return true;
@@ -297,11 +306,11 @@ static bool apply_rule(tstack_s *tstack, rc_e *rc)
             return false;
         }
         tstack_pop(&help, false);
-        tstack_push(tstack, tmp);
         if (!sem_check_string_length(tmp, rc)) {
             return false;
         }
-        /* TODO: Semantics for type of tmp */
+        tmp->symbol_type = SYM_TYPE_INT;
+        tstack_push(tstack, tmp);
         // TODO: code gen call
         break;
     case TOKEN_LEFT_BRACKET:
@@ -340,7 +349,7 @@ static bool apply_rule(tstack_s *tstack, rc_e *rc)
         }
         break;
     case TOKEN_NON_TERMINAL:
-        if (!nonterm2expr(tstack, &help)) {
+        if (!nonterm2expr(tstack, &help, rc)) {
             return false;
         }
         break;

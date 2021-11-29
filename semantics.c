@@ -308,3 +308,103 @@ bool sem_check_string_length(T_token *token, rc_e *rc)
     }
     return true;
 }
+
+static void invalid_operands(T_token *operator, rc_e * rc)
+{
+    ERR_MSG("Invalid type in expression around operator: ", operator->line);
+    err_token_printer(operator->type);
+    fprintf(stderr, "\n");
+    *rc = RC_SEM_EXP_ERR;
+}
+
+static bool type_compatible(T_token *first, T_token *third)
+{
+    if (first->symbol_type == third->symbol_type) {
+        return true;
+    }
+    if (first->symbol_type == SYM_TYPE_NUMBER && third->symbol_type == SYM_TYPE_INT) {
+        return true;
+    }
+    if (first->symbol_type == SYM_TYPE_INT && third->symbol_type == SYM_TYPE_NUMBER) {
+        return true;
+    }
+    return false;
+}
+
+/* TODO: Improve error messages */
+bool sem_check_expr_type(T_token *first, T_token *second, T_token *third, rc_e *rc)
+{
+    switch (second->type) {
+    case TOKEN_ADD:
+    case TOKEN_SUB:
+    case TOKEN_MUL:
+        if (first->symbol_type == SYM_TYPE_NUMBER && third->symbol_type == SYM_TYPE_NUMBER) {
+            break;
+        } else if (first->symbol_type == SYM_TYPE_INT && third->symbol_type == SYM_TYPE_NUMBER) {
+            break;
+        } else if (first->symbol_type == SYM_TYPE_INT && third->symbol_type == SYM_TYPE_INT) {
+            break;
+        } else if (first->symbol_type == SYM_TYPE_NUMBER && third->symbol_type == SYM_TYPE_INT) {
+            third->symbol_type = SYM_TYPE_NUMBER;
+            break;
+        } else {
+            invalid_operands(second, rc);
+            return false;
+        }
+    case TOKEN_DIVISION:
+        if (first->symbol_type == SYM_TYPE_NUMBER && third->symbol_type == SYM_TYPE_NUMBER) {
+            break;
+        } else if (first->symbol_type == SYM_TYPE_INT && third->symbol_type == SYM_TYPE_NUMBER) {
+            break;
+        } else if (first->symbol_type == SYM_TYPE_INT && third->symbol_type == SYM_TYPE_INT) {
+            third->symbol_type = SYM_TYPE_NUMBER;
+            break;
+        } else if (first->symbol_type == SYM_TYPE_NUMBER && third->symbol_type == SYM_TYPE_INT) {
+            third->symbol_type = SYM_TYPE_NUMBER;
+            break;
+        } else {
+            invalid_operands(second, rc);
+            return false;
+        }
+    case TOKEN_FLOOR_DIVISION:
+        if (first->symbol_type == SYM_TYPE_INT && third->symbol_type == SYM_TYPE_INT) {
+            break;
+        } else {
+            invalid_operands(second, rc);
+            return false;
+        }
+    case TOKEN_STRING_CONCAT:
+        if (first->symbol_type == SYM_TYPE_STRING && third->symbol_type == SYM_TYPE_STRING) {
+            break;
+        } else {
+            invalid_operands(second, rc);
+            return false;
+        }
+    case TOKEN_LESS_THAN:
+    case TOKEN_LESS_EQUAL_THAN:
+    case TOKEN_GREATER_THAN:
+    case TOKEN_GREATER_EQUAL_THAN:
+        if (!type_compatible(first, third)) {
+            ERR_MSG("Comparing incompatible types.\n", second->line);
+            *rc = RC_SEM_EXP_ERR;
+            return false;
+        }
+        break;
+    case TOKEN_EQUAL:
+    case TOKEN_NOT_EQUAL_TO:
+        if (first->symbol_type == SYM_TYPE_NIL || third->symbol_type == SYM_TYPE_NIL) {
+            break;
+        }
+        if (!type_compatible(first, third)) {
+            ERR_MSG("Comparing incompatible types.\n", second->line);
+            *rc = RC_SEM_EXP_ERR;
+            return false;
+        }
+        break;
+    default:
+        /* Should not happen */
+        ERR_MSG("Unexpected token in checking expression.\n", second->line);
+        return false;
+    }
+    return true;
+}

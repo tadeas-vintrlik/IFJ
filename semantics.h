@@ -110,4 +110,14 @@ bool sem_check_id_decl(T_token *token, symtable_s *symtable, T_token **identifie
  */
 bool sem_check_id_redecl(T_token *token, symtable_s *symtable, rc_e *rc);
 
+/**
+ * @brief Check if the expression passed to string length has correct type.
+ *
+ * @param token The expression passed to string length.
+ * @param rc Return code to set.
+ * @return true Called with correct expression.
+ * @return false Called with incorrect expression.
+ */
+bool sem_check_string_length(T_token *token, rc_e *rc);
+
 #endif /* _SEMANTICS_H_ */

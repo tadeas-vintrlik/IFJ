@@ -298,3 +298,13 @@ bool sem_check_id_redecl(T_token *token, symtable_s *symtable, rc_e *rc)
     }
     return true;
 }
+
+bool sem_check_string_length(T_token *token, rc_e *rc)
+{
+    if (token->symbol_type != SYM_TYPE_STRING) {
+        ERR_MSG("Invalid use of '#' operator: expected type string.\n", token->line);
+        *rc = RC_SEM_EXP_ERR;
+        return false;
+    }
+    return true;
+}

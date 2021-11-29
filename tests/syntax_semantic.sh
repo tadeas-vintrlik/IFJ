@@ -5,7 +5,8 @@ RC_LEX_ERR="1"
 RC_SYN_ERR="2"
 RC_SEM_UNDEF_ERR="3"
 RC_SEM_CALL_ERR="5"
-TESTS="22"
+RC_SEM_EXPR_ERR="6"
+TESTS="23"
 SUCCESSFULL="0"
 
 function success() {
@@ -73,6 +74,17 @@ function check_semantic_call_err() {
     fi
 }
 
+function check_semantic_expression_err() {
+    if [ "$1" == "$RC_SEM_EXPR_ERR" ]
+    then
+        SUCCESSFULL=$((SUCCESSFULL + 1))
+        success
+    else
+        echo "RC was $RC expected $RC_SEM_EXPR_ERR"
+        fail
+    fi
+}
+
 function test_run() {
     echo "=== Running test $1 ==="
     "$EXECUTABLE" < "$1" >/dev/null
@@ -92,6 +104,9 @@ function test_run() {
     elif [ "$2" == "SEM_CALL_ERR" ]
     then
 	  check_semantic_call_err "$RC"
+    elif [ "$2" == "SEM_EXPR_ERR" ]
+    then
+	  check_semantic_expression_err "$RC"
     fi
 }
 
@@ -117,6 +132,7 @@ test_run ./source_codes/sem_err_call1.tl SEM_CALL_ERR
 test_run ./source_codes/sem_err_call2.tl SEM_CALL_ERR
 test_run ./source_codes/sem_err_call3.tl SEM_CALL_ERR
 test_run ./source_codes/sem_err_call4.tl SEM_CALL_ERR
+test_run ./source_codes/sem_err_expr1.tl SEM_EXPR_ERR
 
 if [ "$SUCCESSFULL" == "$TESTS" ]
 then

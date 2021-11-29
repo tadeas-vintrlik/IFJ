@@ -33,7 +33,7 @@ typedef enum op {
 } op_e;
 
 /**
- * @brief Precendence table.
+ * @brief Precedence table.
  */
 op_e table[TABLE_ELEM][TABLE_ELEM] = {
     { NONE, LEN, MULT_DIV, ADD_SUB, CONCAT, REL, LPAR, RPAR, ID, DOLLAR },
@@ -117,9 +117,12 @@ static op_e token2op(const T_token *token)
 /**
  * @brief Create a non-terminal token.
  *
+ * @param[in] type The type of the non-terminal.
+ * @param[in] line The line where the terminal from which this was created was found.
+ *
  * @return Newly allocated non-terminal token.
  */
-static T_token *create_non_terminal(unsigned line)
+static T_token *create_non_terminal(symbol_type_e type, unsigned line)
 {
     T_token *expr = malloc(sizeof *expr);
     ALLOC_CHECK(expr);
@@ -127,6 +130,7 @@ static T_token *create_non_terminal(unsigned line)
     token_init(expr);
 
     expr->type = TOKEN_NON_TERMINAL;
+    expr->symbol_type = type;
     expr->line = line;
     return expr;
 }
@@ -137,7 +141,7 @@ static T_token *create_non_terminal(unsigned line)
  * @param[in] in Terminal from input. Used as a key for columns.
  * @param[in] stack Terminal found on top of stack. Used as a key for rows.
  *
- * @return Action found in the table. NONE if @p in or @p stack was nout found as a key.
+ * @return Action found in the table. NONE if @p in or @p stack was not found as a key.
  */
 op_e table_get_action(op_e in, tstack_s *stack)
 {
@@ -178,12 +182,12 @@ static bool term2expr(tstack_s *tstack, tstack_s *help)
     tstack_pop(help, false);
 
     if (!tstack_empty(help)) {
-        // TODO: possibly free stack
+        tstack_destroy(help);
         return false;
     }
-    non_terminal = create_non_terminal(terminal->line);
-    tstack_push(tstack, non_terminal);
     gen_expr_operand(terminal);
+    non_terminal = create_non_terminal(terminal->symbol_type, terminal->line);
+    tstack_push(tstack, non_terminal);
     token_destroy(terminal);
     return true;
 }

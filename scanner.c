@@ -180,6 +180,7 @@ T_token *get_next_token()
                 ds_add_char(str, c);
             } else {
                 token->type = TOKEN_INT;
+                token->symbol_type = SYM_TYPE_INT;
                 ungetc(c, stdin);
 
                 return token;
@@ -213,6 +214,7 @@ T_token *get_next_token()
                 ds_add_char(str, c);
             } else {
                 token->type = TOKEN_NUMBER;
+                token->symbol_type = SYM_TYPE_NUMBER;
                 ungetc(c, stdin);
 
                 return token;
@@ -225,6 +227,7 @@ T_token *get_next_token()
                 ds_add_char(str, c);
             } else {
                 token->type = TOKEN_NUMBER;
+                token->symbol_type = SYM_TYPE_NUMBER;
                 ungetc(c, stdin);
 
                 return token;
@@ -239,6 +242,7 @@ T_token *get_next_token()
                 ds_add_char(str, c);
             } else if (c == '"') {
                 token->type = TOKEN_STRING;
+                token->symbol_type = SYM_TYPE_NUMBER;
                 return token;
             } else if (c >= 31) {
                 state = STATE_STRING_START;

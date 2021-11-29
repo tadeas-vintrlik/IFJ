@@ -12,7 +12,8 @@
 static unsigned counter = 0;
 static sll_s call_list;
 
-typedef struct call {
+typedef struct call
+{
     T_token *function;
     tstack_s *params_in;
 } call_s;
@@ -60,7 +61,8 @@ static void gen_pop_arg(tstack_s *in_params)
     unsigned i;
 
     i = 0;
-    while (!tstack_empty(in_params)) {
+    while (!tstack_empty(in_params))
+    {
         token = tstack_top(in_params);
         tstack_pop(in_params, false);
         printf("DEFVAR LF@%s", token->value->content);
@@ -79,7 +81,8 @@ void gen_func_start(const char *func_name, tstack_s *in_params, unsigned no_retu
     puts("PUSHFRAME");
 
     /* Create variables for return values */
-    for (i = 0; i < no_returns; i++) {
+    for (i = 0; i < no_returns; i++)
+    {
         printf("DEFVAR LF@%%retval%d\n", no_returns);
         printf("MOVE LF@%%retval%d nil@nil\n", no_returns);
     }
@@ -98,10 +101,12 @@ static void gen_push_ret(tstack_s *return_vals)
     unsigned i = 0;
 
     /* Move all return values to correct variables */
-    while (!tstack_empty(return_vals)) {
+    while (!tstack_empty(return_vals))
+    {
         token = tstack_top(return_vals);
         tstack_pop(return_vals, false);
-        switch (token->type) {
+        switch (token->type)
+        {
         case TOKEN_ID:
             printf("MOVE LF@%%retval%d LF@%s\n", i, token->value->content);
             break;
@@ -175,11 +180,13 @@ static void gen_push_arg(tstack_s *in_params)
     unsigned i = 0;
 
     /* Move all in paramters values to correct variables */
-    while (!tstack_empty(in_params)) {
+    while (!tstack_empty(in_params))
+    {
         token = tstack_top(in_params);
         tstack_pop(in_params, false);
         printf("DEFVAR TF@%%p%d\n", i);
-        switch (token->type) {
+        switch (token->type)
+        {
         case TOKEN_ID:
             printf("MOVE TF@%%p%d LF@%s\n", i, token->value->content);
             break;
@@ -217,7 +224,8 @@ void gen_function_call_list(void)
 
     puts("LABEL $-main");
     sll_activate(&call_list);
-    while (sll_is_active(&call_list)) {
+    while (sll_is_active(&call_list))
+    {
         current_call = (call_s *)sll_get_active(&call_list);
         gen_func_call(current_call->function->value->content, current_call->params_in);
         call_destructor(current_call);
@@ -227,11 +235,75 @@ void gen_function_call_list(void)
     sll_destroy(&call_list, true);
 }
 
+static void escape_string(dynamic_string_s **ds)
+{
+    dynamic_string_s *new_ds = malloc(sizeof *new_ds);
+    ALLOC_CHECK(new_ds);
+    ds_init(new_ds);
+    dynamic_string_s *old_ds = *ds;
+    char c;
+    for (unsigned i = 0; i < old_ds->size; i++)
+    {
+        switch (old_ds->content[i])
+        {
+        case ' ':
+            ds_add_char(new_ds, '\\');
+            ds_add_char(new_ds, '0');
+            ds_add_char(new_ds, '3');
+            ds_add_char(new_ds, '2');
+            break;
+        case '\\':
+            c = old_ds->content[++i];
+            if (c)
+            {
+                switch (c)
+                {
+                case 'n':
+                    ds_add_char(new_ds, '\\');
+                    ds_add_char(new_ds, '0');
+                    ds_add_char(new_ds, '1');
+                    ds_add_char(new_ds, '0');
+                    break;
+                case 't':
+                    ds_add_char(new_ds, '\\');
+                    ds_add_char(new_ds, '0');
+                    ds_add_char(new_ds, '0');
+                    ds_add_char(new_ds, '9');
+                    break;
+                case '\"':
+                    ds_add_char(new_ds, '\\');
+                    ds_add_char(new_ds, '0');
+                    ds_add_char(new_ds, '3');
+                    ds_add_char(new_ds, '4');
+                    break;
+                case '\\':
+                    ds_add_char(new_ds, '\\');
+                    ds_add_char(new_ds, '0');
+                    ds_add_char(new_ds, '9');
+                    ds_add_char(new_ds, '2');
+                    break;
+                default:
+                    ERR_MSG("Unexpected escape sequence in code_gen", -1);
+                    break;
+                }
+            }
+            break;
+        default:
+            ds_add_char(new_ds, old_ds->content[i]);
+            break;
+        }
+    }
+    ds_destroy(old_ds);
+    FREE(old_ds);
+    *ds = new_ds;
+}
+
 void gen_expr_operand(T_token *token)
 {
-    switch (token->type) {
+    switch (token->type)
+    {
     case TOKEN_ID:
-        printf("PUSHS %s\n", token->value->content);
+        printf("PUSHS LF@%s\n", token->value->content);
         break;
     case TOKEN_INT:
         printf("PUSHS int@%s\n", token->value->content);
@@ -240,12 +312,16 @@ void gen_expr_operand(T_token *token)
         printf("PUSHS float@%s\n", token->value->content);
         break;
     case TOKEN_STRING:
+        escape_string(&token->value);
         printf("PUSHS string@%s\n", token->value->content);
         break;
     case TOKEN_KEYWORD:
-        if (!strcmp(token->value->content, "nil")) {
+        if (!strcmp(token->value->content, "nil"))
+        {
             puts("PUSHS nil@nil");
-        } else {
+        }
+        else
+        {
             /* Should not happen */
             ERR_MSG("Unexpected type of operand value: keyword on line: ", token->line);
             fprintf(stderr, "%d\n", token->type);
@@ -261,7 +337,8 @@ void gen_expr_operand(T_token *token)
 
 void gen_expr_operator(T_token *token)
 {
-    switch (token->type) {
+    switch (token->type)
+    {
     case TOKEN_EQUAL:
         puts("EQS");
         break;
@@ -337,23 +414,21 @@ void gen_expr_operator(T_token *token)
 
 void gen_expr_cond(void) { puts("POPS GF@%tmp1"); }
 
-static void escape_string(dynamic_string_s **ds)
-{
-    /* TODO: implement */
-    (void)ds;
-}
-
 void gen_write(tstack_s *in_params)
 {
     T_token *token;
 
-    while (!tstack_empty(in_params)) {
+    while (!tstack_empty(in_params))
+    {
         token = tstack_top(in_params);
         tstack_pop(in_params, false);
         escape_string(&token->value);
-        if (token->type == TOKEN_ID) {
+        if (token->type == TOKEN_ID)
+        {
             printf("WRITE LF@%s", token->value->content);
-        } else {
+        }
+        else
+        {
             printf("WRITE string@%s", token->value->content);
         }
         puts("WRITE \010"); /* TODO: remove when escape_string is implemented */

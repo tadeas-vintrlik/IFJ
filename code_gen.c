@@ -242,6 +242,15 @@ void gen_expr_operand(T_token *token)
     case TOKEN_STRING:
         printf("PUSHS string@%s\n", token->value->content);
         break;
+    case TOKEN_KEYWORD:
+        if (!strcmp(token->value->content, "nil")) {
+            puts("PUSHS nil@nil");
+        } else {
+            /* Should not happen */
+            ERR_MSG("Unexpected type of operand value: keyword on line: ", token->line);
+            fprintf(stderr, "%d\n", token->type);
+        }
+        break;
     default:
         /* Should not happen */
         ERR_MSG("Unexpected type of operand value: ", token->line);

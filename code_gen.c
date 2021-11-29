@@ -35,7 +35,7 @@ static void call_destructor(call_s *call)
     tstack_destroy(call->params_in);
 }
 
-void call_insert(T_token *function, tstack_s *params_in)
+void gen_call_insert(T_token *function, tstack_s *params_in)
 {
     sll_insert_last(&call_list, call_constructor(function, params_in));
 }
@@ -43,7 +43,7 @@ void call_insert(T_token *function, tstack_s *params_in)
 void gen_prog_start(void)
 {
     puts(".IFJcode21");
-    puts("JUMP $-main");
+    puts("JUMP $%main");
     puts("DEFVAR GF@%tmp1");
     puts("DEFVAR GF@%tmp2");
     generate_built_ins();
@@ -83,8 +83,8 @@ void gen_func_start(const char *func_name, tstack_s *in_params, unsigned no_retu
     /* Create variables for return values */
     for (i = 0; i < no_returns; i++)
     {
-        printf("DEFVAR LF@%%retval%d\n", no_returns);
-        printf("MOVE LF@%%retval%d nil@nil\n", no_returns);
+        printf("DEFVAR LF@%%retval%d\n", i);
+        printf("MOVE LF@%%retval%d nil@nil\n", i);
     }
     gen_pop_arg(in_params);
 }
@@ -167,6 +167,11 @@ unsigned gen_while_label(void)
     return ret;
 }
 
+void gen_while_jump_loop(unsigned label_number)
+{
+    printf("JUMP $-while%d\n", label_number);
+}
+
 void gen_while_jump_end(unsigned label_number)
 {
     printf("JUMPIFNEQ $-end%d GF@%%tmp1 bool@true\n", label_number);
@@ -222,7 +227,9 @@ void gen_function_call_list(void)
 {
     call_s *current_call;
 
-    puts("LABEL $-main");
+    puts("LABEL $%main");
+    puts("CREATEFRAME");
+    puts("PUSHFRAME");
     sll_activate(&call_list);
     while (sll_is_active(&call_list))
     {

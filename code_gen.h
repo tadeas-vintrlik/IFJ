@@ -82,6 +82,14 @@ void gen_while_jump_end(unsigned label_number);
 void gen_while_end_label(unsigned label_number);
 
 /**
+ * @brief Jumps to the beggining lable of while
+ * 
+ * @param[in] label_number The label_number returned by gen_while_label call in the same while
+ * statement.
+ */
+void gen_while_jump_loop(unsigned label_number);
+
+/**
  * @brief Generate code for a single operand in expression.
  *
  * @param[in] token The operand to generate.
@@ -113,7 +121,7 @@ void gen_write(tstack_s *in_params);
  * @param function Pointer to the function token in global frame.
  * @param params_in The input parameters of the function. Will be freed.
  */
-void call_insert(T_token *function, tstack_s *params_in);
+void gen_call_insert(T_token *function, tstack_s *params_in);
 
 /**
  * @brief Generate all collected functions calls throughout the program.

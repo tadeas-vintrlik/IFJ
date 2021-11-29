@@ -621,7 +621,6 @@ static bool rule_VAR_DECL()
         return false;
     }
 
-    symtable_insert_token_top(&symtable, token);
     sll_insert_head(&id, token);
 
     GET_CHECK(TOKEN_COLON);
@@ -635,6 +634,7 @@ static bool rule_VAR_DECL()
     }
 
     symbol->symbol_type = tstack_top(&collected_type)->symbol_type;
+    symtable_insert_token_top(&symtable, symbol);
     tstack_destroy(&collected_type);
 
     token = get_next_token();

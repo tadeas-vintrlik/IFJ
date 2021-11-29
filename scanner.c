@@ -242,7 +242,7 @@ T_token *get_next_token()
                 ds_add_char(str, c);
             } else if (c == '"') {
                 token->type = TOKEN_STRING;
-                token->symbol_type = SYM_TYPE_NUMBER;
+                token->symbol_type = SYM_TYPE_STRING;
                 return token;
             } else if (c >= 31) {
                 state = STATE_STRING_START;

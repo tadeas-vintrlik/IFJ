@@ -255,8 +255,9 @@ static bool nonterm2expr(tstack_s *tstack, tstack_s *help)
  * @brief Choose an expression rule to apply and modify the stack.
  *
  * @param[in,out] tstack Stack of tokens of expression to reduce using rules.
+ * @param[out] rc Return code to set in case of an error.
  */
-static bool apply_rule(tstack_s *tstack)
+static bool apply_rule(tstack_s *tstack, rc_e *rc)
 {
     tstack_s help;
     T_token *tmp, *expr, *returnable;
@@ -297,6 +298,9 @@ static bool apply_rule(tstack_s *tstack)
         }
         tstack_pop(&help, false);
         tstack_push(tstack, tmp);
+        if (!sem_check_string_length(tmp, rc)) {
+            return false;
+        }
         /* TODO: Semantics for type of tmp */
         // TODO: code gen call
         break;
@@ -361,13 +365,15 @@ bool exp_parse(symtable_s *symtable, rc_e *rc)
         action = table_get_action(op, &tstack);
         if (action != ERR && token->type == TOKEN_ID) {
             /* If an identifier and part of the expression */
-            if (!sem_check_id_decl(token, symtable, NULL, rc)) {
+            if (!sem_check_id_decl(token, symtable, &out, rc)) {
                 return false;
             }
+            /* Pass the type of the variable to local token for semantic checks */
+            token->symbol_type = out->symbol_type;
         }
         switch (action) {
         case RULE:
-            if (!apply_rule(&tstack)) {
+            if (!apply_rule(&tstack, rc)) {
                 /* TODO: Improve the error message */
                 ERR_MSG("Invalid expression.", token->line);
                 return false;
@@ -389,7 +395,7 @@ bool exp_parse(symtable_s *symtable, rc_e *rc)
     }
 
     /* Try to reduce it to one non-terminal if possible */
-    while (apply_rule(&tstack))
+    while (apply_rule(&tstack, rc))
         ;
 
     /* There should by only one non-terminal on stack */

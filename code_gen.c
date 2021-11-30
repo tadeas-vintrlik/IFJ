@@ -43,9 +43,9 @@ void gen_call_insert(T_token *function, tstack_s *params_in)
 void gen_prog_start(void)
 {
     puts(".IFJcode21");
-    puts("JUMP $%main");
     puts("DEFVAR GF@%tmp1");
     puts("DEFVAR GF@%tmp2");
+    puts("JUMP $%main");
     generate_built_ins();
     sll_init(&call_list);
 }
@@ -279,7 +279,8 @@ static void escape_string(dynamic_string_s **ds)
                     ds_add_char(new_ds, '2');
                     break;
                 default:
-                    ERR_MSG("Unexpected escape sequence in code_gen", -1);
+                    ds_add_char(new_ds, '\\');
+                    ds_add_char(new_ds, old_ds->content[i]);
                     break;
                 }
             }

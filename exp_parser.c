@@ -300,6 +300,7 @@ static bool apply_rule(tstack_s *tstack, rc_e *rc)
     /* Choose the rule according to left-most token */
     switch (tmp->type) {
     case TOKEN_STRING_LENGTH:
+        gen_expr_operator(tmp);
         tstack_pop(&help, false);
         tmp = tstack_top(&help);
         if (tmp->type != TOKEN_NON_TERMINAL) {
@@ -311,7 +312,6 @@ static bool apply_rule(tstack_s *tstack, rc_e *rc)
         }
         tmp->symbol_type = SYM_TYPE_INT;
         tstack_push(tstack, tmp);
-        // TODO: code gen call
         break;
     case TOKEN_LEFT_BRACKET:
         returnable = tmp;

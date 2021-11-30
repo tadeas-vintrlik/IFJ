@@ -635,7 +635,7 @@ static bool rule_VAR_DECL()
     }
 
     symbol->symbol_type = tstack_top(&collected_type)->symbol_type;
-    symtable_insert_token_top(&symtable, symbol);
+    symtable_insert_token_top(&symtable, token_copy(symbol));
     tstack_destroy(&collected_type);
 
     token = get_next_token();
@@ -753,6 +753,7 @@ static bool right_side_function(sll_s *left_side_ids)
         return evaluate_return_expressions(line);
     }
 
+    assert(false);
     FREE(func_name);
     return sll_is_empty(left_side_ids);
 }
@@ -771,8 +772,8 @@ static bool assign_call_to_left_ids(sll_s *left_side_ids, T_token *fun_symbol, u
 
     unsigned ret_index = 0;
 
-    while (sll_is_active(left_side_ids)) {
-        T_token *id = sll_get_active(left_side_ids);
+    while (!tstack_empty(left_side_ids)) {
+        T_token *id = tstack_top(left_side_ids);
         T_token *out_param = sll_get_active(fun_symbol->fun_info->out_params);
 
         if (id->symbol_type != out_param->symbol_type) {
@@ -784,7 +785,7 @@ static bool assign_call_to_left_ids(sll_s *left_side_ids, T_token *fun_symbol, u
         printf("MOVE LF@%s TF@%%retval%d\n", id->value->content, ret_index);
         ret_index++;
 
-        sll_next(left_side_ids);
+        tstack_pop(left_side_ids, true);
         sll_next(fun_symbol->fun_info->out_params);
     }
 
@@ -796,7 +797,6 @@ static bool assign_expressions_to_left_ids(sll_s *left_side_ids, unsigned line)
     (void)line;
     sll_activate(left_side_ids);
 
-    unsigned expr_index = 0;
     while (sll_is_active(left_side_ids)) {
         T_token *token = get_next_token();
 
@@ -812,24 +812,17 @@ static bool assign_expressions_to_left_ids(sll_s *left_side_ids, unsigned line)
             return false;
         }
 
-        // TODO: Code-gen - move from GF@%tmp1 to LF@%retvalN
-        // (move evaluated expression result to "return value")
-        // N ... expr_index
-
-        expr_index++;
         sll_next(left_side_ids);
     }
 
+    tstack_reverse(&left_side_ids);
     sll_activate(left_side_ids);
-    expr_index = 0;
 
-    while (sll_is_active(left_side_ids)) {
-        T_token *ID = sll_get_active(left_side_ids);
-        (void)ID;
-        // TODO: Code-gen move from LF@retvalN to LF@ID
-        // N ... expr_index
+    while (!tstack_empty(left_side_ids)) {
+        T_token *id = tstack_top(left_side_ids);
 
-        sll_next(left_side_ids);
+        printf("POPS LF@%s\n", id->value->content);
+        tstack_pop(left_side_ids, true);
     }
 
     return true;

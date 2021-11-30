@@ -677,6 +677,15 @@ static bool left_side_function()
 
         sll_insert_last(&left_side_ids, token);
 
+        // TODO: Move to semantics?
+        T_token *symbol;
+        if (!symtable_search_all(&symtable, token->value->content, &symbol)) {
+            ERR_MSG("Assigning to undeclared variable.", token->line);
+            rc = RC_SEM_UNDEF_ERR;
+            return false;
+        }
+        token->symbol_type = symbol->symbol_type;
+
         token = get_next_token();
 
         // We have collected all of the left side IDs
@@ -760,8 +769,21 @@ static bool assign_call_to_left_ids(sll_s *left_side_ids, T_token *fun_symbol, u
     sll_activate(left_side_ids);
     sll_activate(fun_symbol->fun_info->out_params);
 
+    unsigned ret_index = 0;
+
     while (sll_is_active(left_side_ids)) {
-        // TODO: Code-gen assignment
+        T_token *id = sll_get_active(left_side_ids);
+        T_token *out_param = sll_get_active(fun_symbol->fun_info->out_params);
+
+        if (id->symbol_type != out_param->symbol_type) {
+            ERR_MSG("Return type of function does not match variable type.", line);
+            rc = RC_SEM_ASSIGN_ERR;
+            return false;
+        }
+
+        printf("MOVE LF@%s TF@%%retval%d\n", id->value->content, ret_index);
+        ret_index++;
+
         sll_next(left_side_ids);
         sll_next(fun_symbol->fun_info->out_params);
     }

@@ -139,6 +139,7 @@ void gen_func_end(tstack_s *return_vals)
 unsigned gen_jump_else(void)
 {
     unsigned ret;
+    puts("POPS GF@%tmp1");
     printf("JUMPIFNEQ $-else%d GF@%%tmp1 bool@true\n", counter);
     ret = counter;
     counter++;
@@ -166,6 +167,7 @@ void gen_while_jump_loop(unsigned label_number) { printf("JUMP $-while%d\n", lab
 
 void gen_while_jump_end(unsigned label_number)
 {
+    puts("POPS GF@%tmp1");
     printf("JUMPIFNEQ $-end%d GF@%%tmp1 bool@true\n", label_number);
 }
 

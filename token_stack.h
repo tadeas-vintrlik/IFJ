@@ -169,6 +169,13 @@ T_token *tstack_terminal_top(tstack_s *tstack);
 bool tstack_empty(const tstack_s *tstack);
 
 /**
+ * @brief Reverses a stack of tokens.
+ *
+ * @param[in,out] tstack The stack to reverse.
+ */
+void tstack_reverse(tstack_s **tstack);
+
+/**
  * @brief Destructor for Token Stack..
  *
  * @param[in] tstack Token Stack to destory.

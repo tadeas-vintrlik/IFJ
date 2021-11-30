@@ -129,6 +129,22 @@ T_token *tstack_terminal_top(tstack_s *tstack)
 
 bool tstack_empty(const tstack_s *tstack) { return sll_is_empty(tstack); }
 
+void tstack_reverse(tstack_s **tstack)
+{
+    tstack_s *new = malloc(sizeof(tstack_s));
+    ALLOC_CHECK(new);
+    tstack_init(new);
+
+    while (!tstack_empty(*tstack)) {
+        tstack_push(new, tstack_top(*tstack));
+        tstack_pop(*tstack, false);
+    }
+
+    // TODO: Fix this bizzarre double free
+    // free(*tstack);
+    *tstack = new;
+}
+
 void tstack_destroy(tstack_s *tstack)
 {
     while (!tstack_empty(tstack)) {

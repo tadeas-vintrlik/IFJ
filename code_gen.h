@@ -124,6 +124,21 @@ void gen_write(tstack_s *in_params);
 void gen_call_insert(T_token *function, tstack_s *params_in);
 
 /**
+ * @brief Generates code for function call.
+ *
+ * @param func_name Name of the function.
+ * @param in_params Parameters of the function.
+ */
+void gen_func_call(const char *func_name, tstack_s *in_params);
+
+/**
  * @brief Generate all collected functions calls throughout the program.
  */
 void gen_function_call_list(void);
+
+/**
+ * @brief Generates code for local variable definitions.
+ *
+ * @param[in] id Token containing the variable's name.
+ */
+void gen_var_decl(T_token *id);

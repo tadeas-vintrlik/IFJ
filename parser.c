@@ -38,7 +38,7 @@ static bool rule_TOP_ELEM();
 
 static bool rule_DECL();
 static bool rule_DEF();
-static bool rule_CALL();
+static bool rule_CALL(bool top_level);
 
 static bool rule_PARAM_LIST(tstack_s *);
 static bool rule_NEXT_PARAM(tstack_s *);
@@ -112,7 +112,7 @@ static bool rule_TOP_ELEM()
     if (first_token->type == TOKEN_ID) {
         /* Declaration of function checked in rule_CALL */
         unget_token(first_token);
-        return rule_CALL();
+        return rule_CALL(true);
     } else if (first_token->type == TOKEN_KEYWORD) {
         unget_token(first_token);
         if (!strcmp("global", first_token->value->content)) {
@@ -126,7 +126,7 @@ static bool rule_TOP_ELEM()
     return false;
 }
 
-static bool rule_CALL()
+static bool rule_CALL(bool top_level)
 {
     T_token *token, *function;
     tstack_s *in_params = malloc(sizeof *in_params);
@@ -151,8 +151,11 @@ static bool rule_CALL()
         && !sem_call_types_compatible(function, in_params, &rc)) {
         return false;
     }
-    if (strcmp("write", function->value->content)) {
+
+    if (top_level) {
         gen_call_insert(function, in_params);
+    } else {
+        gen_func_call(function->value->content, in_params);
     }
 
     GET_CHECK(TOKEN_RIGHT_BRACKET);
@@ -617,6 +620,8 @@ static bool rule_VAR_DECL()
         return false;
     }
 
+    gen_var_decl(token);
+
     sll_insert_head(&left_side_ids, token);
 
     GET_CHECK(TOKEN_COLON);
@@ -715,11 +720,11 @@ static bool right_side_function(sll_s *left_side_ids)
     if (left_side_empty && is_call) {
         // handles "fun(a, b)"
         FREE(func_name);
-        return rule_CALL();
+        return rule_CALL(false);
     } else if (!left_side_empty && is_call) {
         // handles "a, b, c = fun(a, b)"
 
-        if (!rule_CALL()) {
+        if (!rule_CALL(false)) {
             return false;
         }
 

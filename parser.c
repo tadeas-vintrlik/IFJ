@@ -637,7 +637,6 @@ static bool rule_VAR_DECL()
 
     if (token->type == TOKEN_DECLAR) {
         token_destroy(token);
-        // TODO:Error on multiple expressions on right side
         // left_side_ids always contains exactly one ID
         return right_side_function(&left_side_ids);
     } else {
@@ -704,6 +703,10 @@ static bool right_side_function(sll_s *left_side_ids)
     unget_token(token_2);
     unget_token(token);
 
+    /* Has to be allocated separately since rule_CALL frees the tokens */
+    char *func_name = my_strdup(token->value->content);
+    ALLOC_CHECK(func_name);
+
     unsigned line = token->line;
 
     bool left_side_empty = sll_is_empty(left_side_ids);
@@ -711,7 +714,7 @@ static bool right_side_function(sll_s *left_side_ids)
 
     if (left_side_empty && is_call) {
         // handles "fun(a, b)"
-
+        FREE(func_name);
         return rule_CALL();
     } else if (!left_side_empty && is_call) {
         // handles "a, b, c = fun(a, b)"
@@ -722,19 +725,21 @@ static bool right_side_function(sll_s *left_side_ids)
 
         T_token *fun_symbol;
         // Existence checked in rule_CALL
-        symtable_search_global(&symtable, token->value->content, &fun_symbol);
+        symtable_search_global(&symtable, func_name, &fun_symbol);
+        FREE(func_name);
 
         return assign_call_to_left_ids(left_side_ids, fun_symbol, line);
     } else if (!left_side_empty && !is_call) {
         // handles "a, b = b, a..."
-
+        FREE(func_name);
         return assign_expressions_to_left_ids(left_side_ids, line);
     } else if (left_side_empty && !is_call) {
         // handles "return a, b..."
-
+        FREE(func_name);
         return evaluate_return_expressions(line);
     }
 
+    FREE(func_name);
     return sll_is_empty(left_side_ids);
 }
 
@@ -766,6 +771,15 @@ static bool assign_expressions_to_left_ids(sll_s *left_side_ids, unsigned line)
 
     unsigned expr_index = 0;
     while (sll_is_active(left_side_ids)) {
+        T_token *token = get_next_token();
+
+        /* Skip commas between expressions */
+        if (token->type == TOKEN_COMMA) {
+            token_destroy(token);
+        } else {
+            unget_token(token);
+        }
+
         if (!rule_EXPR()) {
             // TODO: ERR_MSG for more ids on left than expressions on right
             return false;
@@ -799,11 +813,21 @@ static bool evaluate_return_expressions(unsigned line)
 {
     (void)line;
 
-    sll_s *out_params = NULL; // TODO: Get this from defined_fun->fun_info->out_params
+    T_token *defined_func = symtable_get_current_def(&symtable);
+    sll_s *out_params = defined_func->fun_info->out_params;
     sll_activate(out_params);
 
     unsigned expr_index = 0;
     while (sll_is_active(out_params)) {
+        T_token *token = get_next_token();
+
+        /* Skip commas between expressions */
+        if (token->type == TOKEN_COMMA) {
+            token_destroy(token);
+        } else {
+            unget_token(token);
+        }
+
         if (!rule_EXPR()) {
             // TODO: ERR_MSG for more ids on left than expressions on right
             return false;

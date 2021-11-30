@@ -828,7 +828,6 @@ static bool assign_expressions_to_left_ids(sll_s *left_side_ids, unsigned line)
     return true;
 }
 
-// TODO: Needs currently defined function (to check return types) - add to symtable
 static bool evaluate_return_expressions(unsigned line)
 {
     (void)line;
@@ -853,9 +852,7 @@ static bool evaluate_return_expressions(unsigned line)
             return false;
         }
 
-        // TODO: Code-gen - move from GF@%tmp1 to LF@%retvalN
-        // (move evaluated expression result to "return value")
-        // N ... expr_index
+        printf("POPS LF@%%retval%d\n", expr_index);
 
         expr_index++;
         sll_next(out_params);

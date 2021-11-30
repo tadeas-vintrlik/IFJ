@@ -16,20 +16,18 @@
 
 static rc_e rc = RC_SYN_ERR;
 
-#define GET_CHECK(TYPE)                          \
-    token = get_next_token();                    \
-    if (token->type != TYPE)                     \
-    {                                            \
-        print_unexpected_token(token, TYPE, ""); \
-        return false;                            \
+#define GET_CHECK(TYPE)                                                                            \
+    token = get_next_token();                                                                      \
+    if (token->type != TYPE) {                                                                     \
+        print_unexpected_token(token, TYPE, "");                                                   \
+        return false;                                                                              \
     }
 
-#define GET_CHECK_CMP(TYPE, VALUE)                                        \
-    token = get_next_token();                                             \
-    if (token->type != TYPE || strcmp(VALUE, token->value->content) != 0) \
-    {                                                                     \
-        print_unexpected_token(token, TYPE, VALUE);                       \
-        return false;                                                     \
+#define GET_CHECK_CMP(TYPE, VALUE)                                                                 \
+    token = get_next_token();                                                                      \
+    if (token->type != TYPE || strcmp(VALUE, token->value->content) != 0) {                        \
+        print_unexpected_token(token, TYPE, VALUE);                                                \
+        return false;                                                                              \
     }
 
 static symtable_s symtable;
@@ -65,6 +63,9 @@ static bool rule_VAR_DECL();
 
 static bool left_side_function();
 static bool right_side_function(sll_s *left_side_ids);
+static bool assign_call_to_left_ids(sll_s *left_side_ids, T_token *fun_symbol, unsigned line);
+static bool assign_expressions_to_left_ids(sll_s *left_side_ids, unsigned line);
+static bool evaluate_return_expressions(unsigned line);
 
 rc_e start_parsing()
 {
@@ -95,13 +96,10 @@ static bool rule_CODE()
 {
     T_token *token = get_next_token();
 
-    if (token->type == TOKEN_EOF)
-    {
+    if (token->type == TOKEN_EOF) {
         token_destroy(token);
         return true;
-    }
-    else
-    {
+    } else {
         unget_token(token);
         return rule_TOP_ELEM() && rule_CODE();
     }
@@ -111,21 +109,15 @@ static bool rule_TOP_ELEM()
 {
     T_token *first_token = get_next_token();
 
-    if (first_token->type == TOKEN_ID)
-    {
+    if (first_token->type == TOKEN_ID) {
         /* Declaration of function checked in rule_CALL */
         unget_token(first_token);
         return rule_CALL();
-    }
-    else if (first_token->type == TOKEN_KEYWORD)
-    {
+    } else if (first_token->type == TOKEN_KEYWORD) {
         unget_token(first_token);
-        if (!strcmp("global", first_token->value->content))
-        {
+        if (!strcmp("global", first_token->value->content)) {
             return rule_DECL();
-        }
-        else if (!strcmp("function", first_token->value->content))
-        {
+        } else if (!strcmp("function", first_token->value->content)) {
             return rule_DEF();
         }
     }
@@ -142,8 +134,7 @@ static bool rule_CALL()
     tstack_init(in_params);
 
     GET_CHECK(TOKEN_ID);
-    if (!sem_check_call_function(token, &symtable, &function, &rc))
-    {
+    if (!sem_check_call_function(token, &symtable, &function, &rc)) {
         return false;
     }
     token_destroy(token);
@@ -151,18 +142,16 @@ static bool rule_CALL()
     GET_CHECK(TOKEN_LEFT_BRACKET);
     token_destroy(token);
 
-    if (!rule_ARG_LIST(in_params))
-    {
+    if (!rule_ARG_LIST(in_params)) {
         return false;
     }
 
     // NOTE: The write(...) function can never have a semantic error
-    if (strcmp("write", function->value->content) && !sem_call_types_compatible(function, in_params, &rc))
-    {
+    if (strcmp("write", function->value->content)
+        && !sem_call_types_compatible(function, in_params, &rc)) {
         return false;
     }
-    if (strcmp("write", function->value->content))
-    {
+    if (strcmp("write", function->value->content)) {
         gen_call_insert(function, in_params);
     }
 
@@ -181,8 +170,7 @@ static bool rule_DECL()
 
     GET_CHECK(TOKEN_ID);
 
-    if (!sem_check_redecl(token, &symtable, &rc))
-    {
+    if (!sem_check_redecl(token, &symtable, &rc)) {
         return false;
     }
 
@@ -201,8 +189,7 @@ static bool rule_DECL()
     GET_CHECK(TOKEN_LEFT_BRACKET);
     token_destroy(token);
 
-    if (!rule_TYPE_LIST(function_symbol->fun_info->in_params))
-    {
+    if (!rule_TYPE_LIST(function_symbol->fun_info->in_params)) {
         return false;
     }
 
@@ -220,15 +207,11 @@ static bool rule_DEF()
     token_destroy(token);
 
     GET_CHECK(TOKEN_ID);
-    if (!sem_check_redef(token, &symtable, &function_symbol, &rc))
-    {
-        if (function_symbol->fun_info->defined)
-        {
+    if (!sem_check_redef(token, &symtable, &function_symbol, &rc)) {
+        if (function_symbol->fun_info->defined) {
             return false;
         }
-    }
-    else
-    {
+    } else {
         /* First time definition */
         token->fun_info = malloc(sizeof(function_info_s));
         ALLOC_CHECK(token->fun_info);
@@ -246,8 +229,7 @@ static bool rule_DEF()
     tstack_s *defined_params_in = malloc(sizeof(tstack_s));
     ALLOC_CHECK(defined_params_in);
     tstack_init(defined_params_in);
-    if (!rule_PARAM_LIST(defined_params_in))
-    {
+    if (!rule_PARAM_LIST(defined_params_in)) {
         return false;
     }
 
@@ -257,21 +239,17 @@ static bool rule_DEF()
     tstack_s *defined_types_out = malloc(sizeof(tstack_s));
     ALLOC_CHECK(defined_types_out);
     tstack_init(defined_types_out);
-    if (!rule_RET_LIST(defined_types_out))
-    {
+    if (!rule_RET_LIST(defined_types_out)) {
         return false;
     }
 
     /* If defining a pre-declared function check the types */
-    if (!function_symbol->fun_info->defined)
-    {
-        if (!sem_check_decl_def_params(function_symbol, defined_params_in, &rc))
-        {
+    if (!function_symbol->fun_info->defined) {
+        if (!sem_check_decl_def_params(function_symbol, defined_params_in, &rc)) {
             return false;
         }
 
-        if (!sem_check_decl_def_returns(function_symbol, defined_params_in, &rc))
-        {
+        if (!sem_check_decl_def_returns(function_symbol, defined_params_in, &rc)) {
             return false;
         }
         function_symbol->fun_info->defined = true;
@@ -284,8 +262,7 @@ static bool rule_DEF()
     function_symbol->fun_info->out_params = defined_types_out;
 
     gen_func_start(function_symbol->value->content, copy, sll_get_length(defined_types_out));
-    if (!rule_BODY())
-    {
+    if (!rule_BODY()) {
         return false;
     }
 
@@ -299,8 +276,7 @@ static bool rule_DEF()
 
 static bool rule_PARAM_LIST(tstack_s *collected_params)
 {
-    if (!rule_PARAM(collected_params))
-    {
+    if (!rule_PARAM(collected_params)) {
         return true;
     }
 
@@ -311,14 +287,11 @@ static bool rule_NEXT_PARAM(tstack_s *collected_params)
 {
     T_token *token = get_next_token();
 
-    if (token->type == TOKEN_COMMA)
-    {
+    if (token->type == TOKEN_COMMA) {
         token_destroy(token);
         // TODO Print unexpected token errors
         return rule_PARAM(collected_params) && rule_NEXT_PARAM(collected_params);
-    }
-    else
-    {
+    } else {
         unget_token(token);
         return true;
     }
@@ -328,8 +301,7 @@ static bool rule_PARAM(tstack_s *collected_params)
 {
     T_token *token = get_next_token();
 
-    if (token->type != TOKEN_ID)
-    {
+    if (token->type != TOKEN_ID) {
         unget_token(token);
         return false;
     }
@@ -341,21 +313,17 @@ static bool rule_PARAM(tstack_s *collected_params)
     GET_CHECK(TOKEN_COLON);
     token_destroy(token);
 
-    if (!rule_TYPE(collected_params))
-    {
+    if (!rule_TYPE(collected_params)) {
         return false;
     }
 
-    if (collected_params)
-    {
+    if (collected_params) {
         T_token *type_token = sll_get_last(collected_params);
         sll_delete_last(collected_params, false);
 
         param_token->symbol_type = type_token->symbol_type;
         token_destroy(type_token);
-    }
-    else
-    {
+    } else {
         token_destroy(param_token);
     }
 
@@ -366,13 +334,10 @@ static bool rule_RET_LIST(tstack_s *collected_types)
 {
     T_token *token = get_next_token();
 
-    if (token->type == TOKEN_COLON)
-    {
+    if (token->type == TOKEN_COLON) {
         token_destroy(token);
         return rule_TYPE(collected_types) && rule_NEXT_TYPE(collected_types);
-    }
-    else
-    {
+    } else {
         unget_token(token);
         return true;
     }
@@ -380,8 +345,7 @@ static bool rule_RET_LIST(tstack_s *collected_types)
 
 static bool rule_TYPE_LIST(tstack_s *collected_types)
 {
-    if (!rule_TYPE(collected_types))
-    {
+    if (!rule_TYPE(collected_types)) {
         return true;
     }
 
@@ -392,14 +356,11 @@ static bool rule_NEXT_TYPE(tstack_s *collected_types)
 {
     T_token *token = get_next_token();
 
-    if (token->type == TOKEN_COMMA)
-    {
+    if (token->type == TOKEN_COMMA) {
         token_destroy(token);
         // TODO Print unexpected token errors
         return rule_TYPE(collected_types) && rule_NEXT_TYPE(collected_types);
-    }
-    else
-    {
+    } else {
         unget_token(token);
         return true;
     }
@@ -409,37 +370,24 @@ static bool rule_TYPE(tstack_s *collected_types)
 {
     T_token *token = get_next_token();
 
-    if (token->type == TOKEN_KEYWORD)
-    {
-        if (!strcmp("nil", token->value->content))
-        {
+    if (token->type == TOKEN_KEYWORD) {
+        if (!strcmp("nil", token->value->content)) {
             token->symbol_type = SYM_TYPE_NIL;
-        }
-        else if (!strcmp("integer", token->value->content))
-        {
+        } else if (!strcmp("integer", token->value->content)) {
             token->symbol_type = SYM_TYPE_INT;
-        }
-        else if (!strcmp("number", token->value->content))
-        {
+        } else if (!strcmp("number", token->value->content)) {
             token->symbol_type = SYM_TYPE_NUMBER;
-        }
-        else if (!strcmp("string", token->value->content))
-        {
+        } else if (!strcmp("string", token->value->content)) {
             token->symbol_type = SYM_TYPE_STRING;
-        }
-        else
-        {
+        } else {
             unget_token(token);
             return false;
         }
 
-        if (collected_types)
-        {
+        if (collected_types) {
             // Using sll_s method on tstack_s
             sll_insert_last(collected_types, token);
-        }
-        else
-        {
+        } else {
             token_destroy(token);
         }
         return true;
@@ -451,8 +399,7 @@ static bool rule_TYPE(tstack_s *collected_types)
 
 static bool rule_ARG_LIST(tstack_s *in_params)
 {
-    if (!rule_ARG(in_params))
-    {
+    if (!rule_ARG(in_params)) {
         return true;
     }
 
@@ -464,11 +411,9 @@ static bool rule_ARG(tstack_s *in_params)
     T_token *token = get_next_token();
     T_token *symbol;
 
-    switch (token->type)
-    {
+    switch (token->type) {
     case TOKEN_ID:
-        if (!sem_check_id_decl(token, &symtable, &symbol, &rc))
-        {
+        if (!sem_check_id_decl(token, &symtable, &symbol, &rc)) {
             return false;
         }
         token->symbol_type = symbol->symbol_type;
@@ -483,8 +428,7 @@ static bool rule_ARG(tstack_s *in_params)
         token->symbol_type = SYM_TYPE_STRING;
         break;
     case TOKEN_KEYWORD:
-        if (!strcmp("nil", token->value->content))
-        {
+        if (!strcmp("nil", token->value->content)) {
             token->symbol_type = SYM_TYPE_NIL;
             break;
         }
@@ -504,15 +448,12 @@ static bool rule_NEXT_ARG(tstack_s *in_params)
 {
     T_token *token = get_next_token();
 
-    if (token->type == TOKEN_COMMA)
-    {
+    if (token->type == TOKEN_COMMA) {
         token_destroy(token);
 
         // TODO Print unexpected token errors
         return rule_ARG(in_params) && rule_NEXT_ARG(in_params);
-    }
-    else
-    {
+    } else {
         unget_token(token);
         return true;
     }
@@ -522,8 +463,7 @@ static bool rule_NEXT_ARG(tstack_s *in_params)
 
 static bool rule_BODY()
 {
-    if (!rule_STATEMENT_LIST())
-    {
+    if (!rule_STATEMENT_LIST()) {
         return false;
     }
     return true;
@@ -537,20 +477,17 @@ static bool rule_STATEMENT_LIST()
     ALLOC_CHECK(ret_list);
     tstack_init(ret_list);
 
-    switch (token->type)
-    {
+    switch (token->type) {
     case TOKEN_KEYWORD:
         unget_token(token);
 
-        if (!strcmp("return", token->value->content))
-        {
+        if (!strcmp("return", token->value->content)) {
             token = get_next_token(); // Skip the token we returned to the scanner
             token_destroy(token);
 
             token = get_next_token();
             // TODO: Refactor
-            switch (token->type)
-            {
+            switch (token->type) {
             case TOKEN_ID:
             case TOKEN_NUMBER:
             case TOKEN_INT:
@@ -562,8 +499,7 @@ static bool rule_STATEMENT_LIST()
 
                 return right_side_function(&ids);
             case TOKEN_KEYWORD:
-                if (!strcmp("nil", token->value->content))
-                {
+                if (!strcmp("nil", token->value->content)) {
                     sll_s ids;
                     sll_init(&ids);
 
@@ -578,17 +514,11 @@ static bool rule_STATEMENT_LIST()
                 return true;
             }
             // TODO: Refactor
-        }
-        else if (!strcmp("if", token->value->content))
-        {
+        } else if (!strcmp("if", token->value->content)) {
             return rule_IF_ELSE() && rule_STATEMENT_LIST();
-        }
-        else if (!strcmp("while", token->value->content))
-        {
+        } else if (!strcmp("while", token->value->content)) {
             return rule_WHILE() && rule_STATEMENT_LIST();
-        }
-        else if (!strcmp("local", token->value->content))
-        {
+        } else if (!strcmp("local", token->value->content)) {
             return rule_VAR_DECL() && rule_STATEMENT_LIST();
         }
 
@@ -610,8 +540,7 @@ static bool rule_IF_ELSE()
     GET_CHECK_CMP(TOKEN_KEYWORD, "if");
     token_destroy(token);
 
-    if (!rule_EXPR())
-    {
+    if (!rule_EXPR()) {
         return false;
     }
 
@@ -620,8 +549,7 @@ static bool rule_IF_ELSE()
     token_destroy(token);
 
     symtable_new_frame(&symtable);
-    if (!rule_BODY())
-    {
+    if (!rule_BODY()) {
         return false;
     }
     symtable_pop_frame(&symtable);
@@ -631,8 +559,7 @@ static bool rule_IF_ELSE()
     token_destroy(token);
 
     symtable_new_frame(&symtable);
-    if (!rule_BODY())
-    {
+    if (!rule_BODY()) {
         return false;
     }
     symtable_pop_frame(&symtable);
@@ -652,8 +579,7 @@ static bool rule_WHILE()
     unsigned label = gen_while_label();
     token_destroy(token);
 
-    if (!rule_EXPR())
-    {
+    if (!rule_EXPR()) {
         return false;
     }
 
@@ -662,8 +588,7 @@ static bool rule_WHILE()
     token_destroy(token);
 
     symtable_new_frame(&symtable);
-    if (!rule_BODY())
-    {
+    if (!rule_BODY()) {
         return false;
     }
     symtable_pop_frame(&symtable);
@@ -679,20 +604,20 @@ static bool rule_WHILE()
 static bool rule_VAR_DECL()
 {
     T_token *token;
-    sll_s id;
-    sll_init(&id);
+    // left_side_ids always contains exactly one ID
+    sll_s left_side_ids;
+    sll_init(&left_side_ids);
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "local");
     token_destroy(token);
 
     GET_CHECK(TOKEN_ID);
     T_token *symbol = token;
-    if (!sem_check_id_redecl(token, &symtable, &rc))
-    {
+    if (!sem_check_id_redecl(token, &symtable, &rc)) {
         return false;
     }
 
-    sll_insert_head(&id, token);
+    sll_insert_head(&left_side_ids, token);
 
     GET_CHECK(TOKEN_COLON);
     token_destroy(token);
@@ -700,8 +625,7 @@ static bool rule_VAR_DECL()
     tstack_s collected_type;
     tstack_init(&collected_type);
 
-    if (!rule_TYPE(&collected_type))
-    {
+    if (!rule_TYPE(&collected_type)) {
         return false;
     }
 
@@ -711,14 +635,12 @@ static bool rule_VAR_DECL()
 
     token = get_next_token();
 
-    if (token->type == TOKEN_DECLAR)
-    {
+    if (token->type == TOKEN_DECLAR) {
         token_destroy(token);
         // TODO:Error on multiple expressions on right side
-        return right_side_function(&id);
-    }
-    else
-    {
+        // left_side_ids always contains exactly one ID
+        return right_side_function(&left_side_ids);
+    } else {
         // TODO:Codegen assign nil to this new variable
         unget_token(token);
         return true;
@@ -742,13 +664,11 @@ static bool left_side_function()
     unget_token(token);
 
     // Assuming function call (no assignment, left_side_ids is empty)
-    if (token2->type == TOKEN_LEFT_BRACKET)
-    {
+    if (token2->type == TOKEN_LEFT_BRACKET) {
         return right_side_function(&left_side_ids);
     }
 
-    while (true)
-    {
+    while (true) {
         GET_CHECK(TOKEN_ID);
 
         sll_insert_last(&left_side_ids, token);
@@ -756,14 +676,12 @@ static bool left_side_function()
         token = get_next_token();
 
         // We have collected all of the left side IDs
-        if (token->type == TOKEN_DECLAR)
-        {
+        if (token->type == TOKEN_DECLAR) {
             break;
         }
 
         // IDs must be separated by commas
-        if (token->type != TOKEN_COMMA)
-        {
+        if (token->type != TOKEN_COMMA) {
             return false;
         }
     }
@@ -771,47 +689,133 @@ static bool left_side_function()
     return right_side_function(&left_side_ids);
 }
 
-// TODO: Make this function flexible enough to handle returns, calls and assignments properly
+/**
+ * @brief Evaluates function call or expressions on right side and assigns them to ids.
+ *
+ * @param[in] left_side_ids List of IDs to assign to. If empty, results of eval are discarded.
+ *
+ * @return true Right side is syntactically correct.
+ * @return false Right side is syntactically incorrect.
+ */
 static bool right_side_function(sll_s *left_side_ids)
 {
     T_token *token = get_next_token();
-
-    if (token->type == TOKEN_ID)
-    {
-        T_token *token2 = get_next_token();
-        if (token2->type == TOKEN_LEFT_BRACKET)
-        {
-            unget_token(token2);
-            unget_token(token);
-
-            return rule_CALL();
-        }
-        unget_token(token2);
-    }
-
+    T_token *token_2 = get_next_token();
+    unget_token(token_2);
     unget_token(token);
 
-    while (true)
-    {
+    unsigned line = token->line;
 
-        if (!rule_EXPR())
-        {
+    bool left_side_empty = sll_is_empty(left_side_ids);
+    bool is_call = token->type == TOKEN_ID && token_2->type == TOKEN_LEFT_BRACKET;
+
+    if (left_side_empty && is_call) {
+        // handles "fun(a, b)"
+
+        return rule_CALL();
+    } else if (!left_side_empty && is_call) {
+        // handles "a, b, c = fun(a, b)"
+
+        if (!rule_CALL()) {
             return false;
         }
 
-        /* TODO: semantic check types */
-        /* TODO: code-gen gen_var_assign */
+        T_token *fun_symbol;
+        // Existence checked in rule_CALL
+        symtable_search_global(&symtable, token->value->content, &fun_symbol);
 
-        sll_delete_head(left_side_ids, false);
+        return assign_call_to_left_ids(left_side_ids, fun_symbol, line);
+    } else if (!left_side_empty && !is_call) {
+        // handles "a, b = b, a..."
 
-        token = get_next_token();
+        return assign_expressions_to_left_ids(left_side_ids, line);
+    } else if (left_side_empty && !is_call) {
+        // handles "return a, b..."
 
-        if (token->type != TOKEN_COMMA)
-        {
-            unget_token(token);
-            break;
-        }
+        return evaluate_return_expressions(line);
     }
 
     return sll_is_empty(left_side_ids);
+}
+
+static bool assign_call_to_left_ids(sll_s *left_side_ids, T_token *fun_symbol, unsigned line)
+{
+    // TODO: Use token_list_type_assignable from semantics.c
+    if (sll_get_length(left_side_ids) > sll_get_length(fun_symbol->fun_info->out_params)) {
+        ERR_MSG("Assigning to more variables than function has return values.\n", line);
+        rc = RC_SEM_ASSIGN_ERR;
+        return false;
+    }
+
+    sll_activate(left_side_ids);
+    sll_activate(fun_symbol->fun_info->out_params);
+
+    while (sll_is_active(left_side_ids)) {
+        // TODO: Code-gen assignment
+        sll_next(left_side_ids);
+        sll_next(fun_symbol->fun_info->out_params);
+    }
+
+    return true;
+}
+
+static bool assign_expressions_to_left_ids(sll_s *left_side_ids, unsigned line)
+{
+    (void)line;
+    sll_activate(left_side_ids);
+
+    unsigned expr_index = 0;
+    while (sll_is_active(left_side_ids)) {
+        if (!rule_EXPR()) {
+            // TODO: ERR_MSG for more ids on left than expressions on right
+            return false;
+        }
+
+        // TODO: Code-gen - move from GF@%tmp1 to LF@%retvalN
+        // (move evaluated expression result to "return value")
+        // N ... expr_index
+
+        expr_index++;
+        sll_next(left_side_ids);
+    }
+
+    sll_activate(left_side_ids);
+    expr_index = 0;
+
+    while (sll_is_active(left_side_ids)) {
+        T_token *ID = sll_get_active(left_side_ids);
+        (void)ID;
+        // TODO: Code-gen move from LF@retvalN to LF@ID
+        // N ... expr_index
+
+        sll_next(left_side_ids);
+    }
+
+    return true;
+}
+
+// TODO: Needs currently defined function (to check return types) - add to symtable
+static bool evaluate_return_expressions(unsigned line)
+{
+    (void)line;
+
+    sll_s *out_params = NULL; // TODO: Get this from defined_fun->fun_info->out_params
+    sll_activate(out_params);
+
+    unsigned expr_index = 0;
+    while (sll_is_active(out_params)) {
+        if (!rule_EXPR()) {
+            // TODO: ERR_MSG for more ids on left than expressions on right
+            return false;
+        }
+
+        // TODO: Code-gen - move from GF@%tmp1 to LF@%retvalN
+        // (move evaluated expression result to "return value")
+        // N ... expr_index
+
+        expr_index++;
+        sll_next(out_params);
+    }
+
+    return true;
 }

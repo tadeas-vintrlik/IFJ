@@ -83,7 +83,7 @@ void gen_while_end_label(unsigned label_number);
 
 /**
  * @brief Jumps to the beggining lable of while
- * 
+ *
  * @param[in] label_number The label_number returned by gen_while_label call in the same while
  * statement.
  */

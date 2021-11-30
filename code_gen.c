@@ -64,8 +64,8 @@ static void gen_pop_arg(tstack_s *in_params)
     sll_activate(in_params);
     while (sll_is_active(in_params)) {
         token = sll_get_active(in_params);
-        printf("DEFVAR LF@%s", token->value->content);
-        printf("MOVE LF@%s LF@%%p%d", token->value->content, i);
+        printf("DEFVAR LF@%s\n", token->value->content);
+        printf("MOVE LF@%s LF@%%p%d\n", token->value->content, i);
         i++;
         sll_next(in_params);
     }
@@ -206,11 +206,15 @@ static void gen_push_arg(tstack_s *in_params)
     }
 }
 
-static void gen_func_call(const char *func_name, tstack_s *in_params)
+void gen_func_call(const char *func_name, tstack_s *in_params)
 {
-    puts("CREATEFRAME");
-    gen_push_arg(in_params);
-    printf("CALL $-%s\n", func_name);
+    if (!strcmp("write", func_name)) {
+        gen_write(in_params);
+    } else {
+        puts("CREATEFRAME");
+        gen_push_arg(in_params);
+        printf("CALL $-%s\n", func_name);
+    }
 }
 
 void gen_function_call_list(void)
@@ -410,11 +414,17 @@ void gen_write(tstack_s *in_params)
         tstack_pop(in_params, false);
         escape_string(&token->value);
         if (token->type == TOKEN_ID) {
-            printf("WRITE LF@%s", token->value->content);
+            printf("WRITE LF@%s\n", token->value->content);
         } else {
-            printf("WRITE string@%s", token->value->content);
+            printf("WRITE string@%s\n", token->value->content);
         }
     }
+}
+
+void gen_var_decl(T_token *id)
+{
+    printf("DEFVAR LF@%s\n", id->value->content);
+    printf("MOVE LF@%s nil@nil\n", id->value->content);
 }
 
 static void gen_reads(void)
@@ -423,7 +433,7 @@ static void gen_reads(void)
     tstack_init(&in_params);
 
     gen_func_start("reads", &in_params, 1);
-    puts("READ LF@%retval1 string");
+    puts("READ LF@%retval0 string");
     puts("POPFRAME");
     puts("RETURN");
 
@@ -436,7 +446,7 @@ static void gen_readi(void)
     tstack_init(&in_params);
 
     gen_func_start("readi", &in_params, 1);
-    puts("READ LF@%retval1 int");
+    puts("READ LF@%retval0 int");
     puts("POPFRAME");
     puts("RETURN");
 
@@ -448,7 +458,7 @@ static void gen_readn(void)
     tstack_init(&in_params);
 
     gen_func_start("readn", &in_params, 1);
-    puts("READ LF@%retval1 float");
+    puts("READ LF@%retval0 float");
     puts("POPFRAME");
     puts("RETURN");
 
@@ -460,7 +470,7 @@ static void gen_tointeger(void)
     tstack_init(&in_params);
 
     gen_func_start("tointeger", &in_params, 1);
-    puts("FLOAT2INT LF@%retval1 LF@%p0");
+    puts("FLOAT2INT LF@%retval0 LF@%p0");
     puts("POPFRAME");
     puts("RETURN");
 
@@ -472,7 +482,7 @@ static void gen_substr(void)
     tstack_init(&in_params);
 
     gen_func_start("substr", &in_params, 1);
-    puts("MOVE LF@%retval1 string@");
+    puts("MOVE LF@%retval0 string@");
     puts("DEFVAR LF@%iter");
     puts("DEFVAR LF@%c");
     puts("DEFVAR LF@%end_index");
@@ -494,7 +504,7 @@ static void gen_substr(void)
     puts("LT LF@%cond LF@%iter LF@%end_index");
     puts("JUMPIFEQ $-substr_end LF@%cond bool@false");
     puts("GETCHAR LF@%c LF@%p0 LF@%iter");
-    puts("CONCAT LF@%retval1 LF@%retval1 LF@%c");
+    puts("CONCAT LF@%retval0 LF@%retval0 LF@%c");
     puts("ADD LF@%iter LF@%iter int@1");
     puts("JUMP $-strloop");
     puts("LABEL $-substr_end");
@@ -524,7 +534,7 @@ static void gen_ord(void)
     puts("LABEL $-ord-ok");
     puts("MOVE LF@%index LF@%p1");
     puts("SUB LF@%index LF@%index int@1");
-    puts("STRI2INT LF@%retval1 LF@%p0 LF@%index");
+    puts("STRI2INT LF@%retval0 LF@%p0 LF@%index");
     puts("POPFRAME");
     puts("RETURN");
 
@@ -545,7 +555,7 @@ static void gen_chr(void)
     puts("JUMPIFEQ $-chr-end LF@%cond bool@true");
     puts("GT LF@%cond LF@%p0 int@255");
     puts("JUMPIFEQ $-chr-end LF@%cond bool@true");
-    puts("INT2CHAR LF@%retval1 LF@%p0");
+    puts("INT2CHAR LF@%retval0 LF@%p0");
     puts("LABEL $-chr-end");
     puts("POPFRAME");
     puts("RETURN");

@@ -99,6 +99,7 @@ void symtable_init(symtable_s *symtable)
     /* Initialize the global frame AVL tree */
     avl_init(&global);
     symtable->global = global;
+    symtable->current_def = NULL;
 
     char *built_ins[] = { "reads", "readn", "readi", "write", "tointeger", "substr", "ord", "chr" };
     for (unsigned i = 0; i < 8; i++) {
@@ -221,6 +222,9 @@ void symtable_insert_token_global(symtable_s *symtable, T_token *token)
     }
 
     avl_insert(&symtable->global, token->value->content, token);
+    if (token->fun_info->defined) {
+        symtable->current_def = token;
+    }
 }
 
 void symtable_destroy(symtable_s *symtable)
@@ -240,4 +244,7 @@ void symtable_destroy(symtable_s *symtable)
     }
     FREE(symtable->frames);
     avl_destroy(&symtable->global, data_destroy);
+    symtable->current_def = NULL;
 }
+
+T_token *symtable_get_current_def(symtable_s *symtable) { return symtable->current_def; }

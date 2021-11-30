@@ -8,6 +8,7 @@
 
 #include "code_gen.h"
 #include "common.h"
+#include "sll.h"
 
 static unsigned counter = 0;
 static sll_s call_list;
@@ -60,13 +61,13 @@ static void gen_pop_arg(tstack_s *in_params)
     unsigned i;
 
     i = 0;
-    while (!tstack_empty(in_params)) {
-        token = tstack_top(in_params);
-        tstack_pop(in_params, false);
+    sll_activate(in_params);
+    while (sll_is_active(in_params)) {
+        token = sll_get_active(in_params);
         printf("DEFVAR LF@%s", token->value->content);
         printf("MOVE LF@%s LF@%%p%d", token->value->content, i);
         i++;
-        FREE(token);
+        sll_next(in_params);
     }
 }
 
@@ -98,9 +99,8 @@ static void gen_push_ret(tstack_s *return_vals)
     unsigned i = 0;
 
     /* Move all return values to correct variables */
-    while (!tstack_empty(return_vals)) {
-        token = tstack_top(return_vals);
-        tstack_pop(return_vals, false);
+    while (sll_is_active(return_vals)) {
+        token = sll_get_active(return_vals);
         switch (token->type) {
         case TOKEN_ID:
             printf("MOVE LF@%%retval%d LF@%s\n", i, token->value->content);
@@ -122,7 +122,7 @@ static void gen_push_ret(tstack_s *return_vals)
         }
 
         i++;
-        FREE(token);
+        sll_next(return_vals);
     }
 }
 
@@ -414,7 +414,6 @@ void gen_write(tstack_s *in_params)
         } else {
             printf("WRITE string@%s", token->value->content);
         }
-        puts("WRITE \010"); /* TODO: remove when escape_string is implemented */
     }
 }
 

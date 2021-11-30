@@ -23,6 +23,7 @@
 typedef struct symtable {
     sll_s *frames;
     avl_node_s *global;
+    T_token *current_def;
 } symtable_s;
 
 /**
@@ -124,5 +125,14 @@ void symtable_insert_token_global(symtable_s *symtable, T_token *token);
  * @param symtable The table of symbols to destory.
  */
 void symtable_destroy(symtable_s *symtable);
+
+/**
+ * @brief Get function currently being defined. Last inserted defined function to global frame.
+ *
+ * @param symtable The table of symbols of which to get currently defined function.
+ * @return T_token* Pointer to token of currently defined function. NULL if no function is defined
+ * yet.
+ */
+T_token *symtable_get_current_def(symtable_s *symtable);
 
 #endif /* _SYMTABLE_H */

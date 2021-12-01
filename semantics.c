@@ -84,6 +84,10 @@ void print_unexpected_token(T_token *bad_token, token_type expected_type, char *
 
 bool sem_check_type_compatible(symbol_type_e first, symbol_type_e second)
 {
+    if (second == SYM_TYPE_NIL) {
+        return true;
+    }
+
     if (first == SYM_TYPE_NUMBER && second == SYM_TYPE_INT) {
         return true;
     }
@@ -150,10 +154,10 @@ static bool token_list_types_compatible(tstack_s *first, tstack_s *second)
     return sll_is_active(first) == sll_is_active(second);
 }
 
-bool sem_call_types_compatible(T_token *function, tstack_s *call_params, rc_e *rc)
+bool sem_call_types_compatible(T_token *function, tstack_s *call_params, unsigned line, rc_e *rc)
 {
     if (!token_list_types_compatible(function->fun_info->in_params, call_params)) {
-        ERR_MSG("Function call has invalid parameters: ", function->line);
+        ERR_MSG("Function call has invalid parameters: ", line);
         fprintf(stderr, "%s\n", function->value->content);
         *rc = RC_SEM_CALL_ERR;
         return false;

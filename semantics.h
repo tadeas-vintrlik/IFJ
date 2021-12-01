@@ -32,12 +32,13 @@ bool sem_check_type_compatible(symbol_type_e first, symbol_type_e second);
  *
  * @param[in] function The function token to check for parmeters.
  * @param[in] call_params Stack with parameters of the call.
+ * @param[in] line Line of the call to generate a helpful error.
  * @param[out] rc Return code to set.
  *
  * @return true All tokens have compatible types.
  * @return false Some tokens don't have compatible type.
  */
-bool sem_call_types_compatible(T_token *function, tstack_s *call_params, rc_e *rc);
+bool sem_call_types_compatible(T_token *function, tstack_s *call_params, unsigned line, rc_e *rc);
 
 /**
  * @brief Check if called function was properly defined or declared.

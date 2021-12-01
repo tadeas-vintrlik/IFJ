@@ -491,38 +491,11 @@ static bool rule_STATEMENT_LIST()
             token = get_next_token(); // Skip the token we returned to the scanner
             token_destroy(token);
 
-            token = get_next_token();
-            // TODO: Refactor
-            switch (token->type) {
-            case TOKEN_ID:
-            case TOKEN_NUMBER:
-            case TOKEN_INT:
-            case TOKEN_STRING:
-                unget_token(token);
-                if (!evaluate_return_expressions(token->line)) {
-                    return false;
-                }
-                printf("POPFRAME\nRETURN\n");
-                return true && rule_STATEMENT_LIST();
-            case TOKEN_KEYWORD:
-                if (!strcmp("nil", token->value->content)) {
-                    unget_token(token);
-                    if (!evaluate_return_expressions(token->line)) {
-                        return false;
-                    }
-                    printf("POPFRAME\nRETURN\n");
-                    return true && rule_STATEMENT_LIST();
-                }
-
-                unget_token(token);
-                printf("POPFRAME\nRETURN\n");
-                return true && rule_STATEMENT_LIST();
-            default:
-                unget_token(token);
-                printf("POPFRAME\nRETURN\n");
-                return true && rule_STATEMENT_LIST();
+            if (!evaluate_return_expressions(token->line)) {
+                return false;
             }
-            // TODO: Refactor
+            printf("POPFRAME\nRETURN\n");
+            return rule_STATEMENT_LIST();
         } else if (!strcmp("if", token->value->content)) {
             return rule_IF_ELSE() && rule_STATEMENT_LIST();
         } else if (!strcmp("while", token->value->content)) {

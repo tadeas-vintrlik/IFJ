@@ -58,7 +58,7 @@ static bool rule_STATEMENT_LIST();
 
 static bool rule_IF_ELSE();
 static bool rule_WHILE();
-static bool rule_EXPR();
+static bool rule_EXPR(symbol_type_e *type);
 static bool rule_VAR_DECL();
 
 static bool left_side_function();
@@ -543,7 +543,7 @@ static bool rule_IF_ELSE()
     GET_CHECK_CMP(TOKEN_KEYWORD, "if");
     token_destroy(token);
 
-    if (!rule_EXPR()) {
+    if (!rule_EXPR(NULL)) {
         return false;
     }
 
@@ -582,7 +582,7 @@ static bool rule_WHILE()
     unsigned label = gen_while_label();
     token_destroy(token);
 
-    if (!rule_EXPR()) {
+    if (!rule_EXPR(NULL)) {
         return false;
     }
 
@@ -651,7 +651,7 @@ static bool rule_VAR_DECL()
     }
 }
 
-static bool rule_EXPR() { return exp_parse(&symtable, &rc); }
+static bool rule_EXPR(symbol_type_e *type) { return exp_parse(&symtable, &rc, type); }
 
 static bool left_side_function()
 {
@@ -797,7 +797,7 @@ static bool assign_expressions_to_left_ids(sll_s *left_side_ids, unsigned line)
             unget_token(token);
         }
 
-        if (!rule_EXPR()) {
+        if (!rule_EXPR(NULL)) {
             // TODO: ERR_MSG for more ids on left than expressions on right
             return false;
         }
@@ -837,7 +837,7 @@ static bool evaluate_return_expressions(unsigned line)
             unget_token(token);
         }
 
-        if (!rule_EXPR()) {
+        if (!rule_EXPR(NULL)) {
             // TODO: ERR_MSG for more ids on left than expressions on right
             return false;
         }

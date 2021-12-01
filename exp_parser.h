@@ -21,9 +21,10 @@
  *
  * @param[in] symtable Table of symbols to search for identifiers.
  * @param[in,out] rc Return code to set if any other error then RC_SYN_ERR occurred.
+ * @param[out] type The type of the expression.
  *
  * @return If expression parsing succeeded.
  */
-bool exp_parse(symtable_s *symtable, rc_e *rc);
+bool exp_parse(symtable_s *symtable, rc_e *rc, symbol_type_e *type);
 
 #endif /* _EXP_PARSER_H */

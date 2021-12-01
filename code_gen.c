@@ -416,11 +416,13 @@ void gen_write(tstack_s *in_params)
         token = tstack_top(in_params);
         tstack_pop(in_params, false);
         escape_string(&token->value);
+        puts("DEFVAR TF@%p0");
         if (token->type == TOKEN_ID) {
-            printf("WRITE LF@%s\n", token->value->content);
+            printf("MOVE TF%%p0 LF@%s\n", token->value->content);
         } else {
-            printf("WRITE string@%s\n", token->value->content);
+            printf("MOVE TF%%p0 string@%s\n", token->value->content);
         }
+        puts("CALL $-write");
     }
 }
 
@@ -566,6 +568,22 @@ static void gen_chr(void)
     tstack_destroy(&in_params);
 }
 
+static void gen_builtin_write(void)
+{
+    tstack_s in_params;
+
+    gen_func_start("write", &in_params, 1);
+    puts("EQ GF@%tmp1 LF@%p0 nil@nil");
+    puts("JUMPIFNEQ $-non-nil GF@%tmp1 bool@true");
+    puts("WRITE string@nil");
+    puts("JUMP $-write-end");
+    puts("LABEL $-non-nil");
+    puts("WRITE LF@%p0");
+    puts("LABEL $-write-end");
+    puts("POPFRAME");
+    puts("RETURN");
+}
+
 static void generate_built_ins(void)
 {
     gen_reads();
@@ -575,4 +593,5 @@ static void generate_built_ins(void)
     gen_substr();
     gen_ord();
     gen_chr();
+    gen_builtin_write();
 }

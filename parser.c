@@ -760,10 +760,7 @@ static bool right_side_function(sll_s *left_side_ids)
 
 static bool assign_call_to_left_ids(sll_s *left_side_ids, T_token *fun_symbol, unsigned line)
 {
-    // TODO: Use token_list_type_assignable from semantics.c
-    if (sll_get_length(left_side_ids) > sll_get_length(fun_symbol->fun_info->out_params)) {
-        ERR_MSG("Assigning to more variables than function has return values.\n", line);
-        rc = RC_SEM_ASSIGN_ERR;
+    if (!sem_check_call_assign(left_side_ids, fun_symbol->fun_info->out_params, line, &rc)) {
         return false;
     }
 
@@ -774,13 +771,6 @@ static bool assign_call_to_left_ids(sll_s *left_side_ids, T_token *fun_symbol, u
 
     while (!tstack_empty(left_side_ids)) {
         T_token *id = tstack_top(left_side_ids);
-        T_token *out_param = sll_get_active(fun_symbol->fun_info->out_params);
-
-        if (id->symbol_type != out_param->symbol_type) {
-            ERR_MSG("Return type of function does not match variable type.", line);
-            rc = RC_SEM_ASSIGN_ERR;
-            return false;
-        }
 
         printf("MOVE LF@%s TF@%%retval%d\n", id->value->content, ret_index);
         ret_index++;

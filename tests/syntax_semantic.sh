@@ -4,9 +4,10 @@ RC_OK="0"
 RC_LEX_ERR="1"
 RC_SYN_ERR="2"
 RC_SEM_UNDEF_ERR="3"
+RC_SEM_ASSIGN_ERR="4"
 RC_SEM_CALL_ERR="5"
 RC_SEM_EXPR_ERR="6"
-TESTS="28"
+TESTS="31"
 SUCCESSFULL="0"
 
 function success() {
@@ -85,6 +86,17 @@ function check_semantic_expression_err() {
     fi
 }
 
+function check_semantic_assignment_err() {
+    if [ "$1" == "$RC_SEM_ASSIGN_ERR" ]
+    then
+        SUCCESSFULL=$((SUCCESSFULL + 1))
+        success
+    else
+        echo "RC was $RC expected $RC_SEM_ASSIGN_ERR"
+        fail
+    fi
+}
+
 function test_run() {
     echo "=== Running test $1 ==="
     "$EXECUTABLE" < "$1" >/dev/null
@@ -107,6 +119,9 @@ function test_run() {
     elif [ "$2" == "SEM_EXPR_ERR" ]
     then
 	  check_semantic_expression_err "$RC"
+    elif [ "$2" == "SEM_ASSIGN_ERR" ]
+    then
+	  check_semantic_assignment_err "$RC"
     fi
 }
 
@@ -118,6 +133,7 @@ test_run ./source_codes/expr2.tl OK
 test_run ./source_codes/fun.tl OK
 test_run ./source_codes/hello.tl OK
 test_run ./source_codes/multiassign.tl OK
+test_run ./source_codes/assign_num_int.tl OK
 test_run ./source_codes/sc_1 OK
 test_run ./source_codes/substr.tl OK
 test_run ./source_codes/visibility.tl OK
@@ -138,6 +154,8 @@ test_run ./source_codes/sem_err_expr2.tl SEM_EXPR_ERR
 test_run ./source_codes/sem_err_expr3.tl SEM_EXPR_ERR
 test_run ./source_codes/sem_err_expr4.tl SEM_EXPR_ERR
 test_run ./source_codes/sem_err_expr5.tl SEM_EXPR_ERR
+test_run ./source_codes/sem_err_assign1.tl SEM_ASSIGN_ERR
+test_run ./source_codes/sem_err_assign2.tl SEM_ASSIGN_ERR
 
 if [ "$SUCCESSFULL" == "$TESTS" ]
 then

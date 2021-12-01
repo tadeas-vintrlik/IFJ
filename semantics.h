@@ -16,6 +16,16 @@
 void print_unexpected_token(T_token *bad_token, token_type expected_type, char *expected_content);
 
 /**
+ * @brief Check if token types are compatible. Integer is a subset of number.
+ *
+ * @param first First type.
+ * @param second  Second type.
+ * @return true Token types are compatible.
+ * @return false Token types are not compatible.
+ */
+bool sem_check_type_compatible(symbol_type_e first, symbol_type_e second);
+
+/**
  * @brief Checks if function call has compatible paramaters.
  *
  * @note This function is usefull for checking of call parameters.

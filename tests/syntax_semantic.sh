@@ -7,7 +7,7 @@ RC_SEM_UNDEF_ERR="3"
 RC_SEM_ASSIGN_ERR="4"
 RC_SEM_CALL_ERR="5"
 RC_SEM_EXPR_ERR="6"
-TESTS="31"
+TESTS="0"
 SUCCESSFULL="0"
 
 function success() {
@@ -99,6 +99,7 @@ function check_semantic_assignment_err() {
 
 function test_run() {
     echo "=== Running test $1 ==="
+    TESTS=$((TESTS + 1))
     "$EXECUTABLE" < "$1" >/dev/null
     RC="$?"
     if [ "$2" == "OK" ]
@@ -138,6 +139,8 @@ test_run ./source_codes/sc_1 OK
 test_run ./source_codes/substr.tl OK
 test_run ./source_codes/visibility.tl OK
 test_run ./source_codes/whitespaces.tl OK
+test_run ./source_codes/nil_return.tl OK
+test_run ./source_codes/code_after_return.tl OK
 test_run ./source_codes/syn_err1.tl SYN_ERR
 test_run ./source_codes/syn_err2.tl SYN_ERR
 test_run ./source_codes/lex_err1.tl LEX_ERR
@@ -156,6 +159,7 @@ test_run ./source_codes/sem_err_expr4.tl SEM_EXPR_ERR
 test_run ./source_codes/sem_err_expr5.tl SEM_EXPR_ERR
 test_run ./source_codes/sem_err_assign1.tl SEM_ASSIGN_ERR
 test_run ./source_codes/sem_err_assign2.tl SEM_ASSIGN_ERR
+test_run ./source_codes/sem_err_assign3.tl SEM_ASSIGN_ERR
 
 if [ "$SUCCESSFULL" == "$TESTS" ]
 then

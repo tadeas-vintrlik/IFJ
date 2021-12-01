@@ -10,6 +10,8 @@
 
 #include "parser.h"
 #include "common.h"
+#include "semantics.h"
+#include "sll.h"
 #include "symtable.h"
 #include "token_stack.h"
 #include <stdbool.h>
@@ -496,25 +498,28 @@ static bool rule_STATEMENT_LIST()
             case TOKEN_INT:
             case TOKEN_STRING:
                 unget_token(token);
-
-                sll_s ids;
-                sll_init(&ids);
-
-                return right_side_function(&ids);
+                if(!evaluate_return_expressions(token->line)) {
+                    return false;
+                }
+                printf("POPFRAME\nRETURN\n");
+                return true && rule_STATEMENT_LIST();
             case TOKEN_KEYWORD:
                 if (!strcmp("nil", token->value->content)) {
-                    sll_s ids;
-                    sll_init(&ids);
-
                     unget_token(token);
-                    return right_side_function(&ids);
+                    if(!evaluate_return_expressions(token->line)) {
+                        return false;
+                    }
+                    printf("POPFRAME\nRETURN\n");
+                    return true && rule_STATEMENT_LIST();
                 }
 
                 unget_token(token);
-                return true;
+                printf("POPFRAME\nRETURN\n");
+                return true && rule_STATEMENT_LIST();
             default:
                 unget_token(token);
-                return true;
+                printf("POPFRAME\nRETURN\n");
+                return true && rule_STATEMENT_LIST();
             }
             // TODO: Refactor
         } else if (!strcmp("if", token->value->content)) {
@@ -747,10 +752,6 @@ static bool right_side_function(sll_s *left_side_ids)
         // handles "a, b = b, a..."
         FREE(func_name);
         return assign_expressions_to_left_ids(left_side_ids, line);
-    } else if (left_side_empty && !is_call) {
-        // handles "return a, b..."
-        FREE(func_name);
-        return evaluate_return_expressions(line);
     }
 
     assert(false);
@@ -784,7 +785,6 @@ static bool assign_call_to_left_ids(sll_s *left_side_ids, T_token *fun_symbol, u
 
 static bool assign_expressions_to_left_ids(sll_s *left_side_ids, unsigned line)
 {
-    (void)line;
     sll_activate(left_side_ids);
 
     while (sll_is_active(left_side_ids)) {
@@ -797,8 +797,15 @@ static bool assign_expressions_to_left_ids(sll_s *left_side_ids, unsigned line)
             unget_token(token);
         }
 
-        if (!rule_EXPR(NULL)) {
-            // TODO: ERR_MSG for more ids on left than expressions on right
+        symbol_type_e expr_type = SYM_TYPE_NIL;
+        if (!rule_EXPR(&expr_type)) {
+            return false;
+        }
+
+        T_token *left = sll_get_active(left_side_ids);
+        if (!sem_check_type_compatible(left->symbol_type, expr_type)) {
+            ERR_MSG("Assigning to invalid type.\n", line);
+            rc = RC_SEM_ASSIGN_ERR;
             return false;
         }
 
@@ -820,8 +827,6 @@ static bool assign_expressions_to_left_ids(sll_s *left_side_ids, unsigned line)
 
 static bool evaluate_return_expressions(unsigned line)
 {
-    (void)line;
-
     T_token *defined_func = symtable_get_current_def(&symtable);
     sll_s *out_params = defined_func->fun_info->out_params;
     sll_activate(out_params);
@@ -837,8 +842,22 @@ static bool evaluate_return_expressions(unsigned line)
             unget_token(token);
         }
 
-        if (!rule_EXPR(NULL)) {
-            // TODO: ERR_MSG for more ids on left than expressions on right
+        symbol_type_e expr_type;
+        if (!rule_EXPR(&expr_type)) {
+            if (rc == RC_OK) {
+                /* TODO: Is this the right error? */
+                ERR_MSG("Not enough return values for function.\n", line);
+                rc = RC_SEM_OTHER_ERR;
+            }
+            return false;
+        }
+
+        T_token *out_param = sll_get_active(out_params);
+        if (out_param->symbol_type != expr_type) {
+            /* TODO: Is this the right error? */
+            /* TODO: Should it not be compatible as well? */
+            ERR_MSG("Return type incompatible with function definition.\n", line);
+            rc = RC_SEM_OTHER_ERR;
             return false;
         }
 

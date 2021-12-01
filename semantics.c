@@ -413,6 +413,7 @@ bool sem_check_expr_type(T_token *first, T_token *second, T_token *third, rc_e *
     case TOKEN_EQUAL:
     case TOKEN_NOT_EQUAL_TO:
         if (first->symbol_type == SYM_TYPE_NIL || third->symbol_type == SYM_TYPE_NIL) {
+            third->symbol_type = SYM_TYPE_BOOL;
             break;
         }
         if (!type_compatible(first, third)) {

@@ -133,4 +133,20 @@ bool sem_check_string_length(T_token *token, rc_e *rc);
  */
 bool sem_check_expr_type(T_token *first, T_token *second, T_token *third, rc_e *rc);
 
+/**
+ * @brief Checks if it is semantically correct to assign from @p second to @p first. That means the
+ *following: 1) @p first is the same length or shorter than @p second 2) the types for each token
+ *are compatible number in @p first and integer in @p second are compatible as integer is a subset
+ *of number but the other way around is not legal.
+ *
+ * @param[in] first First stack. The variables to assign to.
+ * @param[in] second Second stack. The function out parameters.
+ * @param[in] line Line of the assignment to generate a helpful error.
+ * @param[out] rc Return code to set.
+ *
+ * @return true All tokens have the same type.
+ * @return false Some tokens don't have the same type.
+ */
+bool sem_check_call_assign(tstack_s *first, tstack_s *second, unsigned line, rc_e *rc);
+
 #endif /* _SEMANTICS_H_ */

@@ -82,47 +82,39 @@ void print_unexpected_token(T_token *bad_token, token_type expected_type, char *
     }
 }
 
-/** TODO: Use when adding semantic checks of assignments
- * @brief Checks if it is semantically correct to assign from @p second to @p first. That means the
- *following: 1) @p first is the same length or shorter than @p second 2) the types for each token
- *are compatible number in @p first and integer in @p second are compatible as integer is a subset
- *of number but the other way around is not legal.
- *
- * @note This can be used for assignment checks but NOT for call or definition checks.
- * See token_list_type_identical below for that.
- *
- * @param[in] first First stack.
- * @param[in] second Second stack.
- *
- * @return true All tokens have the same type.
- * @return false Some tokens don't have the same type.
- */
-/*
-static bool token_list_type_assignable(tstack_s *first, tstack_s *second)
+bool sem_check_call_assign(tstack_s *first, tstack_s *second, unsigned line, rc_e *rc)
 {
-   sll_activate(first);
-   sll_activate(second);
+    sll_activate(first);
+    sll_activate(second);
 
-   while (sll_is_active(first) && sll_is_active(second)) {
-       T_token *t1 = sll_get_active(first);
-       T_token *t2 = sll_get_active(second);
+    while (sll_is_active(first) && sll_is_active(second)) {
+        T_token *t1 = sll_get_active(first);
+        T_token *t2 = sll_get_active(second);
 
-       sll_next(first);
-       sll_next(second);
+        sll_next(first);
+        sll_next(second);
 
-       if (t1->symbol_type == SYM_TYPE_NUMBER && t2->symbol_type == SYM_TYPE_INT) {
-           continue;
-       }
+        if (t1->symbol_type == SYM_TYPE_NUMBER && t2->symbol_type == SYM_TYPE_INT) {
+            continue;
+        }
 
-       if (t1->symbol_type != t2->symbol_type) {
-           return false;
-       }
-   }
+        if (t1->symbol_type != t2->symbol_type) {
+            /* TODO: Improve error message */
+            ERR_MSG("Assigning an invalid type.\n", line);
+            *rc = RC_SEM_ASSIGN_ERR;
+            return false;
+        }
+    }
 
-   // Either their length was the same or first was shorter therefore is no longer active
-   return (sll_is_active(first) == sll_is_active(second)) || !sll_is_active(first);
+    // Either their length was the same or first was shorter therefore is no longer active
+    if ((sll_is_active(first) == sll_is_active(second)) || !sll_is_active(first)) {
+        return true;
+    } else {
+        ERR_MSG("Assigning to more variables than function has return values.\n", line);
+        *rc = RC_SEM_ASSIGN_ERR;
+        return false;
+    }
 }
-*/
 
 /**
  * @brief Checks if two stacks are type compatible. This include the fact that integer is a subset

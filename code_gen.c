@@ -18,6 +18,94 @@ typedef struct call {
     tstack_s *params_in;
 } call_s;
 
+static void escape_string(dynamic_string_s **ds)
+{
+    dynamic_string_s *new_ds = malloc(sizeof *new_ds);
+    ALLOC_CHECK(new_ds);
+    ds_init(new_ds);
+    dynamic_string_s *old_ds = *ds;
+    char c;
+    for (unsigned i = 0; i < old_ds->size; i++) {
+        switch (old_ds->content[i]) {
+        case ' ':
+            ds_add_char(new_ds, '\\');
+            ds_add_char(new_ds, '0');
+            ds_add_char(new_ds, '3');
+            ds_add_char(new_ds, '2');
+            break;
+        case '\\':
+            c = old_ds->content[++i];
+            if (c) {
+                switch (c) {
+                case 'n':
+                    ds_add_char(new_ds, '\\');
+                    ds_add_char(new_ds, '0');
+                    ds_add_char(new_ds, '1');
+                    ds_add_char(new_ds, '0');
+                    break;
+                case 't':
+                    ds_add_char(new_ds, '\\');
+                    ds_add_char(new_ds, '0');
+                    ds_add_char(new_ds, '0');
+                    ds_add_char(new_ds, '9');
+                    break;
+                case '\"':
+                    ds_add_char(new_ds, '\\');
+                    ds_add_char(new_ds, '0');
+                    ds_add_char(new_ds, '3');
+                    ds_add_char(new_ds, '4');
+                    break;
+                case '\\':
+                    ds_add_char(new_ds, '\\');
+                    ds_add_char(new_ds, '0');
+                    ds_add_char(new_ds, '9');
+                    ds_add_char(new_ds, '2');
+                    break;
+                default:
+                    ds_add_char(new_ds, '\\');
+                    ds_add_char(new_ds, old_ds->content[i]);
+                    break;
+                }
+            }
+            break;
+        default:
+            ds_add_char(new_ds, old_ds->content[i]);
+            break;
+        }
+    }
+    ds_destroy(old_ds);
+    FREE(old_ds);
+    *ds = new_ds;
+}
+
+static void escape_float(dynamic_string_s **ds)
+{
+    dynamic_string_s *new = malloc(sizeof(dynamic_string_s));
+    ALLOC_CHECK(new);
+    ds_init(new);
+
+    float raw_value = atof((*ds)->content);
+
+    int buffer_size = 32;
+    char *str = malloc(buffer_size);
+    ALLOC_CHECK(str);
+
+    snprintf(str, buffer_size, "%a", raw_value);
+
+    char *current_char = str;
+    while (*current_char != '\0') {
+        ds_add_char(new, *current_char);
+        current_char++;
+    }
+
+    FREE(str);
+
+    ds_destroy(*ds);
+    free(*ds);
+
+    *ds = new;
+}
+
 static void generate_built_ins(void);
 
 static call_s *call_constructor(T_token *function, tstack_s *params_in)
@@ -109,6 +197,7 @@ static void gen_push_ret(tstack_s *return_vals)
             printf("MOVE LF@%%retval%d int@%s\n", i, token->value->content);
             break;
         case TOKEN_NUMBER:
+            escape_float(&token->value);
             printf("MOVE LF@%%retval%d float@%s\n", i, token->value->content);
             break;
         case TOKEN_STRING:
@@ -191,6 +280,7 @@ static void gen_push_arg(tstack_s *in_params)
             printf("MOVE TF@%%p%d int@%s\n", i, token->value->content);
             break;
         case TOKEN_NUMBER:
+            escape_float(&token->value);
             printf("MOVE TF@%%p%d float@%s\n", i, token->value->content);
             break;
         case TOKEN_STRING:
@@ -237,66 +327,6 @@ void gen_function_call_list(void)
     sll_destroy(&call_list, true);
 }
 
-static void escape_string(dynamic_string_s **ds)
-{
-    dynamic_string_s *new_ds = malloc(sizeof *new_ds);
-    ALLOC_CHECK(new_ds);
-    ds_init(new_ds);
-    dynamic_string_s *old_ds = *ds;
-    char c;
-    for (unsigned i = 0; i < old_ds->size; i++) {
-        switch (old_ds->content[i]) {
-        case ' ':
-            ds_add_char(new_ds, '\\');
-            ds_add_char(new_ds, '0');
-            ds_add_char(new_ds, '3');
-            ds_add_char(new_ds, '2');
-            break;
-        case '\\':
-            c = old_ds->content[++i];
-            if (c) {
-                switch (c) {
-                case 'n':
-                    ds_add_char(new_ds, '\\');
-                    ds_add_char(new_ds, '0');
-                    ds_add_char(new_ds, '1');
-                    ds_add_char(new_ds, '0');
-                    break;
-                case 't':
-                    ds_add_char(new_ds, '\\');
-                    ds_add_char(new_ds, '0');
-                    ds_add_char(new_ds, '0');
-                    ds_add_char(new_ds, '9');
-                    break;
-                case '\"':
-                    ds_add_char(new_ds, '\\');
-                    ds_add_char(new_ds, '0');
-                    ds_add_char(new_ds, '3');
-                    ds_add_char(new_ds, '4');
-                    break;
-                case '\\':
-                    ds_add_char(new_ds, '\\');
-                    ds_add_char(new_ds, '0');
-                    ds_add_char(new_ds, '9');
-                    ds_add_char(new_ds, '2');
-                    break;
-                default:
-                    ds_add_char(new_ds, '\\');
-                    ds_add_char(new_ds, old_ds->content[i]);
-                    break;
-                }
-            }
-            break;
-        default:
-            ds_add_char(new_ds, old_ds->content[i]);
-            break;
-        }
-    }
-    ds_destroy(old_ds);
-    FREE(old_ds);
-    *ds = new_ds;
-}
-
 void gen_expr_operand(T_token *token)
 {
     switch (token->type) {
@@ -307,6 +337,7 @@ void gen_expr_operand(T_token *token)
         printf("PUSHS int@%s\n", token->value->content);
         break;
     case TOKEN_NUMBER:
+        escape_float(&token->value);
         printf("PUSHS float@%s\n", token->value->content);
         break;
     case TOKEN_STRING:

@@ -158,7 +158,7 @@ static bool rule_CALL(bool top_level)
     if (top_level) {
         gen_call_insert(function, in_params);
     } else {
-        gen_func_call(function->value->content, in_params);
+        gen_func_call(function, in_params);
     }
 
     GET_CHECK(TOKEN_RIGHT_BRACKET);
@@ -746,6 +746,11 @@ static bool assign_call_to_left_ids(sll_s *left_side_ids, T_token *fun_symbol, u
 
     while (!tstack_empty(left_side_ids)) {
         T_token *id = tstack_top(left_side_ids);
+        T_token *out_param = sll_get_active(fun_symbol->fun_info->out_params);
+
+        if (id->symbol_type == SYM_TYPE_NUMBER && out_param->symbol_type == SYM_TYPE_INT) {
+            printf("INT2FLOAT TF@%%retval%d TF@%%retval%d\n", ret_index, ret_index);
+        }
 
         printf("MOVE LF@%s TF@%%retval%d\n", id->value->content, ret_index);
         ret_index++;
@@ -771,7 +776,7 @@ static bool assign_expressions_to_left_ids(sll_s *left_side_ids, unsigned line)
             unget_token(token);
         }
 
-        symbol_type_e expr_type = SYM_TYPE_NIL;
+        symbol_type_e expr_type;
         if (!rule_EXPR(&expr_type)) {
             return false;
         }
@@ -781,6 +786,12 @@ static bool assign_expressions_to_left_ids(sll_s *left_side_ids, unsigned line)
             ERR_MSG("Assigning to invalid type.\n", line);
             rc = RC_SEM_ASSIGN_ERR;
             return false;
+        }
+
+        if (left->symbol_type == SYM_TYPE_NUMBER && expr_type == SYM_TYPE_INT) {
+            puts("POPS GF@%tmp1");
+            puts("INT2FLOAT GF@%tmp1 GF@%tmp1");
+            puts("PUSHS GF@%tmp1");
         }
 
         sll_next(left_side_ids);

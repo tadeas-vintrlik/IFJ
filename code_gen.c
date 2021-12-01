@@ -262,13 +262,16 @@ void gen_while_jump_end(unsigned label_number)
 
 void gen_while_end_label(unsigned label_number) { printf("LABEL $-end%d\n", label_number); }
 
-static void gen_push_arg(tstack_s *in_params)
+static void gen_push_arg(T_token *fun_symbol, tstack_s *in_params)
 {
     T_token *token;
     unsigned i = 0;
 
+    sll_activate(fun_symbol->fun_info->in_params);
+
     /* Move all in paramters values to correct variables */
     while (!tstack_empty(in_params)) {
+        T_token *fun_in = sll_get_active(fun_symbol->fun_info->in_params);
         token = tstack_top(in_params);
         tstack_pop(in_params, false);
         printf("DEFVAR TF@%%p%d\n", i);
@@ -278,6 +281,9 @@ static void gen_push_arg(tstack_s *in_params)
             break;
         case TOKEN_INT:
             printf("MOVE TF@%%p%d int@%s\n", i, token->value->content);
+            if (fun_in->symbol_type == SYM_TYPE_NUMBER) {
+                printf("INT2FLOAT TF@%%p%d TF@%%p%d\n", i, i);
+            }
             break;
         case TOKEN_NUMBER:
             escape_float(&token->value);
@@ -294,18 +300,19 @@ static void gen_push_arg(tstack_s *in_params)
         }
 
         i++;
+        sll_next(fun_symbol->fun_info->in_params);
         FREE(token);
     }
 }
 
-void gen_func_call(const char *func_name, tstack_s *in_params)
+void gen_func_call(T_token *fun_symbol, tstack_s *in_params)
 {
-    if (!strcmp("write", func_name)) {
+    if (!strcmp("write", fun_symbol->value->content)) {
         gen_write(in_params);
     } else {
         puts("CREATEFRAME");
-        gen_push_arg(in_params);
-        printf("CALL $-%s\n", func_name);
+        gen_push_arg(fun_symbol, in_params);
+        printf("CALL $-%s\n", fun_symbol->value->content);
     }
 }
 
@@ -319,7 +326,7 @@ void gen_function_call_list(void)
     sll_activate(&call_list);
     while (sll_is_active(&call_list)) {
         current_call = (call_s *)sll_get_active(&call_list);
-        gen_func_call(current_call->function->value->content, current_call->params_in);
+        gen_func_call(current_call->function, current_call->params_in);
         call_destructor(current_call);
         sll_next(&call_list);
     }
@@ -451,6 +458,9 @@ void gen_write(tstack_s *in_params)
         puts("DEFVAR TF@%p0");
         if (token->type == TOKEN_ID) {
             printf("MOVE TF@%%p0 LF@%s\n", token->value->content);
+        } else if (token->symbol_type == SYM_TYPE_NUMBER) {
+            escape_float(&token->value);
+            printf("MOVE TF@%%p0 float@%s\n", token->value->content);
         } else {
             printf("MOVE TF@%%p0 string@%s\n", token->value->content);
         }

@@ -416,11 +416,12 @@ void gen_write(tstack_s *in_params)
         token = tstack_top(in_params);
         tstack_pop(in_params, false);
         escape_string(&token->value);
+        puts("CREATEFRAME");
         puts("DEFVAR TF@%p0");
         if (token->type == TOKEN_ID) {
-            printf("MOVE TF%%p0 LF@%s\n", token->value->content);
+            printf("MOVE TF@%%p0 LF@%s\n", token->value->content);
         } else {
-            printf("MOVE TF%%p0 string@%s\n", token->value->content);
+            printf("MOVE TF@%%p0 string@%s\n", token->value->content);
         }
         puts("CALL $-write");
     }

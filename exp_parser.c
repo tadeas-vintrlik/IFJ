@@ -360,7 +360,7 @@ static bool apply_rule(tstack_s *tstack, rc_e *rc)
     return true;
 }
 
-bool exp_parse(symtable_s *symtable, rc_e *rc)
+bool exp_parse(symtable_s *symtable, rc_e *rc, symbol_type_e *type)
 {
     T_token *token, *out;
     op_e op, action;
@@ -440,6 +440,10 @@ bool exp_parse(symtable_s *symtable, rc_e *rc)
         return false;
     }
 
+    if (type) {
+        *type = out->symbol_type;
+    }
+    token_destroy(out);
     tstack_destroy(&tstack);
     unget_token(token); /* Return the last unparsed token to top-down parser */
     return true;

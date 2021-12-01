@@ -522,8 +522,15 @@ static bool rule_IF_ELSE()
     GET_CHECK_CMP(TOKEN_KEYWORD, "if");
     token_destroy(token);
 
-    if (!rule_EXPR(NULL)) {
+    symbol_type_e expr_type;
+    if (!rule_EXPR(&expr_type)) {
         return false;
+    }
+
+    if (expr_type != SYM_TYPE_BOOL) {
+        puts("PUSHS nil@nil");
+        puts("EQS");
+        puts("NOTS");
     }
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "then");
@@ -561,8 +568,15 @@ static bool rule_WHILE()
     unsigned label = gen_while_label();
     token_destroy(token);
 
-    if (!rule_EXPR(NULL)) {
+    symbol_type_e expr_type;
+    if (!rule_EXPR(&expr_type)) {
         return false;
+    }
+
+    if (expr_type != SYM_TYPE_BOOL) {
+        puts("PUSHS nil@nil");
+        puts("EQS");
+        puts("NOTS");
     }
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "do");

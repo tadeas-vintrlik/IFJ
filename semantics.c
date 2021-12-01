@@ -407,6 +407,8 @@ bool sem_check_expr_type(T_token *first, T_token *second, T_token *third, rc_e *
             *rc = RC_SEM_EXP_ERR;
             return false;
         }
+
+        third->symbol_type = SYM_TYPE_BOOL;
         break;
     case TOKEN_EQUAL:
     case TOKEN_NOT_EQUAL_TO:
@@ -418,6 +420,8 @@ bool sem_check_expr_type(T_token *first, T_token *second, T_token *third, rc_e *
             *rc = RC_SEM_EXP_ERR;
             return false;
         }
+
+        third->symbol_type = SYM_TYPE_BOOL;
         break;
     default:
         /* Should not happen */

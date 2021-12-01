@@ -568,6 +568,7 @@ static void gen_ord(void)
 
     gen_func_start("ord", &in_params, 1);
     puts("DEFVAR LF@%index");
+    puts("MOVE LF@%index LF@%p1");
     puts("DEFVAR LF@%cond");
     puts("DEFVAR LF@%strlen");
     puts("STRLEN LF@%strlen LF@%p0");

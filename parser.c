@@ -136,6 +136,7 @@ static bool rule_CALL(bool top_level)
     tstack_init(in_params);
 
     GET_CHECK(TOKEN_ID);
+    unsigned line = token->line;
     if (!sem_check_call_function(token, &symtable, &function, &rc)) {
         return false;
     }
@@ -150,7 +151,7 @@ static bool rule_CALL(bool top_level)
 
     // NOTE: The write(...) function can never have a semantic error
     if (strcmp("write", function->value->content)
-        && !sem_call_types_compatible(function, in_params, &rc)) {
+        && !sem_call_types_compatible(function, in_params, line, &rc)) {
         return false;
     }
 
@@ -498,7 +499,7 @@ static bool rule_STATEMENT_LIST()
             case TOKEN_INT:
             case TOKEN_STRING:
                 unget_token(token);
-                if(!evaluate_return_expressions(token->line)) {
+                if (!evaluate_return_expressions(token->line)) {
                     return false;
                 }
                 printf("POPFRAME\nRETURN\n");
@@ -506,7 +507,7 @@ static bool rule_STATEMENT_LIST()
             case TOKEN_KEYWORD:
                 if (!strcmp("nil", token->value->content)) {
                     unget_token(token);
-                    if(!evaluate_return_expressions(token->line)) {
+                    if (!evaluate_return_expressions(token->line)) {
                         return false;
                     }
                     printf("POPFRAME\nRETURN\n");

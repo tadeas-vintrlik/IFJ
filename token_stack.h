@@ -58,6 +58,7 @@ typedef enum {
     SYM_TYPE_STRING,
     SYM_TYPE_NUMBER,
     SYM_TYPE_INT,
+    SYM_TYPE_BOOL,
     SYM_TYPE_NIL,
     SYM_TYPE_FUNCTION
 } symbol_type_e;

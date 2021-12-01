@@ -327,6 +327,23 @@ static bool type_compatible(T_token *first, T_token *third)
     return false;
 }
 
+static void convert_ops_to_number(bool convert_first, bool convert_third)
+{
+    puts("POPS GF@%tmp2");
+    puts("POPS GF@%tmp1");
+
+    if (convert_first) {
+        puts("INT2FLOAT GF@%tmp1 GF@%tmp1");
+    }
+
+    if (convert_third) {
+        puts("INT2FLOAT GF@%tmp2 GF@%tmp2");
+    }
+
+    puts("PUSHS GF@%tmp1");
+    puts("PUSHS GF@%tmp2");
+}
+
 /* TODO: Improve error messages */
 bool sem_check_expr_type(T_token *first, T_token *second, T_token *third, rc_e *rc)
 {
@@ -337,11 +354,13 @@ bool sem_check_expr_type(T_token *first, T_token *second, T_token *third, rc_e *
         if (first->symbol_type == SYM_TYPE_NUMBER && third->symbol_type == SYM_TYPE_NUMBER) {
             break;
         } else if (first->symbol_type == SYM_TYPE_INT && third->symbol_type == SYM_TYPE_NUMBER) {
+            convert_ops_to_number(true, false);
             break;
         } else if (first->symbol_type == SYM_TYPE_INT && third->symbol_type == SYM_TYPE_INT) {
             break;
         } else if (first->symbol_type == SYM_TYPE_NUMBER && third->symbol_type == SYM_TYPE_INT) {
             third->symbol_type = SYM_TYPE_NUMBER;
+            convert_ops_to_number(false, true);
             break;
         } else {
             invalid_operands(second, rc);
@@ -351,12 +370,15 @@ bool sem_check_expr_type(T_token *first, T_token *second, T_token *third, rc_e *
         if (first->symbol_type == SYM_TYPE_NUMBER && third->symbol_type == SYM_TYPE_NUMBER) {
             break;
         } else if (first->symbol_type == SYM_TYPE_INT && third->symbol_type == SYM_TYPE_NUMBER) {
+            convert_ops_to_number(true, false);
             break;
         } else if (first->symbol_type == SYM_TYPE_INT && third->symbol_type == SYM_TYPE_INT) {
             third->symbol_type = SYM_TYPE_NUMBER;
+            convert_ops_to_number(true, true);
             break;
         } else if (first->symbol_type == SYM_TYPE_NUMBER && third->symbol_type == SYM_TYPE_INT) {
             third->symbol_type = SYM_TYPE_NUMBER;
+            convert_ops_to_number(false, true);
             break;
         } else {
             invalid_operands(second, rc);

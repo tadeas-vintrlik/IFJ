@@ -126,10 +126,10 @@ void gen_call_insert(T_token *function, tstack_s *params_in);
 /**
  * @brief Generates code for function call.
  *
- * @param func_name Name of the function.
+ * @param fun_symbol Function symbol token.
  * @param in_params Parameters of the function.
  */
-void gen_func_call(const char *func_name, tstack_s *in_params);
+void gen_func_call(T_token *fun_symbol, tstack_s *in_params);
 
 /**
  * @brief Generate all collected functions calls throughout the program.

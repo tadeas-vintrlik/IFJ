@@ -82,6 +82,14 @@ void print_unexpected_token(T_token *bad_token, token_type expected_type, char *
     }
 }
 
+bool sem_check_type_compatible(symbol_type_e first, symbol_type_e second)
+{
+    if (first == SYM_TYPE_NUMBER && second == SYM_TYPE_INT) {
+        return true;
+    }
+    return first == second;
+}
+
 bool sem_check_call_assign(tstack_s *first, tstack_s *second, unsigned line, rc_e *rc)
 {
     sll_activate(first);
@@ -94,11 +102,7 @@ bool sem_check_call_assign(tstack_s *first, tstack_s *second, unsigned line, rc_
         sll_next(first);
         sll_next(second);
 
-        if (t1->symbol_type == SYM_TYPE_NUMBER && t2->symbol_type == SYM_TYPE_INT) {
-            continue;
-        }
-
-        if (t1->symbol_type != t2->symbol_type) {
+        if (!sem_check_type_compatible(t1->symbol_type, t2->symbol_type)) {
             /* TODO: Improve error message */
             ERR_MSG("Assigning an invalid type.\n", line);
             *rc = RC_SEM_ASSIGN_ERR;
@@ -138,11 +142,7 @@ static bool token_list_types_compatible(tstack_s *first, tstack_s *second)
         sll_next(first);
         sll_next(second);
 
-        if (t1->symbol_type == SYM_TYPE_NUMBER && t2->symbol_type == SYM_TYPE_INT) {
-            continue;
-        }
-
-        if (t1->symbol_type != t2->symbol_type) {
+        if (!sem_check_type_compatible(t1->symbol_type, t2->symbol_type)) {
             return false;
         }
     }

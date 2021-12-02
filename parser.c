@@ -299,7 +299,6 @@ static bool rule_NEXT_PARAM(tstack_s *collected_params)
 
     if (token->type == TOKEN_COMMA) {
         token_destroy(token);
-        // TODO Print unexpected token errors
         return rule_PARAM(collected_params) && rule_NEXT_PARAM(collected_params);
     } else {
         unget_token(token);
@@ -368,7 +367,6 @@ static bool rule_NEXT_TYPE(tstack_s *collected_types)
 
     if (token->type == TOKEN_COMMA) {
         token_destroy(token);
-        // TODO Print unexpected token errors
         return rule_TYPE(collected_types) && rule_NEXT_TYPE(collected_types);
     } else {
         unget_token(token);
@@ -461,7 +459,6 @@ static bool rule_NEXT_ARG(tstack_s *in_params)
     if (token->type == TOKEN_COMMA) {
         token_destroy(token);
 
-        // TODO Print unexpected token errors
         return rule_ARG(in_params) && rule_NEXT_ARG(in_params);
     } else {
         unget_token(token);
@@ -482,7 +479,6 @@ static bool rule_BODY()
 static bool rule_STATEMENT_LIST()
 {
     T_token *token = get_next_token();
-    /* TODO: ret_list has to be freed */
     tstack_s *ret_list = malloc(sizeof *ret_list);
     ALLOC_CHECK(ret_list);
     tstack_init(ret_list);
@@ -642,7 +638,6 @@ static bool rule_VAR_DECL()
         // left_side_ids always contains exactly one ID
         return right_side_function(&left_side_ids);
     } else {
-        // TODO:Codegen assign nil to this new variable
         unget_token(token);
         return true;
     }
@@ -674,7 +669,6 @@ static bool left_side_function()
 
         sll_insert_last(&left_side_ids, token);
 
-        // TODO: Move to semantics?
         T_token *symbol;
         if (!symtable_search_all(&symtable, token->value->content, &symbol)) {
             ERR_MSG("Assigning to undeclared variable.", token->line);
@@ -878,11 +872,9 @@ static bool evaluate_return_expressions(unsigned line)
         }
 
         T_token *out_param = sll_get_active(out_params);
-        if (out_param->symbol_type != expr_type) {
-            /* TODO: Is this the right error? */
-            /* TODO: Should it not be compatible as well? */
+        if (!sem_check_type_compatible(out_param->symbol_type, expr_type)) {
             ERR_MSG("Return type incompatible with function definition.\n", line);
-            rc = RC_SEM_OTHER_ERR;
+            rc = RC_SEM_CALL_ERR;
             return false;
         }
 

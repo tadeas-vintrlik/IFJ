@@ -242,7 +242,6 @@ static bool nonterm2expr(tstack_s *tstack, tstack_s *help, rc_e *rc)
     case TOKEN_EQUAL:
     case TOKEN_NOT_EQUAL_TO:
         if (!sem_check_expr_type(first, second, third, rc)) {
-            /* TODO: Free memory */
             return false;
         }
         gen_expr_operator(second);
@@ -383,7 +382,6 @@ bool exp_parse(symtable_s *symtable, rc_e *rc, symbol_type_e *type)
         switch (action) {
         case RULE:
             if (!apply_rule(&tstack, rc)) {
-                /* TODO: Improve the error message */
                 ERR_MSG("Invalid expression.", token->line);
                 return false;
             }
@@ -435,7 +433,6 @@ bool exp_parse(symtable_s *symtable, rc_e *rc, symbol_type_e *type)
     }
     tstack_pop(&tstack, false);
     if (!tstack_empty(&tstack)) {
-        /* TODO: Improve error message */
         ERR_MSG("Could not parse the entirety of the expression.\n", out->line);
         return false;
     }

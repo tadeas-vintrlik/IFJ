@@ -131,17 +131,16 @@ bool tstack_empty(const tstack_s *tstack) { return sll_is_empty(tstack); }
 
 void tstack_reverse(tstack_s **tstack)
 {
+    tstack_s *old = *tstack;
     tstack_s *new = malloc(sizeof(tstack_s));
     ALLOC_CHECK(new);
     tstack_init(new);
 
-    while (!tstack_empty(*tstack)) {
-        tstack_push(new, tstack_top(*tstack));
-        tstack_pop(*tstack, false);
+    while (!tstack_empty(old)) {
+        tstack_push(new, tstack_top(old));
+        tstack_pop(old, false);
     }
 
-    // TODO: Fix this bizzarre double free
-    // free(*tstack);
     *tstack = new;
 }
 

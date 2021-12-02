@@ -634,7 +634,6 @@ static void gen_check_div_error(void)
 {
     puts("LABEL $-check-div-error");
     puts("POPS GF@%tmp1");
-    puts("DEFVAR GF@%tmp2");
     puts("TYPE GF@%tmp2 GF@%tmp1");
     puts("JUMPIFEQ $-div-integer GF@%tmp2 string@int");
     puts("JUMPIFEQ $-div-err GF@%tmp1 float@0x0p+0");
@@ -645,7 +644,7 @@ static void gen_check_div_error(void)
     puts("PUSHS GF@%tmp1");
     puts("RETURN");
     puts("LABEL $-div-err");
-    puts("WRITE string@Zero\032Division\032Error!\010");
+    puts("WRITE string@Zero\\032Division\\032Error!\\010");
     puts("EXIT int@9");
 }
 

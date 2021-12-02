@@ -175,61 +175,8 @@ void gen_func_start(const char *func_name, tstack_s *in_params, unsigned no_retu
     gen_pop_arg(in_params);
 }
 
-/**
- * @brief Helper function for gen_func_end. Moves all the return values to correct out parameters in
- * LF.
- *
- * @param return_vals The stack of return value tokens the function should return.
- */
-static void gen_push_ret(tstack_s *return_vals)
+void gen_func_end()
 {
-    T_token *token;
-    unsigned i = 0;
-
-    /* Move all return values to correct variables */
-    while (sll_is_active(return_vals)) {
-        token = sll_get_active(return_vals);
-        switch (token->type) {
-        case TOKEN_ID:
-            printf("MOVE LF@%%retval%d LF@%s\n", i, token->value->content);
-            break;
-        case TOKEN_INT:
-            printf("MOVE LF@%%retval%d int@%s\n", i, token->value->content);
-            break;
-        case TOKEN_NUMBER:
-            escape_float(&token->value);
-            printf("MOVE LF@%%retval%d float@%s\n", i, token->value->content);
-            break;
-        case TOKEN_STRING:
-            printf("MOVE LF@%%retval%d string@%s\n", i, token->value->content);
-            break;
-        case TOKEN_KEYWORD:
-            if (!strcmp("nil", token->value->content)) {
-                printf("MOVE LF@%%retval%d nil@nil", i);
-            } else {
-                /* Should not happen */
-                ERR_MSG("Unexpected type of return value: ", token->line);
-                fprintf(stderr, "%d\n", token->type);
-            }
-
-            break;
-        default:
-            /* Should not happen */
-            ERR_MSG("Unexpected type of return value: ", token->line);
-            fprintf(stderr, "%d\n", token->type);
-            break;
-        }
-
-        i++;
-        sll_next(return_vals);
-    }
-}
-
-void gen_func_end(tstack_s *return_vals)
-{
-    /* Move correct return values variables in LF */
-    gen_push_ret(return_vals);
-
     /* Push current LF as TF for caller to pop the return values and return to addres */
     puts("POPFRAME");
     puts("RETURN");

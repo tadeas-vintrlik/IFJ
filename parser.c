@@ -278,7 +278,7 @@ static bool rule_DEF()
 
     GET_CHECK_CMP(TOKEN_KEYWORD, "end");
     symtable_pop_frame(&symtable);
-    gen_func_end(defined_types_out);
+    gen_func_end();
     token_destroy(token);
 
     return true;
@@ -898,7 +898,7 @@ static bool evaluate_return_expressions(unsigned line)
         if (token->type == TOKEN_COMMA) {
             token_destroy(token);
 
-            ERR_MSG("Too many expressions in return statement.", line);
+            ERR_MSG("Too many expressions in return statement.\n", line);
             rc = RC_SEM_CALL_ERR;
             return false;
         }

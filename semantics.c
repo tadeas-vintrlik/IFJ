@@ -107,7 +107,6 @@ bool sem_check_call_assign(tstack_s *first, tstack_s *second, unsigned line, rc_
         sll_next(second);
 
         if (!sem_check_type_compatible(t1->symbol_type, t2->symbol_type)) {
-            /* TODO: Improve error message */
             ERR_MSG("Assigning an invalid type.\n", line);
             *rc = RC_SEM_ASSIGN_ERR;
             return false;
@@ -336,7 +335,6 @@ static void convert_ops_to_number(bool convert_first, bool convert_third)
     puts("PUSHS GF@%tmp2");
 }
 
-/* TODO: Improve error messages */
 bool sem_check_expr_type(T_token *first, T_token *second, T_token *third, rc_e *rc)
 {
     switch (second->type) {

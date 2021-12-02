@@ -154,6 +154,7 @@ test_run ./source_codes/sem_err_call1.tl SEM_CALL_ERR
 test_run ./source_codes/sem_err_call2.tl SEM_CALL_ERR
 test_run ./source_codes/sem_err_call3.tl SEM_CALL_ERR
 test_run ./source_codes/sem_err_call4.tl SEM_CALL_ERR
+test_run ./source_codes/sem_err_call5.tl SEM_CALL_ERR
 test_run ./source_codes/more_return.tl SEM_CALL_ERR
 test_run ./source_codes/sem_err_expr1.tl SEM_EXPR_ERR
 test_run ./source_codes/sem_err_expr2.tl SEM_EXPR_ERR

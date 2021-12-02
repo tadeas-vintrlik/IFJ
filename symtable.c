@@ -60,7 +60,7 @@ static T_token *create_token(const char *key)
         populate_type_list(new->fun_info->out_params, out_types, 1);
 
     } else if (!strcmp("substr", key)) {
-        symbol_type_e in_types[] = { SYM_TYPE_STRING, SYM_TYPE_NUMBER, SYM_TYPE_NUMBER };
+        symbol_type_e in_types[] = { SYM_TYPE_STRING, SYM_TYPE_INT, SYM_TYPE_INT };
         symbol_type_e out_types[] = { SYM_TYPE_STRING };
         populate_type_list(new->fun_info->in_params, in_types, 3);
         populate_type_list(new->fun_info->out_params, out_types, 1);

@@ -203,6 +203,16 @@ static void gen_push_ret(tstack_s *return_vals)
         case TOKEN_STRING:
             printf("MOVE LF@%%retval%d string@%s\n", i, token->value->content);
             break;
+        case TOKEN_KEYWORD:
+            if (!strcmp("nil", token->value->content)) {
+                printf("MOVE LF@%%retval%d nil@nil", i);
+            } else {
+                /* Should not happen */
+                ERR_MSG("Unexpected type of return value: ", token->line);
+                fprintf(stderr, "%d\n", token->type);
+            }
+
+            break;
         default:
             /* Should not happen */
             ERR_MSG("Unexpected type of return value: ", token->line);
@@ -292,9 +302,18 @@ static void gen_push_arg(T_token *fun_symbol, tstack_s *in_params)
         case TOKEN_STRING:
             printf("MOVE TF@%%p%d string@%s\n", i, token->value->content);
             break;
+        case TOKEN_KEYWORD:
+            if (!strcmp(token->value->content, "nil")) {
+                printf("MOVE TF@%%p%d nil@nil\n", i);
+            } else {
+                /* Should not happen */
+                ERR_MSG("Unexpected type of input parameter: keyword on line: ", token->line);
+                fprintf(stderr, "%d\n", token->type);
+            }
+            break;
         default:
             /* Should not happen */
-            ERR_MSG("Unexpected type of return value: ", token->line);
+            ERR_MSG("Unexpected type of input parameter: ", token->line);
             fprintf(stderr, "%d\n", token->type);
             break;
         }

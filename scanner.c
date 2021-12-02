@@ -427,6 +427,8 @@ T_token *get_next_token()
         case STATE_BLOCK_COMMENT:
             if (c == ']') {
                 state = STATE_BLOCK_COMMENT_ENDING;
+            } else if (c == '\n') {
+                curr_line++;
             } else if (c == EOF) {
                 exit(RC_LEX_ERR);
             }

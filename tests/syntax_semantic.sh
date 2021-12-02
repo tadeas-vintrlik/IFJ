@@ -142,6 +142,7 @@ test_run ./source_codes/visibility.tl OK
 test_run ./source_codes/whitespaces.tl OK
 test_run ./source_codes/nil_return.tl OK
 test_run ./source_codes/code_after_return.tl OK
+test_run ./source_codes/less_return.tl OK
 test_run ./source_codes/syn_err1.tl SYN_ERR
 test_run ./source_codes/syn_err2.tl SYN_ERR
 test_run ./source_codes/lex_err1.tl LEX_ERR
@@ -153,6 +154,7 @@ test_run ./source_codes/sem_err_call1.tl SEM_CALL_ERR
 test_run ./source_codes/sem_err_call2.tl SEM_CALL_ERR
 test_run ./source_codes/sem_err_call3.tl SEM_CALL_ERR
 test_run ./source_codes/sem_err_call4.tl SEM_CALL_ERR
+test_run ./source_codes/more_return.tl SEM_CALL_ERR
 test_run ./source_codes/sem_err_expr1.tl SEM_EXPR_ERR
 test_run ./source_codes/sem_err_expr2.tl SEM_EXPR_ERR
 test_run ./source_codes/sem_err_expr3.tl SEM_EXPR_ERR

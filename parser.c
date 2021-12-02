@@ -74,7 +74,11 @@ rc_e start_parsing()
     rc_e ret;
     symtable_init(&symtable);
     ret = rule_PROG() ? RC_OK : rc;
-    gen_function_call_list();
+
+    if (ret == RC_OK) {
+        gen_function_call_list();
+    }
+
     symtable_destroy(&symtable);
     return ret;
 }

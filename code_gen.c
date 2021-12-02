@@ -539,6 +539,13 @@ static void gen_tointeger(void)
     tstack_init(&in_params);
 
     gen_func_start("tointeger", &in_params, 1);
+
+    puts("TYPE GF@%tmp1 LF@%p0");
+    puts("JUMPIFNEQ $-tointeger-ok GF@%tmp1 string@nil");
+    puts("MOVE LF@%retval0 nil@nil");
+    puts("POPFRAME");
+    puts("RETURN");
+    puts("LABEL $-tointeger-ok");
     puts("FLOAT2INT LF@%retval0 LF@%p0");
     puts("POPFRAME");
     puts("RETURN");

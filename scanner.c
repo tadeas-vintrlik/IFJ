@@ -418,7 +418,7 @@ T_token *get_next_token()
 
             break;
         case STATE_LINE_COMMENT:
-            if (c == '\n') {
+            if (c == '\n' || c == EOF) {
                 state = STATE_START;
                 ungetc(c, stdin);
             }

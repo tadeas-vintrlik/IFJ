@@ -6,7 +6,12 @@ function x() : integer, string
 end
 
 function main()
-    local a : integer = x()
+    local a : integer
+    local b : string
+
+    a, b = x()
+
+    write(a, "\n", b)
 end
 
 main()

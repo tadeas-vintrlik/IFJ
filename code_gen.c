@@ -332,6 +332,7 @@ void gen_function_call_list(void)
     }
 
     sll_destroy(&call_list, true);
+    puts("EXIT int@0");
 }
 
 void gen_expr_operand(T_token *token)
@@ -407,9 +408,11 @@ void gen_expr_operator(T_token *token)
         puts("ORS");
         break;
     case TOKEN_DIVISION:
+        puts("CALL $-check-div-error");
         puts("DIVS");
         break;
     case TOKEN_FLOOR_DIVISION:
+        puts("CALL $-check-div-error");
         puts("IDIVS");
         break;
     case TOKEN_MUL:
@@ -627,6 +630,25 @@ static void gen_builtin_write(void)
     puts("RETURN");
 }
 
+static void gen_check_div_error(void)
+{
+    puts("LABEL $-check-div-error");
+    puts("POPS GF@%tmp1");
+    puts("DEFVAR GF@%tmp2");
+    puts("TYPE GF@%tmp2 GF@%tmp1");
+    puts("JUMPIFEQ $-div-integer GF@%tmp2 string@int");
+    puts("JUMPIFEQ $-div-err GF@%tmp1 float@0x0p+0");
+    puts("JUMP $-div-ok");
+    puts("LABEL $-div-integer");
+    puts("JUMPIFEQ $-div-err GF@%tmp1 int@0");
+    puts("LABEL $-div-ok");
+    puts("PUSHS GF@%tmp1");
+    puts("RETURN");
+    puts("LABEL $-div-err");
+    puts("WRITE string@Zero\032Division\032Error!\010");
+    puts("EXIT int@9");
+}
+
 static void generate_built_ins(void)
 {
     gen_reads();
@@ -637,4 +659,5 @@ static void generate_built_ins(void)
     gen_ord();
     gen_chr();
     gen_builtin_write();
+    gen_check_div_error();
 }

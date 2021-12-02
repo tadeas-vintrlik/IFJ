@@ -134,6 +134,7 @@ test_run ./source_codes/expr2.tl OK
 test_run ./source_codes/fun.tl OK
 test_run ./source_codes/hello.tl OK
 test_run ./source_codes/multiassign.tl OK
+test_run ./source_codes/less_left_sides.tl OK
 test_run ./source_codes/assign_num_int.tl OK
 test_run ./source_codes/sc_1 OK
 test_run ./source_codes/substr.tl OK

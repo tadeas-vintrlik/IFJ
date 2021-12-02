@@ -26,11 +26,9 @@ void gen_prog_start(void);
 void gen_func_start(const char *func_name, tstack_s *in_param, unsigned no_returns);
 
 /**
- * @brief Generates end of the function. Pushes return values into TF. Returns.
- *
- * @param[in] return_vals Stack of all the return values to push onto TF.
+ * @brief Generates end of the function. Returns.
  */
-void gen_func_end(tstack_s *return_vals);
+void gen_func_end();
 
 /**
  * @brief Generates a conditional jump to else label if the content of GF@%tmp1 is a boolean@false.

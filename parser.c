@@ -789,7 +789,6 @@ static bool assign_expressions_to_left_ids(sll_s *left_side_ids, unsigned line)
         if (!first) {
             T_token *token = get_next_token();
 
-            /* Skip commas between expressions */
             if (token->type != TOKEN_COMMA) {
                 unget_token(token);
                 break;
@@ -858,21 +857,22 @@ static bool evaluate_return_expressions(unsigned line)
 
     unsigned expr_index = 0;
     while (sll_is_active(out_params)) {
-        T_token *token = get_next_token();
+        if (expr_index > 0) {
+            T_token *token = get_next_token();
 
-        /* Skip commas between expressions */
-        if (token->type == TOKEN_COMMA) {
+            if (token->type != TOKEN_COMMA) {
+                unget_token(token);
+                break;
+            }
+
             token_destroy(token);
-        } else {
-            unget_token(token);
         }
 
         symbol_type_e expr_type;
         if (!rule_EXPR(&expr_type)) {
             if (rc == RC_OK) {
-                /* TODO: Is this the right error? */
-                ERR_MSG("Not enough return values for function.\n", line);
-                rc = RC_SEM_OTHER_ERR;
+                // If there is no next expression here, the return statement is correct
+                break;
             }
             return false;
         }
@@ -890,6 +890,20 @@ static bool evaluate_return_expressions(unsigned line)
 
         expr_index++;
         sll_next(out_params);
+    }
+
+    if (!sll_is_active(out_params)) {
+        T_token *token = get_next_token();
+
+        if (token->type == TOKEN_COMMA) {
+            token_destroy(token);
+
+            ERR_MSG("Too many expressions in return statement.", line);
+            rc = RC_SEM_CALL_ERR;
+            return false;
+        }
+
+        unget_token(token);
     }
 
     return true;

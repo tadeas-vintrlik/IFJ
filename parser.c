@@ -783,16 +783,22 @@ static bool assign_call_to_left_ids(sll_s *left_side_ids, T_token *fun_symbol, u
 static bool assign_expressions_to_left_ids(sll_s *left_side_ids, unsigned line)
 {
     sll_activate(left_side_ids);
+    bool first = true;
 
     while (sll_is_active(left_side_ids)) {
-        T_token *token = get_next_token();
+        if (!first) {
+            T_token *token = get_next_token();
 
-        /* Skip commas between expressions */
-        if (token->type == TOKEN_COMMA) {
+            /* Skip commas between expressions */
+            if (token->type != TOKEN_COMMA) {
+                unget_token(token);
+                break;
+            }
+
             token_destroy(token);
-        } else {
-            unget_token(token);
         }
+
+        first = false;
 
         symbol_type_e expr_type;
         if (!rule_EXPR(&expr_type)) {
@@ -814,6 +820,22 @@ static bool assign_expressions_to_left_ids(sll_s *left_side_ids, unsigned line)
 
         sll_next(left_side_ids);
     }
+
+    if (sll_is_active(left_side_ids)) {
+        ERR_MSG("Not enough expressions on right side of assignment.\n", line);
+        rc = RC_SEM_ASSIGN_ERR;
+        return false;
+    }
+
+    T_token *token = get_next_token();
+
+    if (token->type == TOKEN_COMMA) {
+        ERR_MSG("Too many expressions on right side of assignment.\n", line);
+        rc = RC_SEM_ASSIGN_ERR;
+        return false;
+    }
+
+    unget_token(token);
 
     tstack_reverse(&left_side_ids);
     sll_activate(left_side_ids);

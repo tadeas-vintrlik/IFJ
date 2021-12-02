@@ -244,12 +244,8 @@ bool sem_check_decl_def_params(T_token *token, tstack_s *in_params, rc_e *rc)
     if (!token_list_types_identical(token->fun_info->in_params, in_params)) {
         ERR_MSG("Mismatch in definition and declaration parameter types.", token->line);
         *rc = RC_SEM_UNDEF_ERR;
-        tstack_destroy(in_params);
-        FREE(in_params);
         return false;
     }
-    tstack_destroy(token->fun_info->in_params);
-    FREE(token->fun_info->in_params);
     return true;
 }
 
@@ -258,12 +254,8 @@ bool sem_check_decl_def_returns(T_token *token, tstack_s *out_params, rc_e *rc)
     if (!token_list_types_identical(token->fun_info->out_params, out_params)) {
         ERR_MSG("Mismatch in definition and declaration return types.", token->line);
         *rc = RC_SEM_UNDEF_ERR;
-        tstack_destroy(out_params);
-        FREE(out_params);
         return false;
     }
-    tstack_destroy(token->fun_info->out_params);
-    FREE(token->fun_info->out_params);
     return true;
 }
 

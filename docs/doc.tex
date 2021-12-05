@@ -211,6 +211,25 @@ Implementuje mimo jiné i zásobník tokenů, aby mohl syntaktický analyzátor 
 
 \subsubsection{Případy nepokryté LL-gramatikou} %TODO
 
+\subsubsection{Precedenční tabulka}
+
+\begin{center}
+\scalebox{0.8}{
+\begin{tabular}{l || c | c | c | c | c | c | c | c | c |}
+                                  & \ter{\#} & \ter{*},\ter{/},\ter{//} & \ter{+},\ter{-} & \ter{..} & \ter{<},\ter{~=},\ \dots & \ter{(} & \ter{)} & \ter{id} & \ter{\$} \\\hline
+     \ter{\#}                     & >        & >                        & >               & >        & >                        & <       & >       & <        & > \\\hline
+     \ter{*},\ter{/},\ter{//}     & <        & >                        & >               & >        & >                        & <       & >       & <        & > \\\hline
+     \ter{+},\ter{-}              & <        & <                        & >               & >        & >                        & <       & >       & <        & > \\\hline
+     \ter{..}                     & <        & <                        & <               & <        & >                        & <       & >       & <        & > \\\hline
+     \ter{<},\ter{~=},\ \dots     & <        & <                        & <               & <        & X                        & <       & >       & <        & > \\\hline
+     \ter{(}                      & <        & <                        & <               & <        & <                        & <       & =       & <        & X \\\hline
+     \ter{)}                      & X        & >                        & >               & >        & >                        & X       & >       & X        & > \\\hline
+     \ter{id}                     & X        & >                        & >               & >        & >                        & <       & >       & X        & > \\\hline
+     \ter{\$}                     & <        & <                        & <               & <        & <                        & <       & X       & <        & X \\\hline
+\end{tabular}
+}
+\end{center}
+
 
 
 \subsection{Sémantické kontroly}%TODO

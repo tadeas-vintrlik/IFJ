@@ -124,11 +124,11 @@ Pro verzování projektu byl využit GitHub.
 
 Lexikální analyzátor je implementován v souboru \texttt{scanner.c}.
 
-Implementuje mimo jiné i zásobník tokenů, aby mohl syntaktický analyzátor vracet nechtěné tokeny zpět (\texttt{unget\_token(T\_token* token)}).
+Využívá mimo jiné i zásobník tokenů [\ref{tstack}], aby mohl syntaktický analyzátor vracet nechtěné tokeny zpět (\texttt{unget\_token(T\_token* token)}).
 
 \subsubsection{Diagram konečného automatu}
 
-\includegraphics[width=\linewidth]{inc/automaton.pdf}
+\includegraphics[width=\linewidth]{./inc/automaton.pdf}
 
 \subsection{Syntaktický analyzátor}
 
@@ -236,6 +236,24 @@ Implementuje mimo jiné i zásobník tokenů, aby mohl syntaktický analyzátor 
 
 \subsection{Generování kódu}%TODO
 
-\subsection{Tabulka symbolů}%TODO
+\subsection{Tabulka symbolů}
+Podle zvolené varianty zadání jsme měli implementovat Tabulku symbolů pomocí binárních vyhledávacích stromů.
+Pro implementaci bylo použito hned několik abstraktních datových struktur.
+
+\subsubsection{AVL Strom}
+Jako základní datová struktura tabulky byl použit binární vyhledávací strom, konkrétně jejich samovyvažující varianta dvou Ruských matematiků Adeľson-Velského and Landise. Základ zdrojového kódu byl přebrán z druhého projektu z předmětu Algoritmy a doplňen, aby odpovídal specifikaci AVL stromů. Implementace se nachází v souboru \texttt{avl.c}.
+
+\subsubsection{Jednosměrně svázaný seznam}
+Jednosměrně svázaný seznam byla další datová struktura použitá nejen v tabulce symbolů, ale v rámci celého projektu
+a sloužila jako základ pro abstraktní datový typ zásobník\label{tstack}. Implementace se nachází v souborech \texttt{sll.c} a \texttt{token\_stack.c}.
+\\ \\
+V tabulce symbolů jsou tyto dvě struktury použity dohromady, kdy celá tabulka symbolů má následující rozložení:
+\begin{enumerate}
+    \item Globální AVL strom použitý pro funkce.
+    \item Zásobník AVL stromů pro lokální proměnné.
+\end{enumerate}
+
+Zásobník zde byl zvolen pro jeho vhodnost při simulování rámců platnosti.
+
 
 \end{document}

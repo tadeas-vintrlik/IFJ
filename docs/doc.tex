@@ -307,9 +307,7 @@ Vypisování cílového kódu na standardní výstup probíhá průběžně vol�
 
 Všechna návěští začínají pomlčkou, kterou nelze použít v IFJ21 v identifikátorech.
 
-Návěští podmíněných příkazů jsou číslována podle čítače, který při každém použití příkazu \texttt{if} či \texttt{while} inkrementuje.
-
-Návěští vestavěných funkcí začínají pomlčkou (tak jako u podmíněných příkazů), zatímco návěští uživatelských funkcí začínají procentem. %TODO TAKTO TO NEFUNGUJE ZATIM
+Návěští podmíněných příkazů jsou číslována podle čítače, který při každém použití příkazu \texttt{if} či \texttt{while} inkrementuje. Jsou navíc zakončeny pomlčkou, což znemožňuje kolize s funkcemi, které pomlčkou nekončí.
 
 
 \subsubsection{Parametry a návratové hodnoty funkcí}

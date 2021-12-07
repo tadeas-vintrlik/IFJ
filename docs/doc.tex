@@ -142,7 +142,7 @@ Lexikální analyzátor je implementován v souboru \texttt{scanner.c}.
 
 Datová struktura reprezentující tokeny je implementována v souboru \texttt{token\_stack.h}.
 
-Struktura je využívána nejen lexikálním analyzátorem, ale také tabulkou symbolů a během sémantických kontrol. Z tohotu důvodu obsahuje informace nejen o typu lexémy a atribut, ale také o datovém typu.
+Struktura je využívána nejen lexikálním analyzátorem, ale také tabulkou symbolů a během sémantických kontrol. Z tohoto důvodu obsahuje informace nejen o typu lexémy a atribut, ale také o datovém typu.
 
 Při deklaraci proměnných a funkcí se jednoduše vezme token od scanneru, přiřadí se mu sémantické informace a je uložen do tabulky symbolů.
 
@@ -299,14 +299,39 @@ Jelikož v jazyce IFJ21 nejsou ukončovače výrazů, precedenční analyzátor 
 
 Sémantické kontroly jsou implementovány v souboru \texttt{semantics.c}.
 
-\subsection{Generování kódu}%TODO
+\subsection{Generování kódu}
+
+Vypisování cílového kódu na standardní výstup probíhá průběžně voláním funkcí implementovaných v souboru \texttt{code\_gen.c}. 
+
+\subsubsection{Řešení kolizí v návěštích u podmíněných příkazů a funkcí}
+
+Všechna návěští začínají pomlčkou, kterou nelze použít v IFJ21 v identifikátorech.
+
+Návěští podmíněných příkazů jsou číslována podle čítače, který při každém použití příkazu \texttt{if} či \texttt{while} inkrementuje.
+
+Návěští vestavěných funkcí začínají pomlčkou (tak jako u podmíněných příkazů), zatímco návěští uživatelských funkcí začínají procentem. %TODO TAKTO TO NEFUNGUJE ZATIM
+
+
+\subsubsection{Parametry a návratové hodnoty funkcí}
+
+Před zavoláním funkce je vytvořen Temporary Frame, do kterého jsou přiřazeny potřebné parametry (\texttt{TF@\%pN}), včetně případného přetypování.
+
+Funkce po zavolání provede \texttt{PUSHFRAME} a přesune získané parametry do patřičných lokálních proměnných.
+
+Návratové hodnoty se ukládají do \texttt{LF@\%retvalN}. Po dokončení funkce se provede \texttt{POPFRAME} a volající z Temporary Frame přesune návratové hodnoty do lokálních proměnných (u volání s přiřazením).
+
+\subsubsection{Vyhodnocování výrazů}
+
+Kód pro vyhodnocování výrazů je generován přímo při precedenční analýze při redukci. K vyhodnocování je v IFJcode21 využíván datový zásobník. 
+
+Při přiřazování jsou nejdříve všechny výrazy vyhodnoceny (tím pádem zůstanou na datovém zásobníku) a poté pomocí \texttt{POPS LF@\dots} přiřazeny.
 
 \subsection{Tabulka symbolů}\label{sec_symtable}
 Podle zvolené varianty zadání jsme měli implementovat Tabulku symbolů pomocí binárních vyhledávacích stromů.
 Pro implementaci bylo použito hned několik abstraktních datových struktur.
 
 \subsubsection{AVL Strom}
-Jako základní datová struktura tabulky byl použit binární vyhledávací strom, konkrétně jejich samovyvažující varianta dvou Ruských matematiků Adeľson-Velského and Landise. Základ zdrojového kódu byl přebrán z druhého projektu z předmětu Algoritmy a doplňen, aby odpovídal specifikaci AVL stromů. Implementace se nachází v souboru \texttt{avl.c}.
+Jako základní datová struktura tabulky byl použit binární vyhledávací strom, konkrétně jejich samovyvažující varianta dvou Ruských matematiků Adeľson-Velského a Landise. Základ zdrojového kódu byl přebrán z druhého projektu z předmětu Algoritmy a doplněn, aby odpovídal specifikaci AVL stromů. Implementace se nachází v souboru \texttt{avl.c}.
 
 \subsubsection{Jednosměrně svázaný seznam}
 Jednosměrně svázaný seznam byla další datová struktura použitá nejen v tabulce symbolů, ale v rámci celého projektu

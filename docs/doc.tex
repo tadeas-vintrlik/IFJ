@@ -149,7 +149,7 @@ Při deklaraci proměnných a funkcí se jednoduše vezme token od scanneru, př
 Umožňuje to také například přiřazovat datový typ literálům teprve vráceným lexikálním analyzátorem, což usnadňuje analýzu výrazů.
 
 
-\subsubsection{Funkce \texttt{unget\_token(T\_token*)}}
+\subsubsection{Funkce \texttt{unget\_token(T\_token*)}}\label{sec_unget_token}
 
 Jelikož se syntaktický analyzátor nemůže u některých konstrukcí jazyka IFJ21 jednoznačně rozhodnout podle jednoho tokenu, implementuje scanner funkci pro vracení tokenů zpět.
 
@@ -256,9 +256,23 @@ U pravidla \nter{STAT\_LIST} by tedy nastala kolize v množině \emph{First}.
 
 Rozhodnutí, který případ ve zpracovaném zdrojovém kódu nastal, probíhá získáním tokenu za identifikátorem.
 
-Jestliže tento token je \ter{(}, oba tokeny jsou vráceny scanneru a pokračuje se pravidlem \texttt{rule\_\nter{CALL}}. V opačném případě se předpokládá přiřazení -- sesbírají se identifikátory na levé straně (\texttt{left\_side\_function}) a předají se funkci zpracovávající přiřazení (\texttt{right\_side\_function}). 
+Jestliže tento token je \ter{(}, oba tokeny jsou vráceny scanneru [\ref{sec_unget_token}] a pokračuje se pravidlem \texttt{rule\_\nter{CALL}}. V opačném případě se předpokládá přiřazení -- sesbírají se identifikátory na levé straně (\texttt{left\_side\_function}) a předají se funkci zpracovávající přiřazení (\texttt{right\_side\_function}). 
 
 Zda na pravé straně je volání či seznam výrazů se určuje téměř identickým způsobem.
+
+\subsection{Precedenční analýza}
+
+Analyzátor výrazů je implementován v souboru \texttt{exp\_parser.c}.
+
+Jelikož v jazyce IFJ21 nejsou ukončovače výrazů, precedenční analyzátor rozlišuje následující případy:
+
+\begin{enumerate}
+	\item Doposud přečtený výraz je platný a byl přečten nečekaný token -- výraz je označen za platný, nečekaný token vrácen a řízení předáno top-down parseru
+
+	\item Přečtený výraz je zatím prázdný a hned první token je nečekaný -- výraz je označen za prázdný, nečekaný token vrácen a řízení předáno top-down parseru (ten nepřítomnost výrazu může buď schválit, či zamítnout)
+	
+	\item Přijatý výraz není platný a byl přečten nečekaný token -- syntaktická chyba
+\end{enumerate}
 
 \subsubsection{Precedenční tabulka}
 

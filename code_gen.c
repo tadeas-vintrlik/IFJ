@@ -186,7 +186,7 @@ unsigned gen_jump_else(void)
 {
     unsigned ret;
     puts("POPS GF@%tmp1");
-    printf("JUMPIFNEQ $-else%d GF@%%tmp1 bool@true\n", counter);
+    printf("JUMPIFNEQ $-else-%d GF@%%tmp1 bool@true\n", counter);
     ret = counter;
     counter++;
     return ret;
@@ -194,30 +194,30 @@ unsigned gen_jump_else(void)
 
 void gen_else_label(unsigned label_number)
 {
-    printf("JUMP $-end%d\n", label_number);
-    printf("LABEL $-else%d\n", label_number);
+    printf("JUMP $-end-%d\n", label_number);
+    printf("LABEL $-else-%d\n", label_number);
 }
 
-void gen_if_end(unsigned label_number) { printf("LABEL $-end%d\n", label_number); }
+void gen_if_end(unsigned label_number) { printf("LABEL $-end-%d\n", label_number); }
 
 unsigned gen_while_label(void)
 {
     unsigned ret;
-    printf("LABEL $-while%d\n", counter);
+    printf("LABEL $-while-%d\n", counter);
     ret = counter;
     counter++;
     return ret;
 }
 
-void gen_while_jump_loop(unsigned label_number) { printf("JUMP $-while%d\n", label_number); }
+void gen_while_jump_loop(unsigned label_number) { printf("JUMP $-while-%d\n", label_number); }
 
 void gen_while_jump_end(unsigned label_number)
 {
     puts("POPS GF@%tmp1");
-    printf("JUMPIFNEQ $-end%d GF@%%tmp1 bool@true\n", label_number);
+    printf("JUMPIFNEQ $-end-%d GF@%%tmp1 bool@true\n", label_number);
 }
 
-void gen_while_end_label(unsigned label_number) { printf("LABEL $-end%d\n", label_number); }
+void gen_while_end_label(unsigned label_number) { printf("LABEL $-end-%d\n", label_number); }
 
 static void gen_push_arg(T_token *fun_symbol, tstack_s *in_params)
 {

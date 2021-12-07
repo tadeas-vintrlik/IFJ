@@ -25,6 +25,7 @@
 \setcounter{rulenum}{1}
 \newcommand{\nter}[1]{\textcolor{blue}{\,#1\,}}
 \newcommand{\ter}[1]{\textbf{\textcolor{red}{\,#1\,}}}
+\newcommand{\precter}[1]{\textcolor{orange}{\,#1\,}}
 \newcommand{\grule}[2]{{\small\arabic{rulenum}. \stepcounter{rulenum} \nter{#1} $\to$ #2}\\}
 \newcommand{\drule}[2]{\checkmark \grule{#1}{#2}}
 
@@ -160,6 +161,8 @@ Syntaktický analyzátor je implementován v souboru \texttt{parser.c}.
 
 Jako metodu pro analýzu shora-dolů jsme zvolili rekurzivní sestup. Pojmenování funkcí v kódu je vždy ve tvaru \texttt{rule\_\nter{NTER}}, kde \texttt{\nter{NTER}} je jeden z neterminálů uvedených na levé straně gramatických pravidel [\ref{sec_grammar}].
 
+\newpage
+
 \subsubsection{LL-gramatika}\label{sec_grammar}
 
 	\grule{PROG}{\ter{require} \ter{lit\_string} \nter{CODE}}
@@ -170,7 +173,7 @@ Jako metodu pro analýzu shora-dolů jsme zvolili rekurzivní sestup. Pojmenová
 	\grule{TOP\_ELEM}{\nter{DEF}}
 	\grule{DECL}{\ter{global} \ter{id} \ter{:} \ter{function} \ter{(}\nter{TYPE\_LIST}\ter{)} \nter{RET\_LIST}}
 	\grule{DEF}{\ter{function} \ter{id} \ter{(} \nter{PARAM\_LIST} \ter{)} \nter{RET\_LIST} \nter{BODY} \ter{end}}
-	\grule{CALL}{\ter{id} \ter{(} \nter{ARG\_LIST} \ter{)}} % TODO Toto by melo fungovat jenom pro konstanty jako parametry, volani funkci uvnitr funkci bude resit magic funkce
+	\grule{CALL}{\ter{id} \ter{(} \nter{ARG\_LIST} \ter{)}}
 	\grule{RET\_LIST}{\ter{:} \nter{TYPE} \nter{NEXT\_TYPE}}
 	\grule{RET\_LIST}{\ter{$\epsilon$}}
 	\grule{TYPE\_LIST}{\nter{TYPE} \nter{NEXT\_TYPE}}
@@ -200,8 +203,8 @@ Jako metodu pro analýzu shora-dolů jsme zvolili rekurzivní sestup. Pojmenová
 	\grule{STAT\_LIST}{\nter{VAR\_DECL} \nter{STAT\_LIST}}
 	\grule{STAT\_LIST}{\nter{IF\_ELSE} \nter{STAT\_LIST}}
 	\grule{STAT\_LIST}{\nter{WHILE} \nter{STAT\_LIST}}
-	\grule{STAT\_LIST}{\ter{return} \nter{ARG\_LIST}}
-	\grule{VAR\_DECL}{\ter{local} \ter{id} \ter{:} \nter{TYPE} \ter{=} \nter{INIT\_VAL}}
+	\grule{STAT\_LIST}{\ter{return} \precter{EXPR\_LIST}}
+	\grule{VAR\_DECL}{\ter{local} \ter{id} \ter{:} \nter{TYPE} \ter{=} \precter{EXPR}}
 	\grule{IF\_ELSE}{\ter{if} \nter{EXPR} \ter{then} \nter{BODY} \ter{else} \nter{BODY} \ter{end}}
 	\grule{WHILE}{\ter{while} \nter{EXPR} \ter{do} \nter{BODY} \ter{end}}
 
@@ -237,7 +240,25 @@ Jako metodu pro analýzu shora-dolů jsme zvolili rekurzivní sestup. Pojmenová
 }
 \end{center}
 
-\subsubsection{Případy nepokryté LL-gramatikou} %TODO
+\subsubsection{Konstrukce nepokryté LL-gramatikou} %TODO
+
+V jazyce IFJ21 jsou dvě konstrukce, které porušují LL(1) -- jsou to příkazy \emph{přiřazení} a \emph{volání funkce bez přiřazení}:
+
+\begin{enumerate}
+	\item \texttt{\ter{id}\ter{(}\nter{ARG\_LIST}\ter{)}}
+
+	\item \texttt{\ter{id}\ter{,}\ter{id}\ter{,}\dots \ter{=} \precter{EXPR}\ter{,}\precter{EXPR}\ter{,}\dots}
+
+	\item \texttt{\ter{id}\ter{,}\ter{id}\ter{,}\dots \ter{=} \ter{id} \ter{(} \nter{ARG\_LIST} \ter{)}}
+\end{enumerate}
+
+U pravidla \nter{STAT\_LIST} by tedy nastala kolize v množině \emph{First}.
+
+Rozhodnutí, který případ ve zpracovaném zdrojovém kódu nastal, probíhá získáním tokenu za identifikátorem.
+
+Jestliže tento token je \ter{(}, oba tokeny jsou vráceny scanneru a pokračuje se pravidlem \texttt{rule\_\nter{CALL}}. V opačném případě se předpokládá přiřazení -- sesbírají se identifikátory na levé straně (\texttt{left\_side\_function}) a předají se funkci zpracovávající přiřazení (\texttt{right\_side\_function}). 
+
+Zda na pravé straně je volání či seznam výrazů se určuje téměř identickým způsobem.
 
 \subsubsection{Precedenční tabulka}
 

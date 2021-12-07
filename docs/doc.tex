@@ -8,6 +8,7 @@
 \usepackage[czech]{babel}
 \usepackage{color}
 \usepackage{parskip}
+\usepackage{algorithm2e}
 
 \usepackage{tikz}
 \def\checkmark{\tikz\fill[green,scale=0.4](0,.35) -- (.25,0) -- (1,.7) -- (.25,.15) -- cycle;} 
@@ -62,13 +63,18 @@
 
 \newpage
 
-\section{Rozdělení práce v týmu}
+\section{Spolupráce v týmu}
 
-Při práci na projektu jsme využívali metodu párového programování. Komunikace probíhala přes Discord a pravidelně jsme se scházeli i osobně.
+Při práci na projektu jsme využívali metodu párového programování. Díky pravidelným setkáním, osobně i přes Discord, měl každý přehled o dění v projektu a nebylo nutné využívat nástroje, jako je Trello.
 
-Pro verzování projektu byl využit GitHub.
+Pro verzování zdrojových kódu projektu jsme využívali GitHub.
 
-\subsection{Tadeáš Vintrlík}
+
+\subsection{Rozdělení práce}
+
+
+
+\subsubsection{Tadeáš Vintrlík}
 
 \begin{itemize}
 	\item Tabulka symbolů
@@ -84,25 +90,27 @@ Pro verzování projektu byl využit GitHub.
 	\item Precedenční analyzátor
 \end{itemize}
 
-\subsection{Kryštof Albrecht}
+\subsubsection{Kryštof Albrecht}
 
 \begin{itemize}
-	\item Lexikální analyzátor
-
 	\item Syntaktický analyzátor shora-dolů
+
+	\item Lexikální analyzátor
 	
 	\item LL-gramatika
 \end{itemize}
 
-\subsection{Josef Škorpík}
+\subsubsection{Josef Škorpík}
 
 \begin{itemize}
+	\item Automat pro lexikální analýzu
+
 	\item Lexikální analyzátor
 	
 	\item Syntaktický analyzátor shora-dolů
 \end{itemize}
 
-\subsection{Jakub Kozubek}
+\subsubsection{Jakub Kozubek}
 
 \begin{itemize}
 	\item Generování kódu
@@ -124,15 +132,35 @@ Pro verzování projektu byl využit GitHub.
 
 Lexikální analyzátor je implementován v souboru \texttt{scanner.c}.
 
-Využívá mimo jiné i zásobník tokenů [\ref{tstack}], aby mohl syntaktický analyzátor vracet nechtěné tokeny zpět (\texttt{unget\_token(T\_token* token)}).
 
 \subsubsection{Diagram konečného automatu}
 
 \includegraphics[width=\linewidth]{./inc/automaton.pdf}
 
+\subsubsection{Reprezentace tokenů a symbolů}
+
+Datová struktura reprezentující tokeny je implementována v souboru \texttt{token\_stack.h}.
+
+Struktura je využívána nejen lexikálním analyzátorem, ale také tabulkou symbolů a během sémantických kontrol. Z tohotu důvodu obsahuje informace nejen o typu lexémy a atribut, ale také o datovém typu.
+
+Při deklaraci proměnných a funkcí se jednoduše vezme token od scanneru, přiřadí se mu sémantické informace a je uložen do tabulky symbolů.
+
+Umožňuje to také například přiřazovat datový typ literálům teprve vráceným lexikálním analyzátorem, což usnadňuje analýzu výrazů.
+
+
+\subsubsection{Funkce \texttt{unget\_token(T\_token*)}}
+
+Jelikož se syntaktický analyzátor nemůže u některých konstrukcí jazyka IFJ21 jednoznačně rozhodnout podle jednoho tokenu, implementuje scanner funkci pro vracení tokenů zpět.
+
+Tato funkce natlačí token na zásobník tokenů [\ref{tstack}], ze kterého potom bere funkce \texttt{get\_next\_token()} tokeny přednostně.
+
 \subsection{Syntaktický analyzátor}
 
-\subsubsection{LL-gramatika}
+Syntaktický analyzátor je implementován v souboru \texttt{parser.c}.
+
+Jako metodu pro analýzu shora-dolů jsme zvolili rekurzivní sestup. Pojmenování funkcí v kódu je vždy ve tvaru \texttt{rule\_\nter{NTER}}, kde \texttt{\nter{NTER}} je jeden z neterminálů uvedených na levé straně gramatických pravidel [\ref{sec_grammar}].
+
+\subsubsection{LL-gramatika}\label{sec_grammar}
 
 	\grule{PROG}{\ter{require} \ter{lit\_string} \nter{CODE}}
 	\grule{CODE}{\ter{$\epsilon$}}
@@ -232,11 +260,11 @@ Využívá mimo jiné i zásobník tokenů [\ref{tstack}], aby mohl syntaktický
 
 
 
-\subsection{Sémantické kontroly}%TODO
+\subsection{Sémantické kontroly}\label{sec_semantics}
 
 \subsection{Generování kódu}%TODO
 
-\subsection{Tabulka symbolů}
+\subsection{Tabulka symbolů}\label{sec_symtable}
 Podle zvolené varianty zadání jsme měli implementovat Tabulku symbolů pomocí binárních vyhledávacích stromů.
 Pro implementaci bylo použito hned několik abstraktních datových struktur.
 

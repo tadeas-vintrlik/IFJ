@@ -7,7 +7,7 @@ IFJ Compiler project - compiles a subset of the Teal language (statically typed 
 - Create a branch based on **devel** and then create a Pull Request once done with the changes.
 ```
 git checkout devel
-git brach -c new
+git branch -c new
 git checkout new
 ```
 - A Pull Request **must** be reviewed by the file owner (the top-most author) before merging.
